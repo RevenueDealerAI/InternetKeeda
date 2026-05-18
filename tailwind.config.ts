@@ -146,6 +146,10 @@ export default {
           "0%": { "background-position": "-200% 0" },
           "100%": { "background-position": "200% 0" },
         },
+        "dot-drift": {
+          "0%":   { "background-position": "0px 0px, 0px 0px" },
+          "100%": { "background-position": "40px 40px, 40px 40px" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -154,6 +158,7 @@ export default {
         "fade-in-up": "fade-in-up 0.5s ease-out",
         "gradient-shift": "gradient-shift 8s ease infinite",
         "shimmer": "shimmer 1.5s linear infinite",
+        "dot-drift": "dot-drift 30s linear infinite",
       },
     },
   },

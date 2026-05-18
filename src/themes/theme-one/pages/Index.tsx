@@ -462,8 +462,8 @@ export default function Index() {
       <ExploreCategories />
 
       <AdSlot position="content-top" maxAds={4} showTitle={true} />
-      
-      <div className="container mx-auto px-4 py-8">
+
+      <div id="tool-grid" data-tool-grid className="container mx-auto px-4 py-8 scroll-mt-20">
         {/* Filter Bar */}
         <div className="mb-8">
           <FilterBar
