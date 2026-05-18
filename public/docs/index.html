@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Tool Finder - Ultimate Documentation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --primary: #10b981;
+            /* Green-500 from your theme */
+            --bg-dark: #0f172a;
+            /* Slate-900 */
+            --bg-card: #1e293b;
+            /* Slate-800 */
+            --text-main: #f8fafc;
+            /* Slate-50 */
+            --text-muted: #94a3b8;
+            /* Slate-400 */
+            --border: #334155;
+            /* Slate-700 */
+            --sidebar-width: 300px;
+        }
+
+        /* Light Mode Variables (Optional, defaulting to Dark for Premium feel) */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            line-height: 1.6;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        aside {
+            width: var(--sidebar-width);
+            background-color: var(--bg-card);
+            border-right: 1px solid var(--border);
+            height: 100vh;
+            position: fixed;
+            overflow-y: auto;
+            padding: 2rem 1.5rem;
+            transition: transform 0.3s ease;
+            z-index: 50;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary);
+        }
+
+        .nav-group {
+            margin-bottom: 2rem;
+        }
+
+        .nav-title {
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+
+        .nav-link {
+            display: block;
+            padding: 0.5rem 0.75rem;
+            color: var(--text-main);
+            text-decoration: none;
+            border-radius: 0.375rem;
+            margin-bottom: 0.25rem;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--primary);
+        }
+
+        /* Indented sub-links */
+        .nav-link.sub {
+            padding-left: 1.5rem;
+            font-size: 0.9em;
+            color: var(--text-muted);
+        }
+
+        /* Main Content */
+        main {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            padding: 3rem 4rem;
+            max-width: 1200px;
+        }
+
+        section {
+            margin-bottom: 5rem;
+            scroll-margin-top: 2rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+            background: linear-gradient(to right, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 2.5rem 0 1rem;
+            color: var(--text-main);
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        h3 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin: 2rem 0 1rem;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        h4 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 1.5rem 0 0.5rem;
+            color: #e2e8f0;
+        }
+
+        p {
+            margin-bottom: 1rem;
+            color: var(--text-muted);
+            font-size: 1.05rem;
+        }
+
+        ul,
+        ol {
+            margin-bottom: 1.5rem;
+            padding-left: 1.5rem;
+            color: var(--text-muted);
+        }
+
+        ul.step-list {
+            list-style: none;
+            padding-left: 0;
+            counter-reset: step;
+        }
+
+        ul.step-list li {
+            position: relative;
+            padding-left: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        ul.step-list li::before {
+            counter-increment: step;
+            content: counter(step);
+            position: absolute;
+            left: 0;
+            top: 2px;
+            width: 24px;
+            height: 24px;
+            background: var(--primary);
+            color: black;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+
+        /* Code Blocks */
+        pre {
+            background-color: #020617;
+            /* Even darker */
+            padding: 1.25rem;
+            border-radius: 0.75rem;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            border: 1px solid var(--border);
+        }
+
+        code {
+            font-family: 'Courier New', Courier, monospace;
+            color: var(--primary);
+            font-size: 0.9em;
+        }
+
+        p code {
+            background-color: rgba(255, 255, 255, 0.05);
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.25rem;
+            color: #e2e8f0;
+        }
+
+        /* Detailed Feature Cards */
+        .feature-detail-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 2rem;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .feature-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-icon-large {
+            width: 48px;
+            height: 48px;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+        }
+
+        /* Alerts/Callouts */
+        .callout {
+            background-color: rgba(16, 185, 129, 0.05);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .callout-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            aside {
+                transform: translateX(-100%);
+            }
+
+            aside.open {
+                transform: translateX(0);
+            }
+
+            main {
+                margin-left: 0;
+                padding: 1.5rem;
+            }
+
+            .menu-toggle {
+                display: block;
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                background: var(--primary);
+                color: white;
+                padding: 1rem;
+                border-radius: 50%;
+                z-index: 100;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            }
+        }
+
+        .menu-toggle {
+            display: none;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+    <button class="menu-toggle" onclick="document.querySelector('aside').classList.toggle('open')">
+        <i data-lucide="menu"></i>
+    </button>
+
+    <aside>
+        <div class="logo">
+            <i data-lucide="zap"></i> AI Tool Finder
+        </div>
+
+        <a href="/" class="nav-link"
+            style="margin-bottom: 2rem; border: 1px solid var(--border); text-align: center;">&larr; Back to Website</a>
+
+        <div class="nav-group">
+            <div class="nav-title">Start Here</div>
+            <a href="#introduction" class="nav-link active">Introduction</a>
+            <a href="#installation" class="nav-link">Installation</a>
+        </div>
+
+        <div class="nav-group">
+            <div class="nav-title">Admin Guide</div>
+            <a href="#admin-intro" class="nav-link">Accessing Admin</a>
+            <a href="#admin-tools" class="nav-link sub">Managing Tools</a>
+            <a href="#admin-categories" class="nav-link sub">Categories</a>
+            <a href="#admin-blog" class="nav-link sub">News & Blog</a>
+            <a href="#admin-sponsors" class="nav-link sub">Sponsorships</a>
+            <a href="#admin-settings" class="nav-link sub">Site Settings</a>
+        </div>
+
+        <div class="nav-group">
+            <div class="nav-title">User Guide</div>
+            <a href="#user-submissions" class="nav-link">Submitting Tools</a>
+            <a href="#user-bookmarks" class="nav-link">Bookmarks & Favorites</a>
+        </div>
+
+        <div class="nav-group">
+            <div class="nav-title">Advanced</div>
+            <a href="#feature-scraper" class="nav-link">Auto-Scraper</a>
+            <a href="#monetization" class="nav-link">Monetization Setup</a>
+            <a href="#deployment" class="nav-link">Deployment</a>
+        </div>
+    </aside>
+
+    <main>
+        <section id="introduction">
+            <h1>Documentation</h1>
+            <p>Welcome to the <strong>ultimate guide</strong> for your AI Tool Finder application. This documentation
+                covers everything from the initial setup for developers to a daily user guide for administrators.</p>
+        </section>
+
+        <!-- INSTALLATION SECTION (Brief) -->
+        <section id="installation">
+            <h2><i data-lucide="download"></i> Installation</h2>
+            <div class="feature-detail-card">
+                <ol class="step-list">
+                    <li><strong>Unzip the File:</strong> Extract the project folder.</li>
+                    <li><strong>Install Dependencies:</strong> Run <code>npm install</code> in your terminal.</li>
+                    <li><strong>Setup Environment:</strong> Rename <code>.env.example</code> to <code>.env.local</code>
+                        and fill in your keys (MongoDB, Clerk, Stripe).</li>
+                    <li><strong>Run Local Server:</strong> Execute <code>npm run dev</code> and go to
+                        <code>localhost:3000</code>.
+                    </li>
+                </ol>
+            </div>
+        </section>
+
+        <!-- ADMIN GUIDE SECTION -->
+        <section id="admin-intro">
+            <h2><i data-lucide="shield"></i> Admin Panel Guide</h2>
+            <p>The Admin Panel is the control center of your website. It allows you to manage content, users, and
+                revenue.</p>
+
+            <div class="callout">
+                <div class="callout-title">How to Access?</div>
+                <p>1. Sign up/Login to the website as a normal user.</p>
+                <p>2. In your database (MongoDB), find your user document and change the <code>role</code> field content
+                    to <code>admin</code>.</p>
+                <p>3. Refresh the page, and you will see the <strong>Admin Dashboard</strong> link in the profile menu.
+                </p>
+            </div>
+        </section>
+
+        <section id="admin-tools">
+            <h3>Managing Tools</h3>
+            <p>This is where you manage the AI tools listed on your site.</p>
+
+            <div class="feature-detail-card">
+                <h4><i data-lucide="plus-circle"></i> Adding a Tool</h4>
+                <p>Go to <strong>Admin > Tools</strong> and click "Add New Tool". Fill in the details like Name,
+                    Description, Website URL, and Pricing. You can upload a logo or provide a URL.</p>
+
+                <h4><i data-lucide="check-square"></i> Reviewing Pending Tools</h4>
+                <p>Tools found by the <strong>Auto-Scraper</strong> or submitted by users appear in the "Pending" tab.
+                </p>
+                <ul>
+                    <li><strong>Approve:</strong> Publishes the tool to the live site immediately.</li>
+                    <li><strong>Reject:</strong> Deletes the submission.</li>
+                    <li><strong>Edit:</strong> Modify details (like tags or description) before approving.</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="admin-categories">
+            <h3>Category Management</h3>
+            <p>Organize your tools into logical groups like "Chatbots", "Image Generators", etc.</p>
+            <ul class="step-list">
+                <li>Navigate to <strong>Admin > Categories</strong>.</li>
+                <li>Click <strong>New Category</strong>.</li>
+                <li>Enter a name (e.g., "Video Editing") and a slug (e.g., "video-editing").</li>
+                <li>Add a short description for SEO purposes.</li>
+            </ul>
+        </section>
+
+        <section id="admin-blog">
+            <h3>News & Blog System</h3>
+            <p>Drive traffic to your site by publishing articles.</p>
+            <div class="feature-detail-card">
+                <h4>Creating an Article</h4>
+                <p>Go to <strong>Admin > News</strong>. The editor supports rich text, so you can add <strong>bold
+                        text</strong>, lists, and headers.</p>
+
+                <h4>SEO Tips</h4>
+                <p>Always add a "Slug" (URL friendly name) and a "Excerpt" (short summary) as these are used by Google
+                    for search results. Set the status to "Published" to make it visible.</p>
+            </div>
+        </section>
+
+        <section id="admin-sponsors">
+            <h3>Sponsorships & Ads</h3>
+            <p>Manage your paid listings from <strong>Admin > Sponsorships</strong>.</p>
+            <ul>
+                <li><strong>Active Sponsorships:</strong> View which tools are currently paying for a "Featured" spot.
+                </li>
+                <li><strong>Advertising Plans:</strong> Create packages (e.g., "7 Days Featured for $50"). These plans
+                    appear to users when they try to promote their tool.</li>
+            </ul>
+        </section>
+
+        <section id="admin-settings">
+            <h3>Site Settings</h3>
+            <p>Configure global variables without touching code.</p>
+            <ul>
+                <li><strong>General:</strong> Site Name, Description, and Contact Email.</li>
+                <li><strong>SEO:</strong> Global meta tags and keywords.</li>
+                <li><strong>Social Links:</strong> Update your Twitter, Discord, or LinkedIn links in the footer.</li>
+            </ul>
+        </section>
+
+
+        <!-- USER GUIDE SECTION -->
+        <section id="user-submissions">
+            <h2><i data-lucide="users"></i> User Guide</h2>
+
+            <h3>Submitting a Tool</h3>
+            <p>Any logged-in user can submit a tool. This allows your directory to grow organically.</p>
+            <div class="feature-detail-card">
+                <ol class="step-list">
+                    <li>Click the <strong>"Submit Tool"</strong> button in the top navigation.</li>
+                    <li>Fill out the multi-step form (Basic Info, Details, Media).</li>
+                    <li><strong>Tip:</strong> Encourage users to add high-quality screenshots for better approval
+                        chances.</li>
+                    <li>Once submitted, the user can track the status (Pending/Approved) in their <strong>Profile
+                            Dashboard</strong>.</li>
+                </ol>
+            </div>
+        </section>
+
+        <section id="user-bookmarks">
+            <h3>Bookmarks & Usage</h3>
+            <ul>
+                <li><strong>Favorites:</strong> Users can click the <i data-lucide="bookmark"></i> icon on any tool card
+                    to save it for later. These are accessible in their Profile.</li>
+                <li><strong>Voting:</strong> Users can upvote tools. Tools with more votes rank higher in "Popular"
+                    sorting.</li>
+                <li><strong>Reviews:</strong> Users can leave 1-5 star ratings and written reviews on tool detail pages.
+                </li>
+            </ul>
+        </section>
+
+        <!-- ADVANCED SECTION -->
+        <section id="feature-scraper">
+            <h2><i data-lucide="bot"></i> Auto-Scraper Engine</h2>
+            <div class="feature-detail-card">
+                <p>The system includes a smart script that scrapes <strong>TopAI.tools</strong> for new listings. You
+                    can automate this process so your site gets new content every day without you lifting a finger.</p>
+
+                <h3><i data-lucide="play-circle"></i> Manual Trigger (Testing)</h3>
+                <p>You can run the scraper anytime by visiting this URL in your browser:</p>
+                <code
+                    style="display:block; padding: 1rem; background:black; border-radius: 0.5rem; word-break: break-all;">YOUR_DOMAIN/api/cron/scrape?key=YOUR_CRON_SECRET</code>
+                <p style="margin-top:0.5rem; font-size: 0.9rem; color: var(--text-muted);">Replace
+                    <code>YOUR_CRON_SECRET</code> with the value from your <code>.env.local</code> file.</p>
+
+                <hr style="border-color: var(--border); margin: 2rem 0;">
+
+                <h3><i data-lucide="clock"></i> Automating with Vercel Cron (Recommended)</h3>
+                <p>If you deploy on Vercel, automation is built-in. We have included a <code>vercel.json</code> file in
+                    the project for you.</p>
+                <ol class="step-list">
+                    <li>Ensure your project has a file named <code>vercel.json</code> in the root folder.</li>
+                    <li>It should contain the following configuration:</li>
+                </ol>
+                <pre><code>{
+  "crons": [
+    {
+      "path": "/api/cron/scrape?key=YOUR_CRON_SECRET",
+      "schedule": "0 0 * * *"
+    }
+  ]
+}</code></pre>
+                <div class="callout warning">
+                    <div class="callout-title">Important</div>
+                    <p style="margin-bottom:0">You must update the <code>path</code> in <code>vercel.json</code> to
+                        match your actual <code>CRON_SECRET</code> before deploying!</p>
+                </div>
+                <p>Once deployed, Vercel will automatically trigger this route once every day at midnight.</p>
+
+                <hr style="border-color: var(--border); margin: 2rem 0;">
+
+                <h3><i data-lucide="server"></i> Automating on VPS (Linux/Ubuntu)</h3>
+                <p>If you host on your own server (DigitalOcean, AWS, etc.), use the system's <code>crontab</code>.</p>
+                <ol class="step-list">
+                    <li>Connect to your server via SSH.</li>
+                    <li>Open the cron editor:
+                        <pre><code>crontab -e</code></pre>
+                    </li>
+                    <li>Add the following line to the bottom of the file:
+                        <pre><code>0 0 * * * curl "https://your-domain.com/api/cron/scrape?key=YOUR_CRON_SECRET" >/dev/null 2>&1</code></pre>
+                    </li>
+                    <li>Save and exit (Ctrl+X, then Y, then Enter).</li>
+                </ol>
+                <p><strong>Explanation:</strong> <code>0 0 * * *</code> means "Run at minute 0 of hour 0 (Midnight)
+                    every day".</p>
+            </div>
+        </section>
+
+        <section id="monetization">
+            <h2><i data-lucide="credit-card"></i> Monetization Setup</h2>
+            <p>To start earning money, you must configure Stripe.</p>
+            <ol class="step-list">
+                <li>Create a <strong>Stripe Account</strong>.</li>
+                <li>Get your <code>Publishable Key</code> and <code>Secret Key</code> from the Developer Dashboard.</li>
+                <li>Add them to your <code>.env.local</code> file.</li>
+                <li>Create a <strong>webhook endpoint</strong> in Stripe pointing to
+                    <code>https://your-domain.com/api/webhooks/stripe</code> and add the Signing Secret to your env
+                    file.
+                </li>
+            </ol>
+        </section>
+
+        <section id="support">
+            <h2><i data-lucide="life-buoy"></i> Support</h2>
+            <p>Need help with installation or customization? We are here to help!</p>
+
+            <div class="callout" style="border-color: var(--primary); background: rgba(16, 185, 129, 0.1);">
+                <div class="callout-title" style="color: var(--primary); font-size: 1.2rem;">WebBuddy Support Portal
+                </div>
+                <p>For the fastest response, please create a support ticket on our dedicated portal.</p>
+                <a href="https://envato.webbuddy.agency/" target="_blank"
+                    style="display: inline-flex; align-items: center; gap: 0.5rem; background: var(--primary); color: #000; padding: 0.75rem 1.5rem; border-radius: 0.5rem; text-decoration: none; font-weight: 600; margin-top: 0.5rem; transition: transform 0.2s;"
+                    onmouseover="this.style.transform='translateY(-2px)'"
+                    onmouseout="this.style.transform='translateY(0)'">
+                    <i data-lucide="ticket" style="width: 18px; height: 18px;"></i> Create Support Ticket
+                </a>
+            </div>
+        </section>
+
+        <script>
+            lucide.createIcons();
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    document.querySelector(this.getAttribute('href')).scrollIntoView({ behavior: 'smooth' });
+                    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+        </script>
+    </main>
+</body>
+
+</html>

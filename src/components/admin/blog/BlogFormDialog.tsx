@@ -1,0 +1,403 @@
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import Image from 'next/image';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { BlogPost } from "@/types/blog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useEffect } from "react";
+import { RichTextEditor } from "@/components/editor/RichTextEditor";
+import { User } from "lucide-react";
+
+const blogFormSchema = z.object({
+  title: z.string().min(2, "Title must be at least 2 characters"),
+  slug: z.string().min(1, "Slug is required"),
+  excerpt: z.string().min(10, "Excerpt must be at least 10 characters"),
+  content: z.string().min(50, "Content must be at least 50 characters"),
+  category: z.string().min(1, "Category is required"),
+  readTime: z.string().min(1, "Read time is required"),
+  imageUrl: z.string().min(1, "Image URL is required"),
+  tags: z.string().min(1, "At least one tag is required"),
+  status: z.enum(["draft", "published"]),
+  author: z.object({
+    name: z.string().min(2, "Author name must be at least 2 characters"),
+    avatar: z.string().url("Please enter a valid avatar URL"),
+  }),
+});
+
+type BlogFormValues = z.infer<typeof blogFormSchema>;
+
+interface BlogFormDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  post?: BlogPost;
+  onSubmit: (data: BlogFormValues) => Promise<void>;
+}
+
+export function BlogFormDialog({
+  open,
+  onOpenChange,
+  post,
+  onSubmit,
+}: BlogFormDialogProps) {
+  const form = useForm<BlogFormValues>({
+    resolver: zodResolver(blogFormSchema),
+    defaultValues: post ? {
+      title: post.title || "",
+      slug: post.slug || "",
+      excerpt: post.excerpt || "",
+      content: post.content || "",
+      category: post.category || "",
+      readTime: post.readTime || "",
+      imageUrl: post.imageUrl || "",
+      tags: Array.isArray(post.tags) ? post.tags.join(", ") : "",
+      status: post.status || "draft",
+      author: {
+        name: post.author?.name || "",
+        avatar: post.author?.avatar || "",
+      },
+    } : {
+      title: "",
+      slug: "",
+      excerpt: "",
+      content: "",
+      category: "",
+      readTime: "",
+      imageUrl: "",
+      tags: "",
+      status: "draft",
+      author: {
+        name: "",
+        avatar: "https://ui-avatars.com/api/?background=random",
+      },
+    },
+  });
+
+  // Reset form when post changes
+  useEffect(() => {
+    if (post) {
+      form.reset({
+        title: post.title || "",
+        slug: post.slug || "",
+        excerpt: post.excerpt || "",
+        content: post.content || "",
+        category: post.category || "",
+        readTime: post.readTime || "",
+        imageUrl: post.imageUrl || "",
+        tags: Array.isArray(post.tags) ? post.tags.join(", ") : "",
+        status: post.status || "draft",
+        author: {
+          name: post.author?.name || "",
+          avatar: post.author?.avatar || "",
+        },
+      });
+    }
+  }, [post, form]);
+
+  const handleSubmit = async (data: BlogFormValues) => {
+    try {
+      await onSubmit(data);
+      form.reset();
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Error submitting form:", error);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[725px] h-[90vh] p-0 flex flex-col">
+        <DialogHeader className="px-6 pt-6 pb-4">
+          <DialogTitle>
+            {post ? "Edit Blog Post" : "Create New Blog Post"}
+          </DialogTitle>
+        </DialogHeader>
+        <ScrollArea className="flex-1 px-6 overflow-visible">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6 pb-6">
+              <FormField
+                control={form.control}
+                name="title"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Title</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter post title" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="slug"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Slug</FormLabel>
+                    <FormControl>
+                      <Input placeholder="enter-post-slug" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="excerpt"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Excerpt</FormLabel>
+                    <FormControl>
+                      <div className="space-y-2">
+                        <RichTextEditor
+                          content={field.value}
+                          onChange={(html) => {
+                            field.onChange(html);
+                            form.trigger("excerpt");
+                          }}
+                          placeholder="Brief description of the post"
+                        />
+                        <div className="text-sm text-gray-500">
+                          A short summary of your post (minimum 10 characters)
+                        </div>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="content"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Content</FormLabel>
+                    <FormControl>
+                      <div className="space-y-2">
+                        <RichTextEditor
+                          content={field.value}
+                          onChange={(html) => {
+                            field.onChange(html);
+                            form.trigger("content");
+                          }}
+                          placeholder="Write your blog post content here..."
+                        />
+                        <div className="text-sm text-gray-500">
+                          The main content of your post (minimum 50 characters)
+                        </div>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="category"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Category</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select category" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="Industry News">Industry News</SelectItem>
+                          <SelectItem value="Best Practices">Best Practices</SelectItem>
+                          <SelectItem value="Technical Guides">Technical Guides</SelectItem>
+                          <SelectItem value="MLOps">MLOps</SelectItem>
+                          <SelectItem value="Computer Vision">Computer Vision</SelectItem>
+                          <SelectItem value="Natural Language Processing">NLP</SelectItem>
+                          <SelectItem value="AI Security">AI Security</SelectItem>
+                          <SelectItem value="Edge Computing">Edge Computing</SelectItem>
+                          <SelectItem value="Project Management">Project Management</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="readTime"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Read Time</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g., 5 min read" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="imageUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Image URL</FormLabel>
+                    <FormControl>
+                      <Input placeholder="https://example.com/image.jpg" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="tags"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tags</FormLabel>
+                    <FormControl>
+                      <Input placeholder="tag1, tag2, tag3" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="author.name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Author Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter author name" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="author.avatar"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Author Avatar URL</FormLabel>
+                      <FormControl>
+                        <div className="space-y-2">
+                          <div className="flex gap-2 items-center">
+                            <Input 
+                              placeholder="Enter avatar URL or use UI Avatars" 
+                              {...field} 
+                              onChange={(e) => {
+                                field.onChange(e);
+                                form.trigger("author.avatar");
+                              }}
+                            />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon"
+                              onClick={() => {
+                                const name = form.getValues("author.name");
+                                const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'User')}&background=random`;
+                                field.onChange(avatarUrl);
+                                form.trigger("author.avatar");
+                              }}
+                            >
+                              <User className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          {field.value && (
+                            <div className="flex items-center gap-2">
+                              <div className="relative w-8 h-8 rounded-full overflow-hidden">
+                                <Image
+                                  src={field.value}
+                                  alt="Avatar preview"
+                                  fill
+                                  className="object-cover"
+                                  unoptimized
+                                />
+                              </div>
+                              <span className="text-sm text-gray-500">Preview</span>
+                            </div>
+                          )}
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Status</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="draft">Draft</SelectItem>
+                        <SelectItem value="published">Published</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex justify-end gap-4">
+                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit">
+                  {post ? "Update Post" : "Create Post"}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </ScrollArea>
+      </DialogContent>
+    </Dialog>
+  );
+} 

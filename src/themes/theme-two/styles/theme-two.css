@@ -1,0 +1,950 @@
+/* Theme Two Styles */
+/* Outfit Font Family */
+@font-face {
+  font-family: 'Outfit';
+  src: url('/theme-two/fonts/Outfit-Thin.ttf') format('truetype');
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Outfit';
+  src: url('/theme-two/fonts/Outfit-ExtraLight.ttf') format('truetype');
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Outfit';
+  src: url('/theme-two/fonts/Outfit-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Outfit';
+  src: url('/theme-two/fonts/Outfit-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Outfit';
+  src: url('/theme-two/fonts/Outfit-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Outfit';
+  src: url('/theme-two/fonts/Outfit-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Outfit';
+  src: url('/theme-two/fonts/Outfit-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Outfit';
+  src: url('/theme-two/fonts/Outfit-ExtraBold.ttf') format('truetype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Outfit';
+  src: url('/theme-two/fonts/Outfit-Black.ttf') format('truetype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Theme Two Root Variables */
+.theme-two {
+  --font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  /* Override ring color from green to purple */
+  --ring: 270 91% 65%;
+
+  /* Colors */
+  --heading-color: #101828;
+  --paragraph-color: #667085;
+  --primary-gradient: linear-gradient(90deg, #7D37FF 0%, #FFAEA5 100%);
+
+  /* Button Colors */
+  --btn-primary-bg: linear-gradient(90deg, #7D37FF 0%, #FFAEA5 100%);
+  --btn-primary-text: #ffffff;
+  --btn-primary-hover: linear-gradient(90deg, #6B2FE6 0%, #FF9B8F 100%);
+
+  /* Background Colors */
+  --bg-primary: #ffffff;
+  --bg-secondary: #F9FAFC;
+  --bg-tertiary: #f1f5f9;
+
+  /* Border Colors */
+  --border-primary: #e2e8f0;
+  --border-secondary: #cbd5e1;
+
+  /* Text Colors */
+  --text-primary: #101828;
+  --text-secondary: #667085;
+  --text-tertiary: #94a3b8;
+  --text-muted: #cbd5e1;
+}
+
+/* Theme Two Base Styles */
+.theme-two {
+  font-family: var(--font-family) !important;
+  color: var(--text-primary);
+}
+
+/* Force Outfit font on all theme two elements, overriding global styles */
+.theme-two,
+.theme-two *,
+.theme-two *::before,
+.theme-two *::after {
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+}
+
+/* Theme Two Typography */
+.theme-two h1,
+.theme-two h2,
+.theme-two h3,
+.theme-two h4,
+.theme-two h5,
+.theme-two h6 {
+  color: var(--heading-color);
+  font-family: var(--font-family);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.theme-two h1 {
+  font-size: 3rem;
+  font-weight: 700;
+}
+
+.theme-two h2 {
+  font-size: 2.25rem;
+  font-weight: 600;
+}
+
+.theme-two h3 {
+  font-size: 1.875rem;
+  font-weight: 600;
+}
+
+.theme-two h4 {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.theme-two h5 {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.theme-two h6 {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.theme-two p {
+  color: var(--paragraph-color);
+  font-family: var(--font-family);
+  line-height: 1.6;
+}
+
+.theme-two .text-sm {
+  font-size: 0.875rem;
+}
+
+.theme-two .text-lg {
+  font-size: 1.125rem;
+}
+
+.theme-two .text-xl {
+  font-size: 1.25rem;
+}
+
+.theme-two .text-2xl {
+  font-size: 1.5rem;
+}
+
+.theme-two .text-3xl {
+  font-size: 1.875rem;
+}
+
+/* Theme Two Button Styles */
+.theme-two .btn-primary {
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  font-family: var(--font-family);
+  font-weight: 500;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.theme-two .btn-primary:hover {
+  background: var(--btn-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(125, 55, 255, 0.3);
+}
+
+.theme-two .btn-primary:active {
+  transform: translateY(0);
+}
+
+.theme-two .btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.theme-two .btn-primary.btn-sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+}
+
+.theme-two .btn-primary.btn-lg {
+  padding: 1rem 2rem;
+  font-size: 1.125rem;
+}
+
+.theme-two .btn-primary.btn-xl {
+  padding: 1.25rem 2.5rem;
+  font-size: 1.25rem;
+}
+
+/* Theme Two Secondary Button */
+.theme-two .btn-secondary {
+  background: transparent;
+  color: var(--text-primary);
+  border: 2px solid var(--border-primary);
+  border-radius: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  font-family: var(--font-family);
+  font-weight: 500;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.theme-two .btn-secondary:hover {
+  background: var(--bg-secondary);
+  border-color: var(--border-secondary);
+  transform: translateY(-1px);
+}
+
+/* Theme Two Card Styles */
+.theme-two .card {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease-in-out;
+}
+
+.theme-two .card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+/* Theme Two Input Styles */
+.theme-two .input {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  font-family: var(--font-family);
+  font-size: 1rem;
+  color: var(--text-primary);
+  transition: all 0.2s ease-in-out;
+}
+
+.theme-two .input:focus {
+  outline: none;
+  border-color: #7D37FF;
+  box-shadow: 0 0 0 3px rgba(125, 55, 255, 0.1);
+}
+
+.theme-two .input::placeholder {
+  color: var(--text-tertiary);
+}
+
+/* Theme Two Background Utilities */
+.theme-two .bg-primary {
+  background: var(--bg-primary);
+}
+
+.theme-two .bg-secondary {
+  background: var(--bg-secondary);
+}
+
+.theme-two .bg-tertiary {
+  background: var(--bg-tertiary);
+}
+
+.theme-two .bg-gradient-primary {
+  background: var(--primary-gradient);
+}
+
+/* Theme Two Text Utilities */
+.theme-two .text-heading {
+  color: var(--heading-color);
+}
+
+.theme-two .text-paragraph {
+  color: var(--paragraph-color);
+}
+
+.theme-two .text-primary {
+  color: var(--text-primary);
+}
+
+.theme-two .text-secondary {
+  color: var(--text-secondary);
+}
+
+.theme-two .text-tertiary {
+  color: var(--text-tertiary);
+}
+
+.theme-two .text-muted {
+  color: var(--text-muted);
+}
+
+/* Theme Two Border Utilities */
+.theme-two .border-primary {
+  border-color: var(--border-primary);
+}
+
+.theme-two .border-secondary {
+  border-color: var(--border-secondary);
+}
+
+/* Theme Two Spacing */
+.theme-two .space-y-4>*+* {
+  margin-top: 1rem;
+}
+
+.theme-two .space-y-6>*+* {
+  margin-top: 1.5rem;
+}
+
+.theme-two .space-y-8>*+* {
+  margin-top: 2rem;
+}
+
+/* Theme Two Navigation Styles */
+.theme-two .nav-container {
+  background: transparent !important;
+  background-color: transparent !important;
+  padding: 1rem 0;
+  padding-bottom: 0 !important;
+  margin-bottom: 0 !important;
+  position: fixed !important;
+  top: 16px !important;
+  left: 0 !important;
+  right: 0 !important;
+  z-index: 999 !important;
+  border: none !important;
+  border-bottom: none !important;
+}
+
+/* Force override any nav-container background */
+nav.theme-two.nav-container {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  border-bottom: none !important;
+  box-shadow: none !important;
+}
+
+.theme-two .nav-pill {
+  background: transparent;
+  border-radius: 624.9375rem;
+  box-shadow: none !important;
+  backdrop-filter: blur(7.5px);
+  height: 4.125rem;
+  /* 66px */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0;
+  padding-bottom: 0 !important;
+  margin-bottom: 0 !important;
+  gap: 0.5rem;
+  border: none !important;
+  border-top: none !important;
+  border-bottom: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  outline: none !important;
+}
+
+.theme-two .nav-left-section {
+  background: #FFF;
+  border-radius: 624.9375rem;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  /* 20px */
+  padding: 0 1.5rem;
+  height: 100%;
+  width: fit-content;
+  /* Dynamic width based on content */
+  border: none !important;
+  border-top: none !important;
+  border-bottom: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+.theme-two .nav-right-section {
+  background: #FFF;
+  border-radius: 624.9375rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0 1.5rem;
+  height: 3.3125rem;
+  /* 53px */
+  border: none !important;
+  border-top: none !important;
+  border-bottom: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+/* Mobile Navigation Styles */
+@media (max-width: 768px) {
+  .theme-two .nav-container {
+    padding: 0.75rem 0;
+  }
+
+  .theme-two .nav-pill {
+    height: 3.5rem;
+    /* 56px on mobile */
+    gap: 0.25rem;
+  }
+
+  .theme-two .nav-left-section {
+    gap: 0.75rem;
+    /* Reduced gap on mobile */
+    padding: 0 1rem;
+  }
+
+  .theme-two .nav-right-section {
+    height: 3rem;
+    /* 48px on mobile */
+    padding: 0 1rem;
+    gap: 0.5rem;
+  }
+
+  .theme-two .nav-right-section button {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+  }
+
+  .theme-two .nav-right-section .h-6 {
+    height: 1rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .theme-two .nav-pill {
+    /* flex-direction: column; - Removed to keep row layout */
+    height: auto;
+    gap: 0.5rem;
+  }
+
+  .theme-two .nav-left-section,
+  .theme-two .nav-right-section {
+    width: auto; /* Changed from 100% to auto */
+    justify-content: flex-start; /* Reset justification */
+    padding: 0 1rem;
+  }
+
+  .theme-two .nav-right-section {
+    justify-content: flex-end; /* Align hamburger to right */
+  }
+
+  .theme-two .nav-left-section {
+    gap: 1rem;
+  }
+
+  .theme-two .nav-right-section {
+    gap: 0.75rem;
+  }
+}
+
+/* Theme Two Floating Animations */
+@keyframes float-slow {
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+@keyframes float-slow-delay {
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-15px);
+  }
+}
+
+@keyframes float-left-right {
+
+  0%,
+  100% {
+    transform: translateX(0px);
+  }
+
+  50% {
+    transform: translateX(-20px);
+  }
+}
+
+@keyframes float-right-left {
+
+  0%,
+  100% {
+    transform: translateX(0px);
+  }
+
+  50% {
+    transform: translateX(20px);
+  }
+}
+
+.animate-float-slow {
+  animation: float-slow 6s ease-in-out infinite;
+}
+
+.animate-float-slow-delay {
+  animation: float-slow-delay 5s ease-in-out infinite 1s;
+}
+
+.animate-float-left-right {
+  animation: float-left-right 2s ease-in-out infinite;
+}
+
+.animate-float-right-left {
+  animation: float-right-left 2s ease-in-out infinite 0.5s;
+}
+
+/* Tool Card Font Sizes for Theme Two */
+/* Tool card titles should be 18px */
+.theme-two article[class*="rounded"] h3[class*="font-semibold"][class*="text-gray-900"] {
+  font-size: 18px !important;
+}
+
+/* Tool card descriptions/paragraphs should be 16px */
+.theme-two article[class*="rounded"] p[class*="text-gray-600"][class*="line-clamp"] {
+  font-size: 16px !important;
+}
+
+/* ProductCard component styles */
+.theme-two .card h3,
+.theme-two [class*="ProductCard"] h3 {
+  font-size: 18px !important;
+}
+
+.theme-two .card p[class*="line-clamp"],
+.theme-two [class*="ProductCard"] p[class*="line-clamp"] {
+  font-size: 16px !important;
+}
+
+/* Sponsored Listing Card Titles - Force 18px */
+.theme-two [class*="Sponsored"] h3,
+.theme-two [class*="sponsored"] h3,
+.theme-two section[class*="relative"] h3,
+.theme-two .bg-gradient-to-r h3,
+.theme-two section.theme-two h3,
+.theme-two .bg-gradient-to-r h3[class*="text-gray-900"],
+.theme-two .bg-gradient-to-r h3[class*="font-semibold"],
+.theme-two article[class*="rounded"] h3[class*="text-gray-900"][class*="font-semibold"],
+.theme-two h3[class*="text-gray-900"][class*="font-semibold"],
+.theme-two h3[class*="text-gray-900"][class*="font-semibold"][class*="text-[18px]"],
+.theme-two h3[class*="font-semibold"][class*="text-[18px]"],
+.theme-two section.theme-two .bg-gradient-to-r h3,
+.theme-two section.theme-two .bg-gradient-to-r h3[class*="text-gray-900"] {
+  font-size: 18px !important;
+}
+
+/* Theme Two Filter Bar Styles (Only for Directory Section, not Hero) */
+.theme-two-search>div {
+  border-radius: 6.25rem !important;
+  background: linear-gradient(126deg, #FFF 0.89%, rgba(255, 255, 255, 0.00) 99.4%) !important;
+  box-shadow: 1px 1px 20px -5px rgba(0, 0, 0, 0.30) !important;
+  border: none !important;
+}
+
+.container .theme-two input[type="search"],
+.container .theme-two input[type="text"],
+.container .theme-two .filter-bar input,
+.container .theme-two button,
+.container .theme-two .filter-bar button,
+.container .theme-two [class*="filter"],
+.container .theme-two [class*="category"],
+.container .theme-two [class*="sort"],
+.container .theme-two [class*="trending"],
+.container .theme-two [class*="view-toggle"] {
+  border-radius: 6.25rem !important;
+  background: linear-gradient(126deg, #FFF 0.89%, rgba(255, 255, 255, 0.00) 99.4%) !important;
+  box-shadow: 1px 1px 20px -5px rgba(0, 0, 0, 0.30) !important;
+  border: none !important;
+}
+
+/* Theme Two Responsive Design */
+@media (max-width: 768px) {
+  .theme-two h1 {
+    font-size: 2.25rem;
+  }
+
+  .theme-two h2 {
+    font-size: 1.875rem;
+  }
+
+  .theme-two h3 {
+    font-size: 1.5rem;
+  }
+
+  .theme-two .btn-primary {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.875rem;
+  }
+}
+
+/* Theme Two Footer Background */
+.theme-two footer {
+  background-color: #000000 !important;
+  overflow: hidden !important;
+}
+
+/* Force rounded corners on footer and overlay */
+.theme-two footer,
+.theme-two footer>div:first-child {
+  border-top-left-radius: 40px !important;
+  border-top-right-radius: 40px !important;
+}
+
+.theme-two footer[style*="backgroundImage"] {
+  background-image: url('/theme-two/images/footer_bg.png') !important;
+  background-size: cover !important;
+  background-position: bottom center !important;
+  background-repeat: no-repeat !important;
+  background-attachment: fixed !important;
+}
+
+/* Force remove all styles from nav-container */
+nav.theme-two.nav-container,
+.theme-two .nav-container,
+nav.theme-two.nav-container.relative.z-\[60\] {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  border-bottom: none !important;
+  border-top: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* Remove any pseudo-element borders */
+nav.theme-two.nav-container::before,
+nav.theme-two.nav-container::after,
+.theme-two .nav-container::before,
+.theme-two .nav-container::after {
+  display: none !important;
+  content: none !important;
+  border: none !important;
+}
+
+/* Remove borders from nav container children */
+.theme-two .nav-container>div,
+.theme-two .nav-container .max-w-7xl {
+  border: none !important;
+  border-bottom: none !important;
+  box-shadow: none !important;
+}
+
+/* Aggressive removal of all borders and shadows from navigation elements */
+.theme-two .nav-container *,
+.theme-two .nav-container *::before,
+.theme-two .nav-container *::after {
+  border-bottom: none !important;
+  box-shadow: none !important;
+}
+
+/* Remove any bottom border or shadow from navigation sections specifically */
+.theme-two .nav-pill::after,
+.theme-two .nav-left-section::after,
+.theme-two .nav-right-section::after {
+  display: none !important;
+  content: none !important;
+}
+
+/* Hero section - remove borders and ensure it extends behind navigation */
+.theme-two .hero-section,
+section.hero-section {
+  border: none !important;
+  border-top: none !important;
+  border-bottom: none !important;
+  box-shadow: none !important;
+  margin-top: 0 !important;
+  top: 0 !important;
+  position: relative !important;
+}
+
+/* Hero section background extends from top */
+.theme-two .hero-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: inherit;
+  background-size: cover;
+  background-position: top center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  z-index: -1;
+  border: none !important;
+}
+
+/* Custom Dropdown Menu Styles for Theme Two */
+.theme-two select option {
+  background: white !important;
+  color: #374151 !important;
+  padding: 12px 16px !important;
+  cursor: pointer !important;
+}
+
+.theme-two select option:hover {
+  background: #f3e8ff !important;
+  color: #7C3AED !important;
+}
+
+.theme-two select option:checked {
+  background: #f3e8ff !important;
+  color: #7C3AED !important;
+  font-weight: 600 !important;
+}
+
+/* Prevent green borders in theme two modals */
+.theme-two [role="dialog"] input:focus,
+.theme-two [role="dialog"] input:focus-visible,
+.theme-two [role="dialog"] textarea:focus,
+.theme-two [role="dialog"] textarea:focus-visible,
+.theme-two [role="dialog"] select:focus,
+.theme-two [role="dialog"] select:focus-visible {
+  border-color: #9333ea !important;
+  outline-color: #9333ea !important;
+  box-shadow: 0 0 0 2px rgba(147, 51, 234, 0.1) !important;
+}
+
+.theme-two [role="dialog"] input:focus-visible,
+.theme-two [role="dialog"] textarea:focus-visible,
+.theme-two [role="dialog"] select:focus-visible {
+  --tw-ring-color: #9333ea !important;
+}
+
+/* Override any green ring colors */
+.theme-two [role="dialog"] input[class*="focus"]:not([class*="purple"]):not([class*="pink"]),
+.theme-two [role="dialog"] textarea[class*="focus"]:not([class*="purple"]):not([class*="pink"]),
+.theme-two [role="dialog"] select[class*="focus"]:not([class*="purple"]):not([class*="pink"]) {
+  --tw-ring-color: #9333ea !important;
+}
+
+/* Specific overrides for Contact Sales Modal */
+.theme-two-contact-form input:focus,
+.theme-two-contact-form input:focus-visible,
+.theme-two-contact-form textarea:focus,
+.theme-two-contact-form textarea:focus-visible,
+.theme-two-contact-form select:focus,
+.theme-two-contact-form select:focus-visible {
+  border-color: #9333ea !important;
+  outline-color: #9333ea !important;
+  --tw-ring-color: #9333ea !important;
+  box-shadow: 0 0 0 2px rgba(147, 51, 234, 0.1) !important;
+}
+
+.theme-two-contact-form input:not(:focus):not(:focus-visible),
+.theme-two-contact-form textarea:not(:focus):not(:focus-visible),
+.theme-two-contact-form select:not(:focus):not(:focus-visible) {
+  border-color: rgb(229, 231, 235) !important;
+}
+
+/* Fix for Contact Sales Modal Submit Button invisibility and green hover issue */
+.theme-two [role="dialog"] button[type="submit"] {
+  background: linear-gradient(to right, #9333ea, #ec4899, #9333ea) !important;
+  color: white !important;
+  opacity: 1 !important;
+  border: none !important;
+}
+
+.theme-two [role="dialog"] button[type="submit"]:hover {
+  background: linear-gradient(to right, #7e22ce, #db2777, #7e22ce) !important;
+}
+
+/* Fix Select Dropdown Item Highlight Colors - Theme Two Purple */
+/* Override green accent with purple for select items */
+.theme-two [role="listbox"] [role="option"]:focus,
+.theme-two [role="listbox"] [role="option"][data-highlighted],
+.theme-two [role="listbox"] [role="option"][data-selected],
+.theme-two [data-radix-collection-item]:focus,
+.theme-two [data-radix-collection-item][data-highlighted],
+.theme-two [cmdk-item][data-selected="true"],
+.theme-two [cmdk-item][aria-selected="true"],
+.theme-two [role="option"]:focus,
+.theme-two [role="option"][data-highlighted] {
+  background-color: #f3e8ff !important;
+  color: #7c3aed !important;
+}
+
+/* SelectItem component specific styles */
+.theme-two [data-radix-select-viewport] [role="option"]:focus,
+.theme-two [data-radix-select-viewport] [role="option"][data-highlighted],
+.theme-two [data-radix-select-viewport] [role="option"][data-state="checked"] {
+  background-color: #f3e8ff !important;
+  color: #7c3aed !important;
+}
+
+/* Command/Combobox item styles for theme two */
+.theme-two [cmdk-list] [cmdk-item][data-selected="true"],
+.theme-two [cmdk-list] [cmdk-item]:focus,
+.theme-two [cmdk-list] [cmdk-item][aria-selected="true"] {
+  background-color: #f3e8ff !important;
+  color: #7c3aed !important;
+}
+
+/* Override accent color CSS variable for theme-two dialogs and popovers */
+.theme-two [role="dialog"],
+.theme-two [data-radix-popper-content-wrapper],
+.theme-two [data-radix-portal] {
+  --accent: 270 91% 65%;
+  --accent-foreground: 270 91% 30%;
+}
+
+/* Force purple on any focused/selected state in theme-two select dropdowns */
+.theme-two select option:checked,
+.theme-two select option:hover {
+  background-color: #f3e8ff !important;
+  color: #7c3aed !important;
+}
+
+/* Fix for radix-ui Select components */
+.theme-two [data-radix-select-content] [role="option"]:hover,
+.theme-two [data-radix-select-content] [role="option"]:focus,
+.theme-two [data-radix-select-content] [role="option"][data-highlighted="true"] {
+  background-color: #f3e8ff !important;
+  color: #7c3aed !important;
+}
+
+/* Admin pages - ensure purple accents */
+.theme-two .admin-content [role="option"]:focus,
+.theme-two .admin-content [role="option"][data-highlighted] {
+  background-color: #f3e8ff !important;
+  color: #7c3aed !important;
+}
+
+/* Theme Two Tabs Styling Override */
+.theme-two [role="tablist"] {
+  background-color: #f3e8ff !important;
+}
+
+.theme-two [role="tablist"] [role="tab"][data-state="active"] {
+  background: linear-gradient(to right, #9333ea, #ec4899) !important;
+  color: white !important;
+}
+
+.theme-two [role="tablist"] [role="tab"]:hover:not([data-state="active"]) {
+  background-color: rgba(147, 51, 234, 0.1) !important;
+  color: #7c3aed !important;
+}
+
+/* Native checkbox purple accent for Theme Two */
+.theme-two input[type="checkbox"] {
+  accent-color: #9333ea !important;
+}
+
+/* Fix ring color for Theme Two inputs */
+.theme-two input:focus-visible,
+.theme-two textarea:focus-visible,
+.theme-two select:focus-visible,
+.theme-two button:focus-visible {
+  --tw-ring-color: #9333ea !important;
+}
+
+/* Comprehensive input focus styling for Theme Two */
+.theme-two input:focus,
+.theme-two input:focus-visible,
+.theme-two textarea:focus,
+.theme-two textarea:focus-visible,
+.theme-two select:focus,
+.theme-two select:focus-visible {
+  border-color: #9333ea !important;
+  outline-color: #9333ea !important;
+  --tw-ring-color: #9333ea !important;
+  box-shadow: 0 0 0 2px rgba(147, 51, 234, 0.2) !important;
+}
+
+/* Override any ring-ring utility class in theme-two */
+.theme-two .ring-ring,
+.theme-two .focus-visible\:ring-ring:focus-visible,
+.theme-two [class*="focus-visible:ring-ring"]:focus-visible {
+  --tw-ring-color: hsl(270 91% 65%) !important;
+}
+
+/* Ensure gradient buttons with inline styles have proper styling */
+.theme-two button[style*="gradient"] {
+  border: none !important;
+}
