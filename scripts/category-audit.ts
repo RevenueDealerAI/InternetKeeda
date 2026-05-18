@@ -44,13 +44,21 @@ import { Tool } from '../src/app/api/models/Tool';
 
 type Bucket = { canonical: string; exact: string[]; keywords: string[] };
 
+// v2 BUCKETS — applies user's review approvals.
+//
+// Specificity rules: bucket order = match priority. Place narrow buckets
+// (Research & Academic, Product Search) BEFORE broad ones (Summarization,
+// Search Engines) so they win on keyword overlap.
+//
+// NEW IN v2: Research & Academic Tools, Product Search, Business & Strategy,
+// Companions & Roleplay, News & Information.
+// RENAMED: Audio Generation & Editing → Audio & Podcasts; Gift Ideas &
+// Lifestyle → Lifestyle & Personal; Legal → Legal & Compliance.
+// FOLDED IN: Background Removal + Face Editing & Swap → Image Editing.
+// FOLDED IN: Research bucket → Research & Academic Tools.
+
 const BUCKETS: Bucket[] = [
   // ---- IMAGE / VIDEO / AUDIO (specific first) ----
-  {
-    canonical: 'Background Removal',
-    exact: ['background remover', 'background removal', 'remove background'],
-    keywords: ['background remov', 'remove background'],
-  },
   {
     canonical: 'Image Upscaling',
     exact: ['image upscaler', 'upscaler', 'image upscaling', 'photo upscaler', 'upscaling'],
@@ -63,37 +71,43 @@ const BUCKETS: Bucket[] = [
   },
   {
     canonical: 'Avatar & Character Generation',
-    exact: ['avatar', 'avatar generator', 'character', 'character generator', 'digital human', 'professional avatar'],
-    keywords: ['avatar', 'character generat', 'digital human'],
-  },
-  {
-    canonical: 'Face Editing & Swap',
-    exact: ['face swap', 'face editing', 'deepfake'],
-    keywords: ['face swap', 'face edit', 'deepfake'],
+    exact: ['avatar', 'avatar generator', 'character', 'character generator',
+            'digital human', 'professional avatar', 'character creation'],
+    keywords: ['avatar', 'character generat', 'character creat', 'digital human'],
   },
   {
     canonical: 'Image Editing',
+    // Background Removal + Face Editing & Swap folded in here per user approval
     exact: ['image editing', 'photo editing', 'photo editor', 'image editor',
-            'image enhancement', 'photo enhancement', 'photo restoration'],
-    keywords: ['photo edit', 'image edit', 'photo enhance', 'image enhance', 'photo restor'],
+            'image enhancement', 'photo enhancement', 'photo restoration',
+            'background remover', 'background removal', 'remove background',
+            'face swap', 'face editing', 'deepfake', 'object removal'],
+    keywords: ['photo edit', 'image edit', 'photo enhance', 'image enhance',
+               'photo restor', 'background remov', 'remove background',
+               'face swap', 'face edit', 'deepfake', 'object remov'],
   },
   {
     canonical: 'Image Generation',
     exact: ['image generation', 'image generator', 'text to image', 'art',
             'art generator', 'generative art', 'image creation', 'picture generator',
-            'ai art', 'image', 'product image', 'stock image'],
-    keywords: ['image generat', 'art generat', 'text to image', 'image creat', 'picture'],
+            'ai art', 'image', 'product image', 'stock image', 'sketch to image',
+            'background'],
+    keywords: ['image generat', 'art generat', 'text to image', 'image creat',
+               'picture', 'sketch to'],
   },
   {
     canonical: 'Video Editing',
-    exact: ['video editing', 'video editor'],
-    keywords: ['video edit'],
+    exact: ['video editing', 'video editor', 'video subtitle', 'subtitle generator',
+            'video dubbing', 'dubbing'],
+    keywords: ['video edit', 'subtitle', 'caption', 'dubbing'],
   },
   {
     canonical: 'Video Generation',
     exact: ['video generation', 'video generator', 'text to video',
-            'video creation', 'video', 'short video', 'youtube video'],
-    keywords: ['video generat', 'text to video', 'video creat', 'short video'],
+            'video creation', 'video', 'short video', 'youtube video',
+            'youtube short', 'youtube shorts'],
+    keywords: ['video generat', 'text to video', 'video creat', 'short video',
+               'youtube short'],
   },
   {
     canonical: 'Music Generation',
@@ -109,10 +123,11 @@ const BUCKETS: Bucket[] = [
     keywords: ['voice', 'speech', 'tts'],
   },
   {
-    canonical: 'Audio Generation & Editing',
+    canonical: 'Audio & Podcasts', // renamed from Audio Generation & Editing
     exact: ['audio', 'audio generation', 'audio editing', 'audio enhancement',
-            'sound generation', 'audio creation', 'audio transcription'],
-    keywords: ['audio'],
+            'sound generation', 'audio creation', 'audio transcription',
+            'podcast', 'podcasts', 'podcast editing', 'podcast generation'],
+    keywords: ['audio', 'podcast'],
   },
 
   // ---- DESIGN / 3D / ANIMATION ----
@@ -133,8 +148,10 @@ const BUCKETS: Bucket[] = [
   },
   {
     canonical: 'Design Tools',
-    exact: ['design', 'graphic design', 'design tool', 'ui design', 'ux design', 'ui ux'],
-    keywords: ['ui design', 'ux design', 'graphic design'],
+    exact: ['design', 'graphic design', 'design tool', 'ui design', 'ux design',
+            'ui ux', 'product design', 'app icon', 'icon design'],
+    keywords: ['ui design', 'ux design', 'graphic design', 'product design',
+               'app icon', 'icon design'],
   },
 
   // ---- WRITING / CONTENT ----
@@ -159,6 +176,13 @@ const BUCKETS: Bucket[] = [
     exact: ['writing', 'writer', 'copywriting', 'copywriter', 'content writing',
             'writing assistant', 'ai writer', 'article writing', 'blog writing'],
     keywords: ['writing', 'copywrit', 'writer'],
+  },
+  // NEW: Research & Academic Tools — must come BEFORE Summarization & Q&A
+  {
+    canonical: 'Research & Academic Tools',
+    exact: ['research', 'academic research', 'academic', 'paper',
+            'scholar', 'citation', 'thesis', 'literature review', 'academic writing'],
+    keywords: ['research', 'academic', 'paper', 'scholar', 'citation', 'thesis'],
   },
   {
     canonical: 'Summarization & Q&A',
@@ -208,17 +232,33 @@ const BUCKETS: Bucket[] = [
   {
     canonical: 'Productivity',
     exact: ['productivity', 'task management', 'task automation', 'todo',
-            'to do list', 'time management', 'focus', 'time tracking'],
-    keywords: ['productiv', 'task manag', 'time manag', 'time track'],
+            'to do list', 'time management', 'focus', 'time tracking',
+            'team collaboration'],
+    keywords: ['productiv', 'task manag', 'time manag', 'time track', 'team collab'],
+  },
+  {
+    canonical: 'Self-Improvement & Inspiration',
+    exact: ['self improvement', 'personal development', 'inspiration',
+            'self help', 'meditation', 'journaling'],
+    keywords: ['self-improvement', 'self improvement', 'personal develop',
+               'inspirat', 'meditat', 'self help', 'journal'],
   },
 
   // ---- DEV / TECHNICAL ----
   {
     canonical: 'Code & Developer Tools',
+    // "apps" exact-folded here (overwhelmingly AI-dev platforms per spot check).
+    // "large language models" + "web scraping" folded with judgment-call flag.
+    // Keyword "develop" catches developer/development/developing; "code"
+    // catches code debugging/reviews/explanations/coding-assistance.
     exact: ['code', 'code assistant', 'coding assistant', 'code generation',
             'code completion', 'developer tool', 'developer', 'programming',
-            'coding', 'code generator', 'sql query', 'devops'],
-    keywords: ['cod', 'developer', 'programming', 'sql', 'devops'],
+            'coding', 'code generator', 'sql query', 'devops',
+            'apps', 'app', 'software development', 'webscraping',
+            'large language model', 'llm', 'coding assistance',
+            'code debugging', 'code review', 'code explanation'],
+    keywords: ['develop', 'cod', 'programming', 'sql', 'devops', 'software develop',
+               'webscrap', 'web scrap', 'large language model'],
   },
   {
     canonical: 'No-Code & Automation',
@@ -252,13 +292,22 @@ const BUCKETS: Bucket[] = [
   },
   {
     canonical: 'Website Builders',
-    exact: ['website building', 'website builder', 'web design'],
-    keywords: ['website build', 'web design'],
+    exact: ['website building', 'website builder', 'web design',
+            'landing page', 'website optimization'],
+    keywords: ['website build', 'web design', 'landing page', 'website optim'],
   },
   {
     canonical: 'AI Content Detection',
     exact: ['ai content detection', 'ai detector', 'plagiarism'],
     keywords: ['content detect', 'ai detect', 'plagiar'],
+  },
+  // NEW: Product Search — must come BEFORE Search Engines
+  {
+    canonical: 'Product Search',
+    exact: ['product search', 'shopping search', 'product discovery',
+            'shopping discovery', 'deal finder', 'product finder'],
+    keywords: ['product search', 'shopping search', 'product discov',
+               'deal finder', 'product finder'],
   },
   {
     canonical: 'Search Engines',
@@ -284,6 +333,14 @@ const BUCKETS: Bucket[] = [
     exact: ['chatgpt', 'chatgpt for chrome', 'chatgpt for whatsapp', 'chatgpt for slack'],
     keywords: ['chatgpt'],
   },
+  // NEW: Companions & Roleplay
+  {
+    canonical: 'Companions & Roleplay',
+    exact: ['virtual girlfriend', 'virtual boyfriend', 'companion',
+            'roleplay', 'role play', 'character ai'],
+    keywords: ['virtual girlfriend', 'virtual boyfriend', 'companion',
+               'roleplay', 'role play'],
+  },
   {
     canonical: 'SEO',
     exact: ['seo', 'search engine optimization', 'seo tool', 'seo content'],
@@ -297,8 +354,9 @@ const BUCKETS: Bucket[] = [
   {
     canonical: 'Social Media',
     exact: ['social media', 'social media marketing', 'social media management',
-            'social', 'social media post'],
-    keywords: ['social media'],
+            'social', 'social media post', 'tweeting', 'tweet', 'linkedin post',
+            'twitter post'],
+    keywords: ['social media', 'tweet', 'linkedin post', 'twitter'],
   },
   {
     canonical: 'Advertising & Ads',
@@ -323,8 +381,8 @@ const BUCKETS: Bucket[] = [
   {
     canonical: 'E-commerce',
     exact: ['ecommerce', 'e commerce', 'online store', 'shopify', 'shopping',
-            'shopping assistance'],
-    keywords: ['ecommerce', 'e-commerce', 'shopify', 'shopping'],
+            'shopping assistance', 'product description'],
+    keywords: ['ecommerce', 'e-commerce', 'shopify', 'shopping', 'product description'],
   },
 
   // ---- CAREER / EDUCATION ----
@@ -342,19 +400,19 @@ const BUCKETS: Bucket[] = [
   {
     canonical: 'Recruiting & HR',
     exact: ['hr', 'human resource', 'recruiting', 'recruitment',
-            'hiring', 'talent acquisition'],
-    keywords: ['recruit', 'hiring', 'human resource'],
+            'hiring', 'talent acquisition', 'candidate screening',
+            'job description', 'job descriptions'],
+    keywords: ['recruit', 'hiring', 'human resource', 'candidate screen',
+               'job description'],
   },
   {
     canonical: 'Education & Learning',
     exact: ['education', 'learning', 'edtech', 'tutoring', 'tutor',
-            'studying', 'online learning', 'study', 'quiz', 'flashcard'],
-    keywords: ['education', 'tutor', 'edtech', 'studying', 'quiz', 'flashcard', 'learn'],
-  },
-  {
-    canonical: 'Research',
-    exact: ['research', 'academic research', 'academic'],
-    keywords: ['research', 'academic'],
+            'studying', 'online learning', 'study', 'quiz', 'flashcard',
+            'course', 'courses', 'course creation', 'lesson plan',
+            'homework', 'homework help'],
+    keywords: ['education', 'tutor', 'edtech', 'studying', 'quiz', 'flashcard',
+               'learn', 'course', 'lesson plan', 'homework'],
   },
   {
     canonical: 'Data & Analytics',
@@ -374,16 +432,27 @@ const BUCKETS: Bucket[] = [
     exact: ['game', 'gaming', 'game development', 'game dev'],
     keywords: ['game', 'gaming'],
   },
+  // NEW: Business & Strategy
+  {
+    canonical: 'Business & Strategy',
+    exact: ['business', 'startup ideas', 'business ideas', 'brainstorming',
+            'decision making', 'business plans', 'business growth',
+            'business management', 'business names', 'product development',
+            'business strategy', 'ai for business'],
+    keywords: ['business', 'startup', 'brainstorm', 'decision mak'],
+  },
   {
     canonical: 'Finance & Investing',
     exact: ['finance', 'fintech', 'investing', 'trading', 'investment',
-            'stock', 'crypto', 'cryptocurrency'],
-    keywords: ['finance', 'fintech', 'investing', 'trading', 'crypto'],
+            'stock', 'crypto', 'cryptocurrency', 'financial management',
+            'financial data analysis', 'financial planning'],
+    keywords: ['financ', 'fintech', 'investing', 'trading', 'crypto'],
   },
   {
-    canonical: 'Legal',
-    exact: ['legal', 'law', 'lawyer', 'legal tech', 'legal advice'],
-    keywords: ['legal', 'lawyer'],
+    canonical: 'Legal & Compliance', // renamed from Legal
+    exact: ['legal', 'law', 'lawyer', 'legal tech', 'legal advice',
+            'contract review', 'contract reviews', 'compliance'],
+    keywords: ['legal', 'lawyer', 'contract review', 'complian'],
   },
   {
     canonical: 'Real Estate',
@@ -412,16 +481,34 @@ const BUCKETS: Bucket[] = [
     keywords: ['dating', 'relationship'],
   },
   {
-    canonical: 'Self-Improvement & Inspiration',
-    exact: ['self improvement', 'personal development', 'inspiration',
-            'self help', 'meditation'],
-    keywords: ['self-improvement', 'self improvement', 'personal develop', 'inspirat', 'meditat', 'self help'],
+    canonical: 'Lifestyle & Personal', // renamed from Gift Ideas & Lifestyle
+    exact: ['gift', 'gift idea', 'lifestyle', 'personal', 'outfit', 'outfits',
+            'fashion', 'tarot card reading', 'horoscope', 'astrology'],
+    keywords: ['gift', 'lifestyle', 'outfit', 'fashion', 'tarot', 'horoscope',
+               'astrology'],
   },
+  // NEW: News & Information
   {
-    canonical: 'Gift Ideas & Lifestyle',
-    exact: ['gift', 'gift idea', 'lifestyle'],
-    keywords: ['gift', 'lifestyle'],
+    canonical: 'News & Information',
+    exact: ['news', 'news aggregator', 'current events'],
+    keywords: ['news aggregator', 'current events'],
   },
+];
+
+// Judgment calls flagged in the JSON output for user review.
+const FLAGGED_JUDGMENTS = [
+  '"apps" (58 tools) → Code & Developer Tools. Spot check of 25 tools showed AI dev platforms (LangSmith, Builder AI, Labelbox, Gooey AI, etc.), not mobile builders. A few are no-code builders that could alternately land in No-Code & Automation. Per-tool re-routing possible in apply-merges if you want finer granularity.',
+  '"webscraping" / "web scraping" → Code & Developer Tools. Could alternately be a standalone Data Collection & Scraping bucket.',
+  '"large language models" → Code & Developer Tools. Could be a standalone AI Models & APIs bucket; placed under dev tools since LLM consumers are mostly developers.',
+  '"team collaboration" → Productivity. Could be a standalone Collaboration & Communication bucket.',
+  '"decision making" → Business & Strategy. Could alternately be Productivity (close to "task management").',
+  '"virtual girlfriend" → Companions & Roleplay (new bucket). Close to Dating & Relationships but distinct intent (AI character interaction vs. real dating).',
+  '"news" (8 tools) → News & Information (new bucket). Could fold into Search Engines or be kept separate.',
+  '"backgrounds" (6 tools) → Image Generation via "background" exact match. May actually be a mix of image-gen and image-editing — review per-tool if it matters.',
+  '"object removal" → Image Editing per user approval (folded alongside background removal and face swap).',
+  '"qr codes" (11 tools) → KEPT as singleton. Niche utility category; no clean home in current taxonomy. Candidate for a future "Utilities & Generators" bucket if more such categories emerge.',
+  '"calls" (5 tools) → KEPT as singleton. Ambiguous (could be call recording / call analytics / cold calling); the "voice"/"speech" keywords on Voice & Speech are too narrow to catch it and the keyword "call" is too broad (would match "call to action"). Suggest manual review.',
+  'Product Search bucket: 0 matches against current Search Engine members. The 24 Search Engine entries are domain-specific search (google/reddit/image/github/real-estate/fashion search) — no explicit shopping or e-commerce intent. Bucket kept as a placeholder for future categories.',
 ];
 
 // ---------------------------------------------------------------------------
@@ -633,6 +720,7 @@ async function main() {
       medium: 'Exact synonym map match — eyeball canonical name only.',
       low: 'Keyword overlap — REVIEW members carefully; may need to split.',
     },
+    flagged_judgment_calls: FLAGGED_JUDGMENTS,
     review_notes: [
       'Each group with is_merge=true is a proposed merge.',
       'Singletons (is_merge=false) need a manual decision: keep separate, or fold into a broader canonical bucket.',
@@ -651,7 +739,11 @@ async function main() {
     })),
   };
 
-  const outPath = path.resolve(process.cwd(), 'scripts/category-audit.json');
+  const versionFlag = process.argv.find((a) => a.startsWith('--out='));
+  const outFile = versionFlag
+    ? versionFlag.replace('--out=', '')
+    : 'scripts/category-audit-v2.json';
+  const outPath = path.resolve(process.cwd(), outFile);
   writeFileSync(outPath, JSON.stringify(summary, null, 2), 'utf8');
 
   console.log(`✅ Wrote ${outPath}`);

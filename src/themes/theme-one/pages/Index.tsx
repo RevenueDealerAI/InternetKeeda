@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { useTools } from "@/lib/api/tools";
 import { Tool } from "@/types/tool";
 import { HeroSection } from "../components/HeroSection";
+import { Categories as ExploreCategories } from "../components/home/Categories";
 import { FilterBar } from "../components/FilterBar";
 import { getToolLogo } from "@/utils/toolHelpers";
 import { AdSlot } from "@/components/ads/AdSlot";
@@ -448,13 +449,15 @@ export default function Index() {
 
   return (
     <div className="min-h-screen">
-      <HeroSection 
-        searchQuery={searchQuery} 
-        setSearchQuery={setSearchQuery} 
-        setIsSearchOpen={setIsSearchOpen} 
+      <HeroSection
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        setIsSearchOpen={setIsSearchOpen}
         siteDescription={config?.siteDescription}
       />
-      
+
+      <ExploreCategories />
+
       <AdSlot position="content-top" maxAds={4} showTitle={true} />
       
       <div className="container mx-auto px-4 py-8">

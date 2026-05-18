@@ -62,6 +62,7 @@ import { useSetAdminRole } from "@/lib/api/users";
 import { SubmitToolModal } from "./modals/SubmitToolModal";
 import { useSiteConfig } from '@/contexts/SiteConfigContext';
 import { getUserDisplayName } from '@/lib/utils';
+import { useCategories } from '@/hooks/useCategories';
 
 export const Navigation = () => {
   const { user } = useUser();
@@ -72,6 +73,14 @@ export const Navigation = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
   const { config } = useSiteConfig();
+  const { data: categoriesData } = useCategories(true);
+  const topCategories = (categoriesData?.data ?? [])
+    .filter((c) => (c.toolCount ?? 0) > 0)
+    .sort((a, b) => (b.toolCount ?? 0) - (a.toolCount ?? 0))
+    .slice(0, 30);
+  const totalCategoryCount = (categoriesData?.data ?? []).filter(
+    (c) => (c.toolCount ?? 0) > 0
+  ).length;
 
   // Check if user is admin
   const isAdmin = user?.publicMetadata?.role === 'admin';
@@ -152,6 +161,52 @@ export const Navigation = () => {
                       </NavigationMenuContent>
                     </NavigationMenuItem>
 
+                    {/* Categories — mega menu with top 30 by tool count */}
+                    <NavigationMenuItem>
+                      <NavigationMenuTrigger className="h-10 px-4 text-gray-600 hover:text-gray-900">
+                        Categories
+                      </NavigationMenuTrigger>
+                      <NavigationMenuContent>
+                        <div className="w-[720px] bg-white p-5">
+                          <div className="flex items-baseline justify-between mb-3 px-1">
+                            <div className="text-xs font-semibold uppercase tracking-wider text-gray-500">
+                              Top 30 by catalog size
+                            </div>
+                            <Link
+                              href="/categories"
+                              className="text-xs font-medium text-[#FF5A1F] hover:text-[#E64A0E]"
+                            >
+                              View all{totalCategoryCount ? ` ${totalCategoryCount}` : ''} →
+                            </Link>
+                          </div>
+                          {topCategories.length === 0 ? (
+                            <div className="grid grid-cols-3 gap-x-4 gap-y-1.5">
+                              {Array.from({ length: 30 }).map((_, i) => (
+                                <div key={i} className="h-6 bg-gray-100 rounded animate-pulse" />
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="grid grid-cols-3 gap-x-4 gap-y-1">
+                              {topCategories.map((cat) => (
+                                <Link
+                                  key={cat.slug ?? cat.name}
+                                  href={`/category/${cat.slug ?? encodeURIComponent(cat.name.toLowerCase())}`}
+                                  className="group flex items-center justify-between px-2 py-1.5 rounded-md hover:bg-orange-50/60 transition-colors"
+                                >
+                                  <span className="text-sm font-medium text-gray-800 group-hover:text-[#FF5A1F] truncate">
+                                    {cat.name}
+                                  </span>
+                                  <span className="text-xs text-gray-400 group-hover:text-[#FF5A1F] ml-2 shrink-0">
+                                    {cat.toolCount}
+                                  </span>
+                                </Link>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </NavigationMenuContent>
+                    </NavigationMenuItem>
+
                     {/* Products */}
                     <NavigationMenuItem>
                       <NavigationMenuTrigger className="h-10 px-4 text-gray-600 hover:text-gray-900">
@@ -162,10 +217,6 @@ export const Navigation = () => {
                           <Link href="/top-products" className="group block p-3 rounded-lg hover:bg-gray-50">
                             <div className="text-sm font-medium text-gray-900">Top Products</div>
                             <div className="text-xs text-gray-500 mt-1">Most popular AI tools</div>
-                          </Link>
-                          <Link href="/categories" className="group block p-3 rounded-lg hover:bg-gray-50">
-                            <div className="text-sm font-medium text-gray-900">Categories</div>
-                            <div className="text-xs text-gray-500 mt-1">Browse by type</div>
                           </Link>
                           <Link href="/trending" className="group block p-3 rounded-lg hover:bg-gray-50">
                             <div className="text-sm font-medium text-gray-900">Trending</div>
