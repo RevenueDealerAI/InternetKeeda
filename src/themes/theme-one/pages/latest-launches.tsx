@@ -92,7 +92,7 @@ export const LatestLaunches = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
       </div>
     );
   }
@@ -112,10 +112,10 @@ export const LatestLaunches = () => {
     <div className="container mx-auto px-4 py-8 mt-20 relative">
       {/* Header */}
       <div className="flex flex-col items-center text-center mb-12">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-purple-100 mb-4">
-          <Zap className="w-8 h-8 text-purple-600" />
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-orange-100 mb-4">
+          <Zap className="w-8 h-8 text-orange-600" />
         </div>
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-4">
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-orange-600 to-blue-600 bg-clip-text text-transparent mb-4">
           Latest AI Tool Launches
         </h1>
         <p className="text-gray-600 max-w-2xl">
@@ -127,21 +127,21 @@ export const LatestLaunches = () => {
       <div className="flex flex-wrap gap-4 mb-8">
         <Button 
           variant={timeFilter === 'all' ? "default" : "outline"} 
-          className={`rounded-xl ${timeFilter === 'all' ? '' : 'hover:bg-purple-50'}`}
+          className={`rounded-xl ${timeFilter === 'all' ? '' : 'hover:bg-orange-50'}`}
           onClick={() => handleTimeFilterChange('all')}
         >
           All Time
         </Button>
         <Button 
           variant={timeFilter === 'month' ? "default" : "outline"} 
-          className={`rounded-xl ${timeFilter === 'month' ? '' : 'hover:bg-purple-50'}`}
+          className={`rounded-xl ${timeFilter === 'month' ? '' : 'hover:bg-orange-50'}`}
           onClick={() => handleTimeFilterChange('month')}
         >
           This Month
         </Button>
         <Button 
           variant={timeFilter === 'week' ? "default" : "outline"} 
-          className={`rounded-xl ${timeFilter === 'week' ? '' : 'hover:bg-purple-50'}`}
+          className={`rounded-xl ${timeFilter === 'week' ? '' : 'hover:bg-orange-50'}`}
           onClick={() => handleTimeFilterChange('week')}
         >
           This Week
@@ -172,8 +172,8 @@ export const LatestLaunches = () => {
       {/* Empty state if no tools match filters */}
       {visibleTools.length === 0 && (
         <div className="flex flex-col items-center justify-center py-16 text-center">
-          <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-4">
-            <Zap className="w-8 h-8 text-purple-600" />
+          <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mb-4">
+            <Zap className="w-8 h-8 text-orange-600" />
           </div>
           <h3 className="text-xl font-semibold text-gray-900 mb-2">No tools found</h3>
           <p className="text-gray-600 max-w-md mb-6">
@@ -181,7 +181,7 @@ export const LatestLaunches = () => {
           </p>
           <Button 
             variant="outline"
-            className="rounded-xl hover:bg-purple-50"
+            className="rounded-xl hover:bg-orange-50"
             onClick={() => handleTimeFilterChange('all')}
           >
             View All Tools
@@ -194,7 +194,7 @@ export const LatestLaunches = () => {
         <div className="flex justify-center mt-12 relative z-50">
           <Button 
             variant="outline"
-            className="rounded-xl hover:bg-purple-50 border-purple-200 relative z-50 cursor-pointer"
+            className="rounded-xl hover:bg-orange-50 border-orange-200 relative z-50 cursor-pointer"
             onClick={handleLoadMore}
           >
             Load More

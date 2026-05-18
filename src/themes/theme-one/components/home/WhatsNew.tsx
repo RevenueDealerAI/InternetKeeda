@@ -45,13 +45,13 @@ export const WhatsNew = () => {
   return (
     <section className="py-20 relative overflow-hidden">
       {/* Background Effects */}
-      <div className="absolute inset-0 bg-gradient-to-b from-white via-purple-50/30 to-white" />
+      <div className="absolute inset-0 bg-gradient-to-b from-white via-orange-50/30 to-white" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_50%,rgba(139,92,246,0.1),transparent_50%)]" />
       
       <div className="relative container mx-auto px-4">
         {/* Section Header */}
         <div className="max-w-2xl mx-auto text-center mb-16 space-y-4">
-          <h2 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-blue-600 bg-clip-text text-transparent">
             What's New
           </h2>
           <p className="text-gray-600">
@@ -64,7 +64,7 @@ export const WhatsNew = () => {
           {updates.map((update) => (
             <Card
               key={update.id}
-              className="group relative overflow-hidden bg-white/70 backdrop-blur-sm border border-gray-200/50 hover:border-purple-200/50 transition-all duration-300"
+              className="group relative overflow-hidden bg-white/70 backdrop-blur-sm border border-gray-200/50 hover:border-orange-200/50 transition-all duration-300"
             >
               {/* Hover Background */}
               <div className={`absolute inset-0 bg-gradient-to-r from-${update.color}-500/5 to-${update.color}-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
@@ -77,7 +77,7 @@ export const WhatsNew = () => {
 
                 {/* Content */}
                 <div className="space-y-2">
-                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-purple-600 transition-colors">
+                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-orange-600 transition-colors">
                     {update.title}
                   </h3>
                   <p className="text-sm text-gray-600">
@@ -95,7 +95,7 @@ export const WhatsNew = () => {
                 <div className="pt-4 mt-4 border-t border-gray-100">
                   <Button
                     variant="ghost"
-                    className="p-0 h-auto text-purple-600 hover:text-purple-700 hover:bg-transparent group/btn"
+                    className="p-0 h-auto text-orange-600 hover:text-orange-700 hover:bg-transparent group/btn"
                   >
                     Learn more
                     <ArrowRight className="ml-2 w-4 h-4 transform group-hover/btn:translate-x-1 transition-transform" />
@@ -116,7 +116,7 @@ export const WhatsNew = () => {
           <Button
             size="lg"
             variant="outline"
-            className="border-2 hover:bg-purple-50 group"
+            className="border-2 hover:bg-orange-50 group"
           >
             View All Updates
             <ArrowRight className="ml-2 h-5 w-5 transform group-hover:translate-x-1 transition-transform" />

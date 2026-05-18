@@ -97,13 +97,13 @@ const Stats = () => {
   return (
     <section className="py-20 relative overflow-hidden">
       {/* Background Effects */}
-      <div className="absolute inset-0 bg-gradient-to-b from-purple-50/30 via-white to-white" />
+      <div className="absolute inset-0 bg-gradient-to-b from-orange-50/30 via-white to-white" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(139,92,246,0.1),transparent_50%)]" />
       
       <div className="relative container mx-auto px-4">
         {/* Section Header */}
         <div className="max-w-2xl mx-auto text-center mb-16 space-y-4">
-          <h2 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-blue-600 bg-clip-text text-transparent">
             Platform Statistics
           </h2>
           <p className="text-gray-600">
@@ -116,7 +116,7 @@ const Stats = () => {
           {stats.map((stat) => (
             <Card
               key={stat.id}
-              className="group relative overflow-hidden bg-white/70 backdrop-blur-sm border border-gray-200/50 hover:border-purple-200/50 transition-all duration-300"
+              className="group relative overflow-hidden bg-white/70 backdrop-blur-sm border border-gray-200/50 hover:border-orange-200/50 transition-all duration-300"
             >
               {/* Hover Background */}
               <div className={`absolute inset-0 bg-gradient-to-r from-${stat.color}-500/5 to-${stat.color}-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
@@ -129,7 +129,7 @@ const Stats = () => {
 
                 {/* Content */}
                 <div className="space-y-2">
-                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-purple-600 transition-colors">
+                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-orange-600 transition-colors">
                     {stat.title}
                   </h3>
                   <p className="text-3xl font-bold text-gray-900">
@@ -150,7 +150,7 @@ const Stats = () => {
         </div>
 
         {/* Decorative Elements */}
-        <div className="absolute top-1/2 left-0 w-64 h-64 bg-purple-500/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
+        <div className="absolute top-1/2 left-0 w-64 h-64 bg-orange-500/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
         <div className="absolute top-1/2 right-0 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2" />
       </div>
     </section>

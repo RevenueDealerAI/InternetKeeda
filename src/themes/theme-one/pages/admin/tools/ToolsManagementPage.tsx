@@ -188,7 +188,7 @@ export default function ToolsManagementPage() {
       case 'freemium':
         return 'bg-blue-50 text-blue-700 border-blue-200';
       case 'paid':
-        return 'bg-purple-50 text-purple-700 border-purple-200';
+        return 'bg-orange-50 text-orange-700 border-orange-200';
       case 'enterprise':
         return 'bg-orange-50 text-orange-700 border-orange-200';
       default:
@@ -199,7 +199,7 @@ export default function ToolsManagementPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600" />
       </div>
     );
   }
@@ -235,7 +235,7 @@ export default function ToolsManagementPage() {
               />
               {(isSearching || isLoading) && searchQuery.length >= 2 && (
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                  <div className="w-4 h-4 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+                  <div className="w-4 h-4 border-2 border-orange-600 border-t-transparent rounded-full animate-spin"></div>
                 </div>
               )}
             </div>

@@ -201,7 +201,7 @@ export default function BlogManagementPage() {
         <div className="bg-white shadow-sm rounded-lg border overflow-hidden">
           {isLoading ? (
             <div className="flex items-center justify-center h-96">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600" />
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600" />
             </div>
           ) : filteredPosts.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-96 text-gray-500">

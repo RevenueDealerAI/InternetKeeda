@@ -40,7 +40,7 @@ export function IframeDetectionBanner() {
     return (
         <div className={cn(
             "fixed bottom-0 left-0 right-0 z-[9999]",
-            "bg-gradient-to-r from-purple-600 via-pink-500 to-purple-600",
+            "bg-gradient-to-r from-orange-600 via-pink-500 to-orange-600",
             "text-white shadow-lg"
         )}>
             <div className="container mx-auto px-4 py-3">
@@ -66,8 +66,8 @@ export function IframeDetectionBanner() {
                             rel="noopener noreferrer"
                             className={cn(
                                 "inline-flex items-center gap-2 px-4 py-2",
-                                "bg-white text-purple-600 font-semibold text-sm",
-                                "rounded-full hover:bg-purple-50 transition-colors",
+                                "bg-white text-orange-600 font-semibold text-sm",
+                                "rounded-full hover:bg-orange-50 transition-colors",
                                 "shadow-md hover:shadow-lg"
                             )}
                         >

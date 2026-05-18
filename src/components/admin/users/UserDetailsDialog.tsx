@@ -175,7 +175,7 @@ export function UserDetailsDialog({
                     variant="outline"
                     className={cn(
                       "h-auto py-1.5 px-3 text-sm font-medium capitalize w-full sm:w-auto justify-center sm:justify-start",
-                      user.role === "admin" ? "bg-purple-50 text-purple-700 border-purple-200" :
+                      user.role === "admin" ? "bg-orange-50 text-orange-700 border-orange-200" :
                         "bg-gray-50 text-gray-700 border-gray-200"
                     )}
                   >

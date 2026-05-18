@@ -121,7 +121,7 @@ export default function BlogPostPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex justify-center items-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
       </div>
     );
   }
@@ -243,7 +243,7 @@ export default function BlogPostPage() {
                   <button
                     key={heading.id}
                     onClick={() => scrollToSection(heading.id)}
-                    className="block text-xs sm:text-sm text-gray-600 hover:text-purple-600 transition-colors"
+                    className="block text-xs sm:text-sm text-gray-600 hover:text-orange-600 transition-colors"
                   >
                     {heading.title}
                   </button>
@@ -253,7 +253,7 @@ export default function BlogPostPage() {
 
             <div 
               ref={contentRef}
-              className="prose prose-sm sm:prose-base lg:prose-lg max-w-none prose-headings:scroll-mt-20 prose-a:text-purple-600 prose-img:rounded-lg prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-code:text-purple-600 prose-blockquote:border-l-purple-600"
+              className="prose prose-sm sm:prose-base lg:prose-lg max-w-none prose-headings:scroll-mt-20 prose-a:text-orange-600 prose-img:rounded-lg prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-code:text-orange-600 prose-blockquote:border-l-orange-600"
               dangerouslySetInnerHTML={{ 
                 __html: formattedContent
               }}
@@ -264,7 +264,7 @@ export default function BlogPostPage() {
                 {post.tags.map((tag, index) => (
                   <span
                     key={index}
-                    className="inline-flex items-center px-2.5 py-1 rounded-full text-xs sm:text-sm font-medium bg-purple-100 text-purple-800"
+                    className="inline-flex items-center px-2.5 py-1 rounded-full text-xs sm:text-sm font-medium bg-orange-100 text-orange-800"
                   >
                     {tag}
                   </span>
@@ -281,7 +281,7 @@ export default function BlogPostPage() {
                   <button
                     key={heading.id}
                     onClick={() => scrollToSection(heading.id)}
-                    className="block text-sm text-gray-600 hover:text-purple-600 transition-colors"
+                    className="block text-sm text-gray-600 hover:text-orange-600 transition-colors"
                   >
                     {heading.title}
                   </button>

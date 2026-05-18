@@ -166,7 +166,7 @@ export default function BestProductivityToolsForADHD() {
       </Helmet>
 
       {/* Hero Section with minimalist design */}
-      <div className="bg-gradient-to-br from-indigo-700 to-purple-900 text-white pt-36 pb-20 px-4 relative overflow-hidden">
+      <div className="bg-gradient-to-br from-indigo-700 to-orange-900 text-white pt-36 pb-20 px-4 relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('/img/grid-pattern.svg')] opacity-5"></div>
         <motion.div 
           className="container mx-auto max-w-4xl relative z-10"
@@ -368,7 +368,7 @@ export default function BestProductivityToolsForADHD() {
       {/* Simplified Newsletter Signup */}
       <div className="py-16 bg-gray-50">
         <div className="container mx-auto max-w-3xl px-4">
-          <div className="bg-gradient-to-r from-indigo-600 to-purple-700 rounded-lg p-8 text-center shadow-lg">
+          <div className="bg-gradient-to-r from-indigo-600 to-orange-700 rounded-lg p-8 text-center shadow-lg">
             <h2 className="text-2xl font-bold mb-3 text-white">Join our newsletter</h2>
             <p className="text-indigo-100 mb-6 max-w-2xl mx-auto">Get the latest updates on new ADHD productivity tools delivered to your inbox.</p>
             <div className="flex max-w-md mx-auto gap-3">

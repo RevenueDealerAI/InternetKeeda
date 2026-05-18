@@ -107,7 +107,7 @@ function PurchasesTab({ userId }: { userId?: string }) {
       case 'cancelled':
         return 'bg-red-100 text-red-800';
       case 'refunded':
-        return 'bg-purple-100 text-purple-800';
+        return 'bg-orange-100 text-orange-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -120,7 +120,7 @@ function PurchasesTab({ userId }: { userId?: string }) {
       case 'featured':
         return 'bg-blue-100 text-blue-800';
       case 'premium':
-        return 'bg-purple-100 text-purple-800';
+        return 'bg-orange-100 text-orange-800';
       case 'sponsored':
         return 'bg-green-100 text-green-800';
       default:

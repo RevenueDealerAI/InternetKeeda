@@ -254,7 +254,7 @@ export default function BestAINoteTrackingSoftware() {
       
       <div className="min-h-screen bg-white">
         {/* Hero Section with minimalist design */}
-        <div className="bg-gradient-to-br from-purple-700 to-purple-900 text-white pt-36 pb-20 px-4 relative overflow-hidden">
+        <div className="bg-gradient-to-br from-orange-700 to-orange-900 text-white pt-36 pb-20 px-4 relative overflow-hidden">
           <div className="absolute inset-0 bg-[url('/img/grid-pattern.svg')] opacity-5"></div>
           <motion.div 
             className="container mx-auto max-w-4xl relative z-10"
@@ -263,15 +263,15 @@ export default function BestAINoteTrackingSoftware() {
             transition={{ duration: 0.5 }}
           >
             <div className="flex flex-col items-center text-center mb-12">
-              <Badge className="mb-4 bg-purple-800/60 text-white px-4 py-1 text-sm font-medium">AI-Powered Productivity</Badge>
+              <Badge className="mb-4 bg-orange-800/60 text-white px-4 py-1 text-sm font-medium">AI-Powered Productivity</Badge>
               <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
                 Best AI Note-Taking Software for 2025
               </h1>
-              <p className="text-lg text-purple-100 max-w-2xl leading-relaxed">
+              <p className="text-lg text-orange-100 max-w-2xl leading-relaxed">
                 Discover intelligent note-taking tools that help you capture, organize, and enhance your thoughts.
               </p>
-              <div className="mt-8 text-sm text-purple-200 flex items-center">
-                <div className="relative w-8 h-8 rounded-full overflow-hidden mr-2 border-2 border-purple-400">
+              <div className="mt-8 text-sm text-orange-200 flex items-center">
+                <div className="relative w-8 h-8 rounded-full overflow-hidden mr-2 border-2 border-orange-400">
                   <Image src="https://ui-avatars.com/api/?name=Emily+Chen&background=6466F1&color=fff" alt="Emily Chen" fill className="object-cover" unoptimized />
                 </div>
                 <p>By Emily Chen • Last updated: May 2025</p>
@@ -329,7 +329,7 @@ export default function BestAINoteTrackingSoftware() {
                   <div>
                     <div className="flex items-center">
                       <h3 className="text-xl font-bold text-gray-900">{tool.name}</h3>
-                      <div className="ml-3 px-2 py-0.5 bg-purple-100 text-purple-800 rounded-full text-xs font-medium">
+                      <div className="ml-3 px-2 py-0.5 bg-orange-100 text-orange-800 rounded-full text-xs font-medium">
                         #{index + 1}
                       </div>
                     </div>
@@ -348,7 +348,7 @@ export default function BestAINoteTrackingSoftware() {
                   
                   <div className="ml-auto">
                     <a href={tool.url} target="_blank" rel="noopener noreferrer">
-                      <Button className="bg-purple-600 hover:bg-purple-700 rounded-lg">
+                      <Button className="bg-orange-600 hover:bg-orange-700 rounded-lg">
                         Visit Website <ArrowRight className="ml-2 w-4 h-4" />
                       </Button>
                     </a>
@@ -444,7 +444,7 @@ export default function BestAINoteTrackingSoftware() {
                     </div>
                     
                     <a href={tool.url} target="_blank" rel="noopener noreferrer">
-                      <Button className="bg-purple-600 hover:bg-purple-700">
+                      <Button className="bg-orange-600 hover:bg-orange-700">
                         Try It Now
                       </Button>
                     </a>
@@ -458,16 +458,16 @@ export default function BestAINoteTrackingSoftware() {
         {/* Simplified Newsletter Signup */}
         <div className="py-16 bg-gray-50">
           <div className="container mx-auto max-w-3xl px-4">
-            <div className="bg-gradient-to-r from-purple-600 to-purple-700 rounded-lg p-8 text-center shadow-lg">
+            <div className="bg-gradient-to-r from-orange-600 to-orange-700 rounded-lg p-8 text-center shadow-lg">
               <h2 className="text-2xl font-bold mb-3 text-white">Join our newsletter</h2>
-              <p className="text-purple-100 mb-6 max-w-2xl mx-auto">Get the latest updates on new AI tools delivered to your inbox.</p>
+              <p className="text-orange-100 mb-6 max-w-2xl mx-auto">Get the latest updates on new AI tools delivered to your inbox.</p>
               <div className="flex max-w-md mx-auto gap-3">
                 <input
                   type="email"
                   placeholder="Enter your email"
                   className="flex-1 rounded-lg border-0 px-4 py-2 focus:ring-2 focus:ring-white focus:ring-opacity-50"
                 />
-                <Button className="bg-white text-purple-700 hover:bg-gray-100 rounded-lg px-4 py-2 font-medium">
+                <Button className="bg-white text-orange-700 hover:bg-gray-100 rounded-lg px-4 py-2 font-medium">
                   Subscribe
                 </Button>
               </div>

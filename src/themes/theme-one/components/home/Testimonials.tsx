@@ -73,13 +73,13 @@ export const Testimonials = () => {
   return (
     <section className="py-20 relative overflow-hidden">
       {/* Background Effects */}
-      <div className="absolute inset-0 bg-gradient-to-b from-white via-purple-50/30 to-white" />
+      <div className="absolute inset-0 bg-gradient-to-b from-white via-orange-50/30 to-white" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_50%,rgba(139,92,246,0.1),transparent_50%)]" />
       
       <div className="relative container mx-auto px-4">
         {/* Section Header */}
         <div className="max-w-2xl mx-auto text-center mb-16 space-y-4">
-          <h2 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-blue-600 bg-clip-text text-transparent">
             What Our Users Say
           </h2>
           <p className="text-gray-600">
@@ -95,12 +95,12 @@ export const Testimonials = () => {
               {testimonials.slice(activeIndex, activeIndex + 2).map((testimonial, index) => (
                 <Card
                   key={testimonial.id}
-                  className={`group relative overflow-hidden bg-white/70 backdrop-blur-sm border border-gray-200/50 hover:border-purple-200/50 transition-all duration-300 ${
+                  className={`group relative overflow-hidden bg-white/70 backdrop-blur-sm border border-gray-200/50 hover:border-orange-200/50 transition-all duration-300 ${
                     isAnimating ? "opacity-0" : "opacity-100"
                   } transition-opacity duration-500`}
                 >
                   {/* Quote Icon */}
-                  <div className="absolute top-4 right-4 text-purple-200">
+                  <div className="absolute top-4 right-4 text-orange-200">
                     <Quote className="w-8 h-8" />
                   </div>
 
@@ -144,7 +144,7 @@ export const Testimonials = () => {
 
                   {/* Hover Border */}
                   <div className="absolute inset-x-0 bottom-0 h-0.5">
-                    <div className="h-full bg-gradient-to-r from-purple-500 to-blue-500 w-0 group-hover:w-full transition-all duration-500" />
+                    <div className="h-full bg-gradient-to-r from-orange-500 to-blue-500 w-0 group-hover:w-full transition-all duration-500" />
                   </div>
                 </Card>
               ))}
@@ -156,7 +156,7 @@ export const Testimonials = () => {
                 variant="outline"
                 size="icon"
                 onClick={prevSlide}
-                className="rounded-full hover:bg-purple-50"
+                className="rounded-full hover:bg-orange-50"
                 disabled={isAnimating}
               >
                 <ArrowLeft className="w-5 h-5" />
@@ -165,7 +165,7 @@ export const Testimonials = () => {
                 variant="outline"
                 size="icon"
                 onClick={nextSlide}
-                className="rounded-full hover:bg-purple-50"
+                className="rounded-full hover:bg-orange-50"
                 disabled={isAnimating}
               >
                 <ArrowRight className="w-5 h-5" />
@@ -179,7 +179,7 @@ export const Testimonials = () => {
                   key={index}
                   className={`w-2 h-2 rounded-full transition-all duration-300 ${
                     Math.floor(activeIndex / 2) === Math.floor(index / 2)
-                      ? "bg-purple-600 w-4"
+                      ? "bg-orange-600 w-4"
                       : "bg-gray-300"
                   }`}
                 />

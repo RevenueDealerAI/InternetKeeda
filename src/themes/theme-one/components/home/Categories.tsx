@@ -64,7 +64,7 @@ const ICON_MAP: Record<string, LucideIcon> = {
 const TINT_RING = [
   "from-orange-50 to-amber-50 text-orange-600",
   "from-blue-50 to-sky-50 text-blue-600",
-  "from-violet-50 to-purple-50 text-violet-600",
+  "from-violet-50 to-orange-50 text-violet-600",
   "from-rose-50 to-pink-50 text-rose-600",
   "from-emerald-50 to-teal-50 text-emerald-600",
   "from-amber-50 to-yellow-50 text-amber-600",

@@ -36,7 +36,7 @@ const ICONS = [
 
 // Available background and icon colors
 const COLORS = [
-  { label: "Purple", bg: "bg-purple-50", text: "text-purple-600" },
+  { label: "Purple", bg: "bg-orange-50", text: "text-orange-600" },
   { label: "Blue", bg: "bg-blue-50", text: "text-blue-600" },
   { label: "Green", bg: "bg-green-50", text: "text-green-600" },
   { label: "Pink", bg: "bg-pink-50", text: "text-pink-600" },
@@ -56,8 +56,8 @@ export function SoftwarePageFormDialog({
     description: "",
     slug: "",
     icon: "BarChart3",
-    bgColor: "bg-purple-50",
-    iconColor: "text-purple-600",
+    bgColor: "bg-orange-50",
+    iconColor: "text-orange-600",
     featured: true,
     content: {
       introduction: "",
@@ -87,8 +87,8 @@ export function SoftwarePageFormDialog({
         description: "",
         slug: "",
         icon: "BarChart3",
-        bgColor: "bg-purple-50",
-        iconColor: "text-purple-600",
+        bgColor: "bg-orange-50",
+        iconColor: "text-orange-600",
         featured: true,
         content: {
           introduction: "",

@@ -13,7 +13,7 @@ const getPricingColor = (type: string) => {
     case 'free': return 'bg-gradient-to-r from-emerald-500/90 to-teal-500/90 text-white shadow-emerald-500/20';
     case 'freemium': return 'bg-gradient-to-r from-blue-500/90 to-indigo-500/90 text-white shadow-blue-500/20';
     case 'paid': 
-    case 'enterprise': return 'bg-gradient-to-r from-purple-500/90 to-pink-500/90 text-white shadow-purple-500/20';
+    case 'enterprise': return 'bg-gradient-to-r from-orange-500/90 to-pink-500/90 text-white shadow-orange-500/20';
     default: return '';
   }
 };
@@ -96,7 +96,7 @@ export const TopProducts = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
       </div>
     );
   }
@@ -116,10 +116,10 @@ export const TopProducts = () => {
     <div className="container mx-auto px-4 py-8 mt-20">
       {/* Header */}
       <div className="flex flex-col items-center text-center mb-12">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-purple-100 mb-4">
-          <TrendingUp className="w-8 h-8 text-purple-600" />
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-orange-100 mb-4">
+          <TrendingUp className="w-8 h-8 text-orange-600" />
         </div>
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-4">
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-orange-600 to-blue-600 bg-clip-text text-transparent mb-4">
           Top AI Tools
         </h1>
         <p className="text-gray-600 max-w-2xl">
@@ -132,21 +132,21 @@ export const TopProducts = () => {
         <div className="flex flex-wrap gap-4">
           <Button 
             variant={timeFilter === 'all' ? "default" : "outline"} 
-            className={`rounded-xl ${timeFilter === 'all' ? '' : 'hover:bg-purple-50'}`}
+            className={`rounded-xl ${timeFilter === 'all' ? '' : 'hover:bg-orange-50'}`}
             onClick={() => handleTimeFilterChange('all')}
           >
             All Time
           </Button>
           <Button 
             variant={timeFilter === 'month' ? "default" : "outline"} 
-            className={`rounded-xl ${timeFilter === 'month' ? '' : 'hover:bg-purple-50'}`}
+            className={`rounded-xl ${timeFilter === 'month' ? '' : 'hover:bg-orange-50'}`}
             onClick={() => handleTimeFilterChange('month')}
           >
             This Month
           </Button>
           <Button 
             variant={timeFilter === 'week' ? "default" : "outline"} 
-            className={`rounded-xl ${timeFilter === 'week' ? '' : 'hover:bg-purple-50'}`}
+            className={`rounded-xl ${timeFilter === 'week' ? '' : 'hover:bg-orange-50'}`}
             onClick={() => handleTimeFilterChange('week')}
           >
             This Week
@@ -157,7 +157,7 @@ export const TopProducts = () => {
           <div className="relative">
             <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
             <select 
-              className="rounded-xl border border-gray-200 pl-10 pr-8 py-2 text-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500 appearance-none bg-white min-w-[160px]"
+              className="rounded-xl border border-gray-200 pl-10 pr-8 py-2 text-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 appearance-none bg-white min-w-[160px]"
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as 'votes' | 'trending' | 'recent')}
             >
@@ -176,7 +176,7 @@ export const TopProducts = () => {
 
       {/* Featured Product */}
       {featuredTool && (
-        <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-2xl p-6 mb-12">
+        <div className="bg-gradient-to-br from-orange-50 to-blue-50 rounded-2xl p-6 mb-12">
           <div className="flex flex-col md:flex-row gap-8 items-center">
             <div className="w-full md:w-1/2">
               <div className="aspect-video rounded-xl bg-white shadow-lg overflow-hidden relative">
@@ -249,7 +249,7 @@ export const TopProducts = () => {
         <div className="flex justify-center mt-12">
           <Button 
             variant="outline"
-            className="rounded-xl hover:bg-purple-50 border-purple-200"
+            className="rounded-xl hover:bg-orange-50 border-orange-200"
             onClick={() => {
               // Implement load more functionality
               console.log('Load more clicked');

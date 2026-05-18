@@ -43,10 +43,10 @@ export const Blog = () => {
   return (
     <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 mt-16 sm:mt-20">
       <div className="flex flex-col items-center text-center mb-8 sm:mb-12">
-        <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-purple-100 mb-4">
-          <Zap className="w-6 h-6 sm:w-8 sm:h-8 text-purple-600" />
+        <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-orange-100 mb-4">
+          <Zap className="w-6 h-6 sm:w-8 sm:h-8 text-orange-600" />
         </div>
-        <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-3 sm:mb-4">
+        <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-orange-600 to-blue-600 bg-clip-text text-transparent mb-3 sm:mb-4">
           AI Insights & Guides
         </h1>
         <p className="text-gray-600 max-w-xl sm:max-w-2xl text-sm sm:text-base">
@@ -62,7 +62,7 @@ export const Blog = () => {
             placeholder="Search articles..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 text-sm sm:text-base border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            className="w-full pl-10 pr-4 py-2 text-sm sm:text-base border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
           />
         </div>
         {searchQuery.trim() && (
@@ -78,7 +78,7 @@ export const Blog = () => {
       <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3 md:gap-8">
         {isLoading ? (
           <div className="col-span-full flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-purple-600"></div>
+            <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-orange-600"></div>
           </div>
         ) : error ? (
           <div className="col-span-full text-center text-red-600 py-16">
@@ -131,7 +131,7 @@ export const Blog = () => {
                     {post.readTime}
                   </span>
                 </div>
-                <h3 className="text-lg sm:text-xl font-semibold mb-2 group-hover:text-purple-600 transition-colors line-clamp-2">
+                <h3 className="text-lg sm:text-xl font-semibold mb-2 group-hover:text-orange-600 transition-colors line-clamp-2">
                   {post.title}
                 </h3>
                 <div 
@@ -151,7 +151,7 @@ export const Blog = () => {
                     </div>
                     <span className="text-xs sm:text-sm text-gray-600">{post.author.name}</span>
                   </div>
-                  <span className="text-xs sm:text-sm text-purple-600 font-medium">
+                  <span className="text-xs sm:text-sm text-orange-600 font-medium">
                     {post.category}
                   </span>
                 </div>
@@ -159,7 +159,7 @@ export const Blog = () => {
                   {post.tags.slice(0, 3).map((tag, index) => (
                     <span
                       key={index}
-                      className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800"
+                      className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800"
                     >
                       <Tag className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-1" />
                       {tag}

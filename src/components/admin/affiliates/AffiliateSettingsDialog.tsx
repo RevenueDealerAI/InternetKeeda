@@ -94,9 +94,9 @@ export function AffiliateSettingsDialog({ open, onOpenChange }: AffiliateSetting
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden bg-white border border-gray-100 shadow-2xl rounded-2xl">
-                <div className="p-6 bg-gradient-to-br from-purple-50 to-white border-b border-purple-100">
+                <div className="p-6 bg-gradient-to-br from-orange-50 to-white border-b border-orange-100">
                     <DialogHeader>
-                        <DialogTitle className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-600">
+                        <DialogTitle className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-orange-600 to-pink-600">
                             Affiliate Configuration
                         </DialogTitle>
                         <DialogDescription className="text-gray-500 mt-1">
@@ -107,7 +107,7 @@ export function AffiliateSettingsDialog({ open, onOpenChange }: AffiliateSetting
 
                 {loading ? (
                     <div className="flex justify-center items-center h-64">
-                        <Loader2 className="animate-spin h-8 w-8 text-purple-600" />
+                        <Loader2 className="animate-spin h-8 w-8 text-orange-600" />
                     </div>
                 ) : (
                     <div className="p-6 space-y-6">
@@ -118,7 +118,7 @@ export function AffiliateSettingsDialog({ open, onOpenChange }: AffiliateSetting
                                 Commission Rate
                             </Label>
                             <div className="relative group">
-                                <Percent className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-purple-500 group-focus-within:text-purple-600 transition-colors" />
+                                <Percent className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-orange-500 group-focus-within:text-orange-600 transition-colors" />
                                 <Input
                                     id="commission"
                                     type="number"
@@ -127,13 +127,13 @@ export function AffiliateSettingsDialog({ open, onOpenChange }: AffiliateSetting
                                     max="1"
                                     value={settings.commissionRate}
                                     onChange={(e) => handleChange('commissionRate', e.target.value)}
-                                    className="pl-10 h-11 border-gray-200 focus:border-purple-500 focus:ring-purple-500 rounded-xl transition-all"
+                                    className="pl-10 h-11 border-gray-200 focus:border-orange-500 focus:ring-orange-500 rounded-xl transition-all"
                                     placeholder="0.20"
                                 />
                             </div>
                             <div className="flex items-center justify-between text-xs text-gray-500 px-1">
                                 <span>Value between 0.0 and 1.0</span>
-                                <span className="font-medium text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full">
+                                <span className="font-medium text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full">
                                     {(settings.commissionRate * 100).toFixed(0)}% per sale
                                 </span>
                             </div>
@@ -153,7 +153,7 @@ export function AffiliateSettingsDialog({ open, onOpenChange }: AffiliateSetting
                                         min="0"
                                         value={settings.minimumPayout}
                                         onChange={(e) => handleChange('minimumPayout', e.target.value)}
-                                        className="pl-10 h-11 border-gray-200 focus:border-purple-500 focus:ring-purple-500 rounded-xl transition-all"
+                                        className="pl-10 h-11 border-gray-200 focus:border-orange-500 focus:ring-orange-500 rounded-xl transition-all"
                                     />
                                 </div>
                             </div>
@@ -171,7 +171,7 @@ export function AffiliateSettingsDialog({ open, onOpenChange }: AffiliateSetting
                                         min="1"
                                         value={settings.cookieDurationDays}
                                         onChange={(e) => handleChange('cookieDurationDays', e.target.value)}
-                                        className="pl-10 h-11 border-gray-200 focus:border-purple-500 focus:ring-purple-500 rounded-xl transition-all"
+                                        className="pl-10 h-11 border-gray-200 focus:border-orange-500 focus:ring-orange-500 rounded-xl transition-all"
                                     />
                                     <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-gray-400 font-medium pointer-events-none">
                                         Days
@@ -195,7 +195,7 @@ export function AffiliateSettingsDialog({ open, onOpenChange }: AffiliateSetting
                     <Button
                         onClick={handleSave}
                         disabled={saving}
-                        className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white shadow-md hover:shadow-lg transition-all rounded-lg px-6"
+                        className="bg-gradient-to-r from-orange-600 to-pink-500 hover:from-orange-700 hover:to-pink-600 text-white shadow-md hover:shadow-lg transition-all rounded-lg px-6"
                     >
                         {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                         Save Changes

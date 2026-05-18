@@ -97,7 +97,7 @@ export default function UsersManagementPage() {
   const getRoleBadgeVariant = (role: User['role']) => {
     switch (role) {
       case 'admin':
-        return 'bg-purple-50 text-purple-700 border-purple-200';
+        return 'bg-orange-50 text-orange-700 border-orange-200';
       default:
         return 'bg-gray-50 text-gray-700 border-gray-200';
     }
@@ -215,7 +215,7 @@ export default function UsersManagementPage() {
     return (
       <div className="min-h-[calc(100vh-72px)] pt-20">
         <div className="flex items-center justify-center h-96">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600" />
         </div>
       </div>
     );

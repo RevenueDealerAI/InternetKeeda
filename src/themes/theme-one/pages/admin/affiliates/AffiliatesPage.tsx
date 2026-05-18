@@ -82,7 +82,7 @@ export default function AffiliatesPage() {
         return (
             <div className="min-h-[calc(100vh-72px)] pt-20">
                 <div className="flex items-center justify-center h-96">
-                    <Loader2 className="animate-spin h-8 w-8 text-purple-600" />
+                    <Loader2 className="animate-spin h-8 w-8 text-orange-600" />
                 </div>
             </div>
         );

@@ -209,7 +209,7 @@ export default function SoftwarePageDetail({ staticSlug }: SoftwarePageDetailPro
   if (!softwarePage) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
       </div>
     );
   }
@@ -222,7 +222,7 @@ export default function SoftwarePageDetail({ staticSlug }: SoftwarePageDetailPro
   return (
     <div className="min-h-screen bg-white pb-16">
       {/* Hero Section */}
-      <div className={`pt-32 pb-16 px-4 ${softwarePage.bgColor || 'bg-purple-50'}`}>
+      <div className={`pt-32 pb-16 px-4 ${softwarePage.bgColor || 'bg-orange-50'}`}>
         <div className="container mx-auto max-w-5xl">
           <Link href="/" className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-8">
             <ArrowLeft className="w-4 h-4 mr-2" />
@@ -230,14 +230,14 @@ export default function SoftwarePageDetail({ staticSlug }: SoftwarePageDetailPro
           </Link>
           
           <div className="flex flex-col md:flex-row md:items-center gap-6">
-            <div className={`w-16 h-16 rounded-2xl ${softwarePage.bgColor || 'bg-purple-100'} flex items-center justify-center flex-shrink-0`}>
+            <div className={`w-16 h-16 rounded-2xl ${softwarePage.bgColor || 'bg-orange-100'} flex items-center justify-center flex-shrink-0`}>
               {softwarePage.icon ? (
-                <span className={`${softwarePage.iconColor || 'text-purple-600'}`}>
+                <span className={`${softwarePage.iconColor || 'text-orange-600'}`}>
                   {/* Render icon component dynamically using our helper function */}
                   {React.createElement(getIconComponent(softwarePage.icon), { className: "w-8 h-8" })}
                 </span>
               ) : (
-                <Zap className={`w-8 h-8 ${softwarePage.iconColor || 'text-purple-600'}`} />
+                <Zap className={`w-8 h-8 ${softwarePage.iconColor || 'text-orange-600'}`} />
               )}
             </div>
             
@@ -392,7 +392,7 @@ export default function SoftwarePageDetail({ staticSlug }: SoftwarePageDetailPro
               {/* Tools Grid */}
               {toolsLoading ? (
                 <div className="flex items-center justify-center py-12">
-                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
                 </div>
               ) : relevantTools.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

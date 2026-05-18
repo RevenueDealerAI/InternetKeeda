@@ -158,7 +158,7 @@ const ReviewModerationDialog: React.FC<ReviewModerationDialogProps> = ({
               type="button"
               onClick={() => moderateReview('approved')}
               disabled={loading}
-              className="flex items-center rounded-md border border-transparent bg-purple-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70 dark:bg-purple-700 dark:hover:bg-purple-800"
+              className="flex items-center rounded-md border border-transparent bg-orange-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70 dark:bg-orange-700 dark:hover:bg-orange-800"
             >
               {loading ? (
                 <LoadingSpinner size="small" className="mr-1" />

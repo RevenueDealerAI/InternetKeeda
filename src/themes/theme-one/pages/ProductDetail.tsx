@@ -153,7 +153,7 @@ const ProductDetail = () => {
                       <div className="flex items-start gap-6">
                         {/* Product Image */}
                         <div className="relative group">
-                          <div className="w-32 h-32 rounded-3xl overflow-hidden bg-gradient-to-br from-purple-50 to-purple-100/50 
+                          <div className="w-32 h-32 rounded-3xl overflow-hidden bg-gradient-to-br from-orange-50 to-orange-100/50 
                             shadow-lg ring-1 ring-black/[0.08] flex-shrink-0 transition-transform duration-300 group-hover:scale-105 relative">
                             <Image
                               src={product.imageUrl}
@@ -163,7 +163,7 @@ const ProductDetail = () => {
                               unoptimized
                             />
                           </div>
-                          <div className="absolute -bottom-3 -right-3 bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-medium">
+                          <div className="absolute -bottom-3 -right-3 bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-sm font-medium">
                             #{Math.floor(voteCount / 100)}
                           </div>
                         </div>
@@ -179,7 +179,7 @@ const ProductDetail = () => {
                                 Back to Products
                               </Link>
                               <div className="flex items-center gap-2 mb-3">
-                                <Badge className="bg-gradient-to-r from-purple-500 to-purple-600 text-white border-0">
+                                <Badge className="bg-gradient-to-r from-orange-500 to-orange-600 text-white border-0">
                                   Product of the Day
                                 </Badge>
                                 <Badge variant="outline" className="text-gray-600 bg-white">
@@ -203,32 +203,32 @@ const ProductDetail = () => {
 
                     {/* Stats Grid */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-10">
-                      <div className="bg-white rounded-2xl p-4 border border-gray-200 hover:border-purple-200 transition-colors">
+                      <div className="bg-white rounded-2xl p-4 border border-gray-200 hover:border-orange-200 transition-colors">
                         <div className="flex items-center gap-3 mb-1">
-                          <div className="bg-purple-100 p-2 rounded-lg">
-                            <Users className="w-5 h-5 text-purple-600" />
+                          <div className="bg-orange-100 p-2 rounded-lg">
+                            <Users className="w-5 h-5 text-orange-600" />
                           </div>
                           <span className="text-sm font-medium text-gray-600">Users</span>
                         </div>
                         <div className="text-2xl font-bold text-gray-900">50K+</div>
                       </div>
-                      <div className="bg-white rounded-2xl p-4 border border-gray-200 hover:border-purple-200 transition-colors">
+                      <div className="bg-white rounded-2xl p-4 border border-gray-200 hover:border-orange-200 transition-colors">
                         <div className="flex items-center gap-3 mb-1">
-                          <Star className="w-5 h-5 text-purple-600" />
+                          <Star className="w-5 h-5 text-orange-600" />
                           <span className="text-sm font-medium text-gray-600">Rating</span>
                         </div>
                         <div className="text-2xl font-bold text-gray-900">4.8/5.0</div>
                       </div>
-                      <div className="bg-white rounded-2xl p-4 border border-gray-200 hover:border-purple-200 transition-colors">
+                      <div className="bg-white rounded-2xl p-4 border border-gray-200 hover:border-orange-200 transition-colors">
                         <div className="flex items-center gap-3 mb-1">
-                          <Zap className="w-5 h-5 text-purple-600" />
+                          <Zap className="w-5 h-5 text-orange-600" />
                           <span className="text-sm font-medium text-gray-600">Launch</span>
                         </div>
                         <div className="text-2xl font-bold text-gray-900">2023</div>
                       </div>
-                      <div className="bg-white rounded-2xl p-4 border border-gray-200 hover:border-purple-200 transition-colors">
+                      <div className="bg-white rounded-2xl p-4 border border-gray-200 hover:border-orange-200 transition-colors">
                         <div className="flex items-center gap-3 mb-1">
-                          <Shield className="w-5 h-5 text-purple-600" />
+                          <Shield className="w-5 h-5 text-orange-600" />
                           <span className="text-sm font-medium text-gray-600">Verified</span>
                         </div>
                         <div className="text-2xl font-bold text-gray-900">Yes</div>
@@ -243,8 +243,8 @@ const ProductDetail = () => {
                         disabled={isVoting || isVoted}
                         className={`flex-1 max-w-[200px] rounded-xl transition-all duration-300 ${
                           isVoted
-                            ? "bg-purple-100 text-purple-700 hover:bg-purple-200"
-                            : "bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800"
+                            ? "bg-orange-100 text-orange-700 hover:bg-orange-200"
+                            : "bg-gradient-to-r from-orange-600 to-orange-700 text-white hover:from-orange-700 hover:to-orange-800"
                         }`}
                       >
                         {isVoting ? (
@@ -274,7 +274,7 @@ const ProductDetail = () => {
                   {/* Right Column - Quick Info */}
                   <div className="lg:w-80">
                     <div className="sticky top-20 space-y-4">
-                      <div className="bg-white rounded-2xl p-6 border border-gray-200 hover:border-purple-200 transition-colors">
+                      <div className="bg-white rounded-2xl p-6 border border-gray-200 hover:border-orange-200 transition-colors">
                         <h3 className="text-sm font-medium text-gray-900 mb-4">Highlights</h3>
                         <div className="space-y-3">
                           <div className="flex items-center gap-2 text-gray-600">
@@ -304,7 +304,7 @@ const ProductDetail = () => {
                         </div>
                       </div>
 
-                      <div className="bg-white rounded-2xl p-6 border border-gray-200 hover:border-purple-200 transition-colors">
+                      <div className="bg-white rounded-2xl p-6 border border-gray-200 hover:border-orange-200 transition-colors">
                         <h3 className="text-sm font-medium text-gray-900 mb-4">Links</h3>
                         <div className="space-y-3">
                           <a 
@@ -363,36 +363,36 @@ const ProductDetail = () => {
             <TabsList className="bg-white border-b w-full justify-start rounded-none h-12 p-0 space-x-2">
               <TabsTrigger 
                 value="about"
-                className="h-12 px-6 rounded-none data-[state=active]:text-purple-600 data-[state=active]:border-b-2 
-                  data-[state=active]:border-purple-600 transition-colors hover:text-purple-600"
+                className="h-12 px-6 rounded-none data-[state=active]:text-orange-600 data-[state=active]:border-b-2 
+                  data-[state=active]:border-orange-600 transition-colors hover:text-orange-600"
               >
                 About
               </TabsTrigger>
               <TabsTrigger 
                 value="features"
-                className="h-12 px-6 rounded-none data-[state=active]:text-purple-600 data-[state=active]:border-b-2 
-                  data-[state=active]:border-purple-600 transition-colors hover:text-purple-600"
+                className="h-12 px-6 rounded-none data-[state=active]:text-orange-600 data-[state=active]:border-b-2 
+                  data-[state=active]:border-orange-600 transition-colors hover:text-orange-600"
               >
                 Features
               </TabsTrigger>
               <TabsTrigger 
                 value="pricing"
-                className="h-12 px-6 rounded-none data-[state=active]:text-purple-600 data-[state=active]:border-b-2 
-                  data-[state=active]:border-purple-600 transition-colors hover:text-purple-600"
+                className="h-12 px-6 rounded-none data-[state=active]:text-orange-600 data-[state=active]:border-b-2 
+                  data-[state=active]:border-orange-600 transition-colors hover:text-orange-600"
               >
                 Pricing
               </TabsTrigger>
               <TabsTrigger 
                 value="reviews"
-                className="h-12 px-6 rounded-none data-[state=active]:text-purple-600 data-[state=active]:border-b-2 
-                  data-[state=active]:border-purple-600 transition-colors hover:text-purple-600"
+                className="h-12 px-6 rounded-none data-[state=active]:text-orange-600 data-[state=active]:border-b-2 
+                  data-[state=active]:border-orange-600 transition-colors hover:text-orange-600"
               >
                 Reviews
               </TabsTrigger>
               <TabsTrigger 
                 value="alternatives"
-                className="h-12 px-6 rounded-none data-[state=active]:text-purple-600 data-[state=active]:border-b-2 
-                  data-[state=active]:border-purple-600 transition-colors hover:text-purple-600"
+                className="h-12 px-6 rounded-none data-[state=active]:text-orange-600 data-[state=active]:border-b-2 
+                  data-[state=active]:border-orange-600 transition-colors hover:text-orange-600"
               >
                 Alternatives
               </TabsTrigger>
@@ -422,14 +422,14 @@ const ProductDetail = () => {
           ? 'translate-y-0 opacity-100' 
           : 'translate-y-12 opacity-0 pointer-events-none'
       }`}>
-        <div className="bg-white/95 backdrop-blur-sm rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-3 flex flex-col gap-3 border border-gray-200/50 hover:border-purple-200/50 transition-all duration-300">
+        <div className="bg-white/95 backdrop-blur-sm rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-3 flex flex-col gap-3 border border-gray-200/50 hover:border-orange-200/50 transition-all duration-300">
           <Button
             size="icon"
             onClick={handleVote}
             className={`rounded-full w-10 h-10 transition-all duration-300 transform hover:scale-110 ${
               isVoted
-                ? "bg-purple-100 text-purple-700 hover:bg-purple-200"
-                : "bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800 hover:shadow-purple-200/50 hover:shadow-lg"
+                ? "bg-orange-100 text-orange-700 hover:bg-orange-200"
+                : "bg-gradient-to-r from-orange-600 to-orange-700 text-white hover:from-orange-700 hover:to-orange-800 hover:shadow-orange-200/50 hover:shadow-lg"
             }`}
             title={isVoted ? "Upvoted" : "Upvote"}
           >
@@ -449,7 +449,7 @@ const ProductDetail = () => {
           size="icon"
           variant="outline"
           onClick={scrollToTop}
-          className="rounded-full w-10 h-10 bg-white/95 shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:bg-gray-100 transition-all duration-300 transform hover:scale-110 hover:shadow-lg hover:shadow-gray-200/50 hover:border-purple-200/50"
+          className="rounded-full w-10 h-10 bg-white/95 shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:bg-gray-100 transition-all duration-300 transform hover:scale-110 hover:shadow-lg hover:shadow-gray-200/50 hover:border-orange-200/50"
           title="Back to top"
         >
           <ChevronUp className="w-5 h-5 transition-transform duration-300 group-hover:translate-y-[-2px]" />

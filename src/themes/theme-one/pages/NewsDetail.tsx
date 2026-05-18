@@ -615,7 +615,7 @@ export const NewsDetail = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white pt-24">
+      <div className="min-h-screen bg-gradient-to-b from-orange-50 to-white pt-24">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto animate-pulse">
             <div className="h-6 bg-gray-200 rounded w-1/4 mb-4"></div>
@@ -671,7 +671,7 @@ export const NewsDetail = () => {
   `;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-orange-50 to-white">
       <div className="fixed top-0 left-0 right-0 z-50">
         <Progress value={readingProgress} className="h-1 rounded-none bg-gray-100" />
       </div>
@@ -679,7 +679,7 @@ export const NewsDetail = () => {
       <div className="container mx-auto px-4 py-4 sm:px-6 sm:py-8 mt-14 sm:mt-20">
         <div className="flex items-center justify-between mb-4 sm:mb-8 max-w-3xl mx-auto">
           <Link href="/latest-news" 
-            className="inline-flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-gray-600 hover:text-purple-600 bg-white/80 backdrop-blur-sm px-2 sm:px-6 py-1.5 sm:py-2.5 rounded-full shadow-sm transition-all hover:shadow-md"
+            className="inline-flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-gray-600 hover:text-orange-600 bg-white/80 backdrop-blur-sm px-2 sm:px-6 py-1.5 sm:py-2.5 rounded-full shadow-sm transition-all hover:shadow-md"
           >
             <ArrowLeft className="w-3 h-3 sm:w-4 sm:h-4" />
             <span>Back to News</span>
@@ -693,7 +693,7 @@ export const NewsDetail = () => {
 
         <article className="max-w-3xl mx-auto">
           <header className="text-center mb-6 sm:mb-12">
-            <div className="inline-flex items-center justify-center px-2 py-1 sm:px-4 sm:py-1.5 rounded-full bg-purple-100 text-purple-700 font-medium text-xs sm:text-sm mb-3 sm:mb-6">
+            <div className="inline-flex items-center justify-center px-2 py-1 sm:px-4 sm:py-1.5 rounded-full bg-orange-100 text-orange-700 font-medium text-xs sm:text-sm mb-3 sm:mb-6">
               {news.category}
             </div>
             <h1 className="text-xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-3 sm:mb-6 leading-tight px-1">
@@ -712,7 +712,7 @@ export const NewsDetail = () => {
                 href={`https://${news.source.toLowerCase().replace(' ', '')}.com`} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="flex items-center gap-1 sm:gap-2 hover:text-purple-600 transition-colors"
+                className="flex items-center gap-1 sm:gap-2 hover:text-orange-600 transition-colors"
               >
                 <LinkIcon className="w-3 h-3 sm:w-4 sm:h-4" />
                 {news.source}
@@ -720,7 +720,7 @@ export const NewsDetail = () => {
             </div>
             {newsDetail?.author && (
               <div className="flex items-center justify-center gap-2 sm:gap-3">
-                <div className="relative w-7 h-7 sm:w-10 sm:h-10 rounded-full overflow-hidden ring-2 ring-purple-100">
+                <div className="relative w-7 h-7 sm:w-10 sm:h-10 rounded-full overflow-hidden ring-2 ring-orange-100">
                   <Image 
                     src={newsDetail.author.avatar}
                     alt={newsDetail.author.name}
@@ -749,7 +749,7 @@ export const NewsDetail = () => {
           </div>
 
           <div className="bg-white rounded-lg sm:rounded-2xl shadow-md sm:shadow-lg p-4 sm:p-6 md:p-12 mb-6 sm:mb-16 relative overflow-hidden w-[calc(100%+1rem)] -mx-2 sm:w-auto sm:mx-0" ref={contentRef}>
-            <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-br from-purple-50/50 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+            <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-br from-orange-50/50 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
             <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-gradient-to-tr from-blue-50/50 to-transparent rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
             
             <div className="relative">
@@ -770,8 +770,8 @@ export const NewsDetail = () => {
                   prose-li:text-gray-600 prose-li:text-xs sm:prose-li:text-base md:prose-li:text-lg prose-li:leading-relaxed
                   
                   prose-blockquote:text-base sm:prose-blockquote:text-xl prose-blockquote:font-medium prose-blockquote:not-italic prose-blockquote:leading-relaxed
-                  prose-blockquote:border-l-4 prose-blockquote:border-purple-500 prose-blockquote:text-gray-700
-                  prose-blockquote:bg-gradient-to-r prose-blockquote:from-purple-50/80 prose-blockquote:to-white
+                  prose-blockquote:border-l-4 prose-blockquote:border-orange-500 prose-blockquote:text-gray-700
+                  prose-blockquote:bg-gradient-to-r prose-blockquote:from-orange-50/80 prose-blockquote:to-white
                   prose-blockquote:px-4 sm:prose-blockquote:px-10 prose-blockquote:py-4 sm:prose-blockquote:py-8 prose-blockquote:my-6 sm:prose-blockquote:my-16 prose-blockquote:rounded-r-xl
                   prose-blockquote:shadow-sm hover:prose-blockquote:shadow-md prose-blockquote:transition-shadow
                   prose-blockquote:relative prose-blockquote:mx-0 sm:prose-blockquote:mx-4
@@ -781,19 +781,19 @@ export const NewsDetail = () => {
                   
                   [&>ul]:list-none [&>ul>li]:relative [&>ul>li]:pl-5 sm:[&>ul>li]:pl-8
                   [&>ul>li]:before:content-[''] [&>ul>li]:before:absolute [&>ul>li]:before:left-0 [&>ul>li]:before:top-[0.6em]
-                  [&>ul>li]:before:h-1.5 sm:[&>ul>li]:before:h-2 [&>ul>li]:before:w-1.5 sm:[&>ul>li]:before:w-2 [&>ul>li]:before:bg-purple-500 
+                  [&>ul>li]:before:h-1.5 sm:[&>ul>li]:before:h-2 [&>ul>li]:before:w-1.5 sm:[&>ul>li]:before:w-2 [&>ul>li]:before:bg-orange-500 
                   [&>ul>li]:before:rounded-full
                   
                   [&>h2]:relative [&>h2]:pb-0 [&>h2]:w-fit
                   [&>h2]:after:content-[''] [&>h2]:after:absolute [&>h2]:after:bottom-0 [&>h2]:after:left-0 
                   [&>h2]:after:w-full [&>h2]:after:h-px [&>h2]:after:bg-gradient-to-r 
-                  [&>h2]:after:from-purple-500 [&>h2]:after:to-transparent
+                  [&>h2]:after:from-orange-500 [&>h2]:after:to-transparent
                   
                   [&>p>strong]:font-semibold [&>p>strong]:text-gray-900
                   [&>p>em]:text-gray-700 [&>p>em]:font-medium
                   
                   [&>blockquote]:before:content-['"'] [&>blockquote]:before:absolute [&>blockquote]:before:-left-2 sm:[&>blockquote]:before:-left-6 
-                  [&>blockquote]:before:-top-4 [&>blockquote]:before:text-3xl sm:[&>blockquote]:before:text-6xl [&>blockquote]:before:text-purple-200 
+                  [&>blockquote]:before:-top-4 [&>blockquote]:before:text-3xl sm:[&>blockquote]:before:text-6xl [&>blockquote]:before:text-orange-200 
                   [&>blockquote]:before:font-serif [&>blockquote]:before:leading-none [&>blockquote]:before:z-0
                   
                   [&>blockquote>p]:relative [&>blockquote>p]:z-10
@@ -872,7 +872,7 @@ export const NewsDetail = () => {
                   <Link
                     key={article.id}
                     href={`/news/${article.id}`}
-                    className="group bg-white rounded-xl sm:rounded-2xl overflow-hidden border border-gray-100 hover:border-purple-200 transition-all duration-300 hover:shadow-lg flex flex-col"
+                    className="group bg-white rounded-xl sm:rounded-2xl overflow-hidden border border-gray-100 hover:border-orange-200 transition-all duration-300 hover:shadow-lg flex flex-col"
                   >
                     <div className="relative h-32 sm:h-48 overflow-hidden">
                       <Image 
@@ -883,13 +883,13 @@ export const NewsDetail = () => {
                         unoptimized
                       />
                       <div className="absolute top-2 left-2 sm:top-4 sm:left-4">
-                        <span className="bg-white/90 backdrop-blur-sm text-purple-600 px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-xs font-medium">
+                        <span className="bg-white/90 backdrop-blur-sm text-orange-600 px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-xs font-medium">
                           {article.category}
                         </span>
                       </div>
                     </div>
                     <div className="p-3 sm:p-6 flex flex-col flex-grow">
-                      <h3 className="text-sm sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3 group-hover:text-purple-600 transition-colors line-clamp-2">
+                      <h3 className="text-sm sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3 group-hover:text-orange-600 transition-colors line-clamp-2">
                         {article.title}
                       </h3>
                       <p className="text-xs text-gray-600 mb-2 sm:mb-4 line-clamp-2 flex-grow">
@@ -897,7 +897,7 @@ export const NewsDetail = () => {
                       </p>
                       <div className="flex items-center justify-between mt-auto">
                         <span className="text-xs text-gray-500">{article.source}</span>
-                        <span className="text-xs sm:text-sm text-purple-600 group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
+                        <span className="text-xs sm:text-sm text-orange-600 group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
                           Read more
                           <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
                         </span>
@@ -912,7 +912,7 @@ export const NewsDetail = () => {
 
       <button
         onClick={scrollToTop}
-        className={`fixed bottom-20 sm:bottom-8 right-4 sm:right-8 bg-purple-600 text-white p-2 sm:p-3 rounded-full shadow-lg transition-all duration-300 hover:bg-purple-700 touch-manipulation z-[999] ${
+        className={`fixed bottom-20 sm:bottom-8 right-4 sm:right-8 bg-orange-600 text-white p-2 sm:p-3 rounded-full shadow-lg transition-all duration-300 hover:bg-orange-700 touch-manipulation z-[999] ${
           showScrollTop ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none'
         }`}
       >

@@ -14,7 +14,7 @@ const AddProduct = () => {
                 Back to Home
               </Link>
             </Button>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent mb-2">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-blue-500 bg-clip-text text-transparent mb-2">
               Add New AI Tool
             </h1>
             <p className="text-gray-600">

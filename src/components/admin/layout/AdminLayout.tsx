@@ -87,13 +87,13 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
   // Theme-aware classes
   const headerBrandBox = isThemeOne ? 'bg-green-500' : 'bg-gradient-to-r from-[#8039fd] to-[#f5a5ad]';
-  const avatarBg = isThemeOne ? 'bg-green-100' : 'bg-purple-100';
-  const avatarIconText = isThemeOne ? 'text-green-600' : 'text-purple-600';
-  const shadowGlow = isThemeOne ? 'shadow-green-500/20' : 'shadow-purple-500/20';
+  const avatarBg = isThemeOne ? 'bg-green-100' : 'bg-orange-100';
+  const avatarIconText = isThemeOne ? 'text-green-600' : 'text-orange-600';
+  const shadowGlow = isThemeOne ? 'shadow-green-500/20' : 'shadow-orange-500/20';
   const titleGradient = isThemeOne ? 'from-green-500 to-green-600' : 'from-[#8039fd] to-[#f5a5ad]';
-  const hoverSoft = isThemeOne ? 'hover:bg-green-50' : 'hover:bg-purple-50';
-  const activeBg = isThemeOne ? 'bg-green-50 text-green-600' : 'bg-purple-50 text-purple-700';
-  const iconActiveBg = isThemeOne ? 'bg-green-100' : 'bg-purple-100';
+  const hoverSoft = isThemeOne ? 'hover:bg-green-50' : 'hover:bg-orange-50';
+  const activeBg = isThemeOne ? 'bg-green-50 text-green-600' : 'bg-orange-50 text-orange-700';
+  const iconActiveBg = isThemeOne ? 'bg-green-100' : 'bg-orange-100';
 
   // Load sidebar state from localStorage on initial render
   useEffect(() => {
@@ -218,7 +218,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="flex items-center gap-2 p-1 pl-2 pr-1 rounded-full border border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 outline-none focus:ring-2 focus:ring-purple-100 h-auto">
+                <Button variant="ghost" size="sm" className="flex items-center gap-2 p-1 pl-2 pr-1 rounded-full border border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 outline-none focus:ring-2 focus:ring-orange-100 h-auto">
                   <div className="flex items-center gap-2">
                     <span className="hidden md:block text-sm font-medium text-gray-700 max-w-[100px] truncate ml-2">
                       {user?.fullName || user?.emailAddresses[0]?.emailAddress || "Admin"}
@@ -274,7 +274,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
                 <DropdownMenuItem
                   onClick={() => router.push("/")}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 focus:text-purple-700 focus:bg-purple-50 cursor-pointer transition-colors mb-1"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 focus:text-orange-700 focus:bg-orange-50 cursor-pointer transition-colors mb-1"
                 >
                   <Home className="h-4 w-4" />
                   <span className="font-medium text-sm">Return to Main Site</span>
@@ -320,7 +320,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           )}>
             {!isPermanentlyCollapsed && (
               <h1 className="text-lg md:text-xl font-semibold">
-                <span className={isThemeOne ? `bg-gradient-to-r ${titleGradient} bg-clip-text text-transparent` : 'text-purple-600'}>
+                <span className={isThemeOne ? `bg-gradient-to-r ${titleGradient} bg-clip-text text-transparent` : 'text-orange-600'}>
                   Admin Dashboard
                 </span>
               </h1>

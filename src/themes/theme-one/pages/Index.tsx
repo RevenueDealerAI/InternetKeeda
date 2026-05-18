@@ -529,7 +529,7 @@ export default function Index() {
                             setSelectedIndex(-1);
                           }}
                           className={`w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-50 rounded-lg transition-colors ${
-                            index === selectedIndex ? 'bg-purple-50 text-purple-700' : 'text-gray-700'
+                            index === selectedIndex ? 'bg-orange-50 text-orange-700' : 'text-gray-700'
                           }`}
                         >
                           <Clock className="w-4 h-4 text-gray-400" />
@@ -555,10 +555,10 @@ export default function Index() {
                             setIsSearchOpen(false);
                           }}
                           className={`w-full flex items-start gap-3 px-4 py-4 text-sm hover:bg-gray-50 rounded-lg transition-colors ${
-                            index === selectedIndex ? 'bg-purple-50 text-purple-700' : 'text-gray-700'
+                            index === selectedIndex ? 'bg-orange-50 text-orange-700' : 'text-gray-700'
                           }`}
                         >
-                          <div className="w-8 h-8 rounded-lg overflow-hidden bg-gradient-to-br from-purple-100 to-blue-50 relative">
+                          <div className="w-8 h-8 rounded-lg overflow-hidden bg-gradient-to-br from-orange-100 to-blue-50 relative">
                             <Image
                               src={getToolLogo(tool)}
                               alt={tool.name}
@@ -584,8 +584,8 @@ export default function Index() {
                             <div className="text-xs text-gray-500 line-clamp-3 leading-relaxed">{tool.description}</div>
                           </div>
                           {index === selectedIndex && (
-                            <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-purple-100">
-                              <Enter className="w-3 h-3 text-purple-600" />
+                            <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-orange-100">
+                              <Enter className="w-3 h-3 text-orange-600" />
                             </div>
                           )}
                         </Link>
@@ -625,8 +625,8 @@ export default function Index() {
             </div>
           ) : visibleTools.length === 0 && filteredTools.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-center">
-              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-4">
-                <Sparkles className="w-8 h-8 text-purple-600" />
+              <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mb-4">
+                <Sparkles className="w-8 h-8 text-orange-600" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">No tools found</h3>
               <p className="text-gray-600 max-w-md mb-6">
@@ -634,7 +634,7 @@ export default function Index() {
               </p>
               <Button 
                 variant="outline"
-                className="rounded-xl hover:bg-purple-50"
+                className="rounded-xl hover:bg-orange-50"
                 onClick={resetFilters}
               >
                 Reset Filters
@@ -658,24 +658,24 @@ export default function Index() {
                     <Link href={`/ai-tools/${tool.slug}`} className="group block h-full">
                       <article className="relative h-full transform-gpu transition-all duration-200 group overflow-hidden">
                         {/* Base layer with refined background */}
-                        <div className="absolute inset-0 bg-white/90 backdrop-blur-md rounded-2xl shadow-[0_2px_8px_-2px_rgba(22,23,24,0.05)] group-hover:shadow-lg group-hover:shadow-purple-500/10 transition-all duration-200" />
+                        <div className="absolute inset-0 bg-white/90 backdrop-blur-md rounded-2xl shadow-[0_2px_8px_-2px_rgba(22,23,24,0.05)] group-hover:shadow-lg group-hover:shadow-orange-500/10 transition-all duration-200" />
                         
                         {/* Gradient overlay with subtle color */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-purple-50/50 via-white/50 to-blue-50/50 rounded-2xl opacity-40 group-hover:opacity-60 transition-all duration-200" />
+                        <div className="absolute inset-0 bg-gradient-to-br from-orange-50/50 via-white/50 to-blue-50/50 rounded-2xl opacity-40 group-hover:opacity-60 transition-all duration-200" />
                         
                         {/* Enhanced border effect */}
-                        <div className="absolute inset-0 ring-1 ring-inset ring-gray-200 group-hover:ring-purple-200 rounded-2xl transition-all duration-200" />
-                        <div className="absolute inset-[1px] ring-1 ring-inset ring-black/[0.025] group-hover:ring-purple-900/[0.05] rounded-[15px] transition-all duration-200" />
+                        <div className="absolute inset-0 ring-1 ring-inset ring-gray-200 group-hover:ring-orange-200 rounded-2xl transition-all duration-200" />
+                        <div className="absolute inset-[1px] ring-1 ring-inset ring-black/[0.025] group-hover:ring-orange-900/[0.05] rounded-[15px] transition-all duration-200" />
                         
                         {/* Hover glow effect */}
-                        <div className="absolute -inset-0.5 bg-gradient-to-br from-purple-500/[0.07] via-transparent to-blue-500/[0.07] rounded-[1rem] opacity-0 group-hover:opacity-100 blur transition-all duration-200" />
+                        <div className="absolute -inset-0.5 bg-gradient-to-br from-orange-500/[0.07] via-transparent to-blue-500/[0.07] rounded-[1rem] opacity-0 group-hover:opacity-100 blur transition-all duration-200" />
                         
                         {/* Content container */}
                         <div className="relative p-6 flex flex-col h-full group-hover:translate-y-[-2px] transition-all duration-200">
                           {/* Header with Image and Title */}
                           <div className="flex items-start gap-4 mb-3">
                             <div className="relative shrink-0 group-hover:scale-[1.02] transition-transform duration-200">
-                              <div className="w-16 h-16 rounded-xl overflow-hidden bg-gradient-to-br from-purple-100/80 to-blue-50/80 shadow-sm ring-1 ring-black/[0.08] group-hover:shadow-md group-hover:shadow-purple-500/10 transition-all duration-200 relative">
+                              <div className="w-16 h-16 rounded-xl overflow-hidden bg-gradient-to-br from-orange-100/80 to-blue-50/80 shadow-sm ring-1 ring-black/[0.08] group-hover:shadow-md group-hover:shadow-orange-500/10 transition-all duration-200 relative">
                                 <Image
                                   src={getToolLogo(tool)}
                                   alt={tool.name}
@@ -712,7 +712,7 @@ export default function Index() {
                             </div>
                             
                             <div className="flex-1 min-w-0">
-                              <h3 className="text-lg font-semibold text-gray-900 truncate group-hover:text-purple-600 transition-all duration-200">
+                              <h3 className="text-lg font-semibold text-gray-900 truncate group-hover:text-orange-600 transition-all duration-200">
                                 {tool.name}
                               </h3>
                               <div className="flex items-center gap-2 mt-1.5">
@@ -735,7 +735,7 @@ export default function Index() {
                               <Tag className="w-3 h-3 text-gray-400 group-hover:text-gray-500 transition-colors duration-200" />
                               {tool.category}
                             </span>
-                            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-medium bg-purple-100/80 text-purple-600 group-hover:bg-purple-200 group-hover:text-purple-700 group-hover:scale-[1.02] transition-all duration-200">
+                            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-medium bg-orange-100/80 text-orange-600 group-hover:bg-orange-200 group-hover:text-orange-700 group-hover:scale-[1.02] transition-all duration-200">
                               <Zap className="w-3 h-3" />
                               {tool.pricing.type}
                             </span>
@@ -772,7 +772,7 @@ export default function Index() {
             <Button
               onClick={fetchMoreData}
               variant="ghost"
-              className="w-full bg-purple-50 hover:bg-purple-100 text-purple-500 hover:text-purple-600 flex items-center justify-center gap-2 py-6 rounded-xl"
+              className="w-full bg-orange-50 hover:bg-orange-100 text-orange-500 hover:text-orange-600 flex items-center justify-center gap-2 py-6 rounded-xl"
             >
               Load More Tools <ChevronDown className="h-5 w-5" />
             </Button>
@@ -790,10 +790,10 @@ export default function Index() {
             className="fixed bottom-6 left-6 z-50"
           >
             <Link href={`/ai-tools/${currentFomo.tool.slug}`}
-              className="flex items-center gap-3 bg-white/90 backdrop-blur-sm p-4 rounded-xl shadow-lg border border-purple-100 hover:shadow-purple-100/50 transition-all duration-300 group hover:translate-x-1"
+              className="flex items-center gap-3 bg-white/90 backdrop-blur-sm p-4 rounded-xl shadow-lg border border-orange-100 hover:shadow-orange-100/50 transition-all duration-300 group hover:translate-x-1"
             >
               <div className="relative">
-                <div className="w-12 h-12 rounded-lg overflow-hidden bg-gradient-to-br from-purple-100 to-blue-50 relative">
+                <div className="w-12 h-12 rounded-lg overflow-hidden bg-gradient-to-br from-orange-100 to-blue-50 relative">
                   <Image
                     src={getToolLogo(currentFomo.tool)}
                     alt={currentFomo.tool.name}
@@ -842,7 +842,7 @@ export default function Index() {
                 <p className="text-sm font-medium text-gray-900">{currentFomo.tool.name}</p>
               </div>
               <div className="flex items-center self-stretch pl-4 border-l border-gray-100">
-                <div className="text-xs font-medium text-purple-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="text-xs font-medium text-orange-600 opacity-0 group-hover:opacity-100 transition-opacity">
                   View →
                 </div>
               </div>

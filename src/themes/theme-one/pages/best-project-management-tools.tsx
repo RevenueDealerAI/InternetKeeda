@@ -190,7 +190,7 @@ export default function BestProjectManagementTools() {
       </Helmet>
 
       {/* Hero Section with minimalist design */}
-      <div className="bg-gradient-to-br from-purple-700 to-purple-900 text-white pt-36 pb-20 px-4 relative overflow-hidden">
+      <div className="bg-gradient-to-br from-orange-700 to-orange-900 text-white pt-36 pb-20 px-4 relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('/img/grid-pattern.svg')] opacity-5"></div>
         <motion.div 
           className="container mx-auto max-w-4xl relative z-10"
@@ -199,15 +199,15 @@ export default function BestProjectManagementTools() {
           transition={{ duration: 0.5 }}
         >
           <div className="flex flex-col items-center text-center mb-12">
-            <Badge className="mb-4 bg-purple-800/60 text-white px-4 py-1 text-sm font-medium">Top Picks for 2025</Badge>
+            <Badge className="mb-4 bg-orange-800/60 text-white px-4 py-1 text-sm font-medium">Top Picks for 2025</Badge>
             <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
               Best 10 Project Management Software
             </h1>
-            <p className="text-lg text-purple-100 max-w-2xl leading-relaxed">
+            <p className="text-lg text-orange-100 max-w-2xl leading-relaxed">
               Find and compare the top project management tools for your team based on features, pricing, and user reviews.
             </p>
-            <div className="mt-8 text-sm text-purple-200 flex items-center">
-              <div className="relative w-8 h-8 rounded-full overflow-hidden mr-2 border-2 border-purple-400"><Image src="https://ui-avatars.com/api/?name=Andrew+Lee&background=6466F1&color=fff" alt="Andrew Lee" fill className="object-cover" unoptimized /></div>
+            <div className="mt-8 text-sm text-orange-200 flex items-center">
+              <div className="relative w-8 h-8 rounded-full overflow-hidden mr-2 border-2 border-orange-400"><Image src="https://ui-avatars.com/api/?name=Andrew+Lee&background=6466F1&color=fff" alt="Andrew Lee" fill className="object-cover" unoptimized /></div>
               <p>By Andrew Lee • Last updated: June 2025</p>
             </div>
           </div>
@@ -237,7 +237,7 @@ export default function BestProjectManagementTools() {
                 {toolsList.map((tool, index) => (
                   <motion.tr 
                     key={tool.id} 
-                    className="border-t border-gray-200 hover:bg-purple-50/30 transition-colors cursor-pointer"
+                    className="border-t border-gray-200 hover:bg-orange-50/30 transition-colors cursor-pointer"
                     onClick={() => setSelectedTool(selectedTool === tool.id ? null : tool.id)}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -297,7 +297,7 @@ export default function BestProjectManagementTools() {
             {toolsList.map((tool, index) => (
               <motion.div 
                 key={tool.id} 
-                className="bg-white rounded-lg p-6 shadow-md border border-gray-100 hover:border-purple-100 transition-all"
+                className="bg-white rounded-lg p-6 shadow-md border border-gray-100 hover:border-orange-100 transition-all"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
@@ -305,7 +305,7 @@ export default function BestProjectManagementTools() {
               >
                 <div className="flex flex-col md:flex-row md:items-center gap-4 mb-6">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-purple-50 rounded-full flex items-center justify-center text-xl font-bold text-purple-600">
+                    <div className="w-12 h-12 bg-orange-50 rounded-full flex items-center justify-center text-xl font-bold text-orange-600">
                       {index + 1}
                     </div>
                     <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center shadow-sm overflow-hidden border border-gray-100 relative">
@@ -332,7 +332,7 @@ export default function BestProjectManagementTools() {
                   </div>
                   <div className="md:ml-auto">
                     <a href={tool.url} target="_blank" rel="noopener noreferrer">
-                      <Button className="bg-purple-600 hover:bg-purple-700 rounded-lg">
+                      <Button className="bg-orange-600 hover:bg-orange-700 rounded-lg">
                         Visit Website <ArrowRight className="ml-2 w-4 h-4" />
                       </Button>
                     </a>
@@ -415,7 +415,7 @@ export default function BestProjectManagementTools() {
                   </div>
                   
                   <a href={tool.url} target="_blank" rel="noopener noreferrer">
-                    <Button className="bg-purple-600 hover:bg-purple-700">
+                    <Button className="bg-orange-600 hover:bg-orange-700">
                       Try It Now
                     </Button>
                   </a>
@@ -437,32 +437,32 @@ export default function BestProjectManagementTools() {
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {[
               {
-                icon: <Users className="w-5 h-5 text-purple-600" />,
+                icon: <Users className="w-5 h-5 text-orange-600" />,
                 title: "Ease of Use",
                 description: "Intuitive interface for new and experienced users."
               },
               {
-                icon: <BarChart3 className="w-5 h-5 text-purple-600" />,
+                icon: <BarChart3 className="w-5 h-5 text-orange-600" />,
                 title: "Feature Set",
                 description: "Breadth and depth of project management capabilities."
               },
               {
-                icon: <MessageCircle className="w-5 h-5 text-purple-600" />,
+                icon: <MessageCircle className="w-5 h-5 text-orange-600" />,
                 title: "Collaboration",
                 description: "Team communication and collaboration support."
               },
               {
-                icon: <Pencil className="w-5 h-5 text-purple-600" />,
+                icon: <Pencil className="w-5 h-5 text-orange-600" />,
                 title: "Customization",
                 description: "Flexibility for adapting to specific workflows."
               },
               {
-                icon: <Clock className="w-5 h-5 text-purple-600" />,
+                icon: <Clock className="w-5 h-5 text-orange-600" />,
                 title: "Performance",
                 description: "Speed and reliability with large projects."
               },
               {
-                icon: <CalendarDays className="w-5 h-5 text-purple-600" />,
+                icon: <CalendarDays className="w-5 h-5 text-orange-600" />,
                 title: "Value for Money",
                 description: "Pricing plans relative to feature offerings."
               }
@@ -476,7 +476,7 @@ export default function BestProjectManagementTools() {
                 viewport={{ once: true, margin: "-50px" }}
               >
                 <div className="flex items-center mb-2">
-                  <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
+                  <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center mr-3">
                     {item.icon}
                   </div>
                   <h3 className="font-bold text-base">{item.title}</h3>
@@ -491,16 +491,16 @@ export default function BestProjectManagementTools() {
       {/* Simplified Newsletter Signup */}
       <div className="py-16 bg-white">
         <div className="container mx-auto max-w-3xl px-4">
-          <div className="bg-gradient-to-r from-purple-600 to-purple-700 rounded-lg p-8 text-center shadow-lg">
+          <div className="bg-gradient-to-r from-orange-600 to-orange-700 rounded-lg p-8 text-center shadow-lg">
             <h2 className="text-2xl font-bold mb-3 text-white">Join our newsletter</h2>
-            <p className="text-purple-100 mb-6 max-w-2xl mx-auto">Get the latest updates on new tools delivered to your inbox.</p>
+            <p className="text-orange-100 mb-6 max-w-2xl mx-auto">Get the latest updates on new tools delivered to your inbox.</p>
             <div className="flex max-w-md mx-auto gap-3">
               <input
                 type="email"
                 placeholder="Enter your email"
                 className="flex-1 rounded-lg border-0 px-4 py-2 focus:ring-2 focus:ring-white focus:ring-opacity-50"
               />
-              <Button className="bg-white text-purple-700 hover:bg-gray-100 rounded-lg px-4 py-2 font-medium">
+              <Button className="bg-white text-orange-700 hover:bg-gray-100 rounded-lg px-4 py-2 font-medium">
                 Subscribe
               </Button>
             </div>

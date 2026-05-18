@@ -227,9 +227,9 @@ const AboutPage: React.FC = () => {
       >
         <motion.div 
           variants={itemVariants}
-          className="max-w-3xl mx-auto p-8 rounded-2xl bg-gradient-to-r from-purple-500/10 via-fuchsia-500/10 to-blue-500/10 backdrop-blur-sm"
+          className="max-w-3xl mx-auto p-8 rounded-2xl bg-gradient-to-r from-orange-500/10 via-fuchsia-500/10 to-blue-500/10 backdrop-blur-sm"
         >
-          <h2 className="text-2xl md:text-3xl font-bold mb-4 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+          <h2 className="text-2xl md:text-3xl font-bold mb-4 bg-gradient-to-r from-orange-600 to-blue-600 bg-clip-text text-transparent">
             Join Our Community
           </h2>
           <p className="text-gray-600 mb-6">
@@ -238,7 +238,7 @@ const AboutPage: React.FC = () => {
           <div className="flex flex-wrap justify-center gap-4">
             <Button 
               variant="outline" 
-              className="border-purple-200 hover:bg-purple-50"
+              className="border-orange-200 hover:bg-orange-50"
               asChild
             >
               <a href="/guides">

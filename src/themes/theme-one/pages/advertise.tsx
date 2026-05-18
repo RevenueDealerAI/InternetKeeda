@@ -80,7 +80,7 @@ export const Advertise = () => {
       case 'featured':
         return 'bg-blue-100 text-blue-800';
       case 'premium':
-        return 'bg-purple-100 text-purple-800';
+        return 'bg-orange-100 text-orange-800';
       case 'sponsored':
         return 'bg-green-100 text-green-800';
       default:

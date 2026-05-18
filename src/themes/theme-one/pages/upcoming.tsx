@@ -48,7 +48,7 @@ export const Upcoming = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
       </div>
     );
   }
@@ -68,10 +68,10 @@ export const Upcoming = () => {
     <div className="container mx-auto px-4 py-8 mt-20">
       {/* Header */}
       <div className="flex flex-col items-center text-center mb-12">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-purple-100 mb-4">
-          <Star className="w-8 h-8 text-purple-600" />
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-orange-100 mb-4">
+          <Star className="w-8 h-8 text-orange-600" />
         </div>
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-4">
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-orange-600 to-blue-600 bg-clip-text text-transparent mb-4">
           Upcoming AI Tools
         </h1>
         <p className="text-gray-600 max-w-2xl">
@@ -90,10 +90,10 @@ export const Upcoming = () => {
           visibleTools.map((tool) => (
             <div 
               key={tool.id}
-              className="relative bg-white rounded-2xl p-6 mb-8 border border-gray-100 hover:border-purple-200 transition-all duration-300 hover:shadow-lg group"
+              className="relative bg-white rounded-2xl p-6 mb-8 border border-gray-100 hover:border-orange-200 transition-all duration-300 hover:shadow-lg group"
             >
               {/* Launch Date Badge */}
-              <div className="absolute -top-3 right-6 bg-purple-100 text-purple-600 px-4 py-1 rounded-full text-sm font-medium flex items-center gap-2">
+              <div className="absolute -top-3 right-6 bg-orange-100 text-orange-600 px-4 py-1 rounded-full text-sm font-medium flex items-center gap-2">
                 <Calendar className="w-4 h-4" />
                 Coming Soon
               </div>
@@ -104,7 +104,7 @@ export const Upcoming = () => {
                   <h3 className="text-xl font-semibold mb-2 text-gray-900">
                     {tool.name}
                   </h3>
-                  <div className="w-16 h-16 rounded-xl overflow-hidden bg-gradient-to-br from-purple-100 to-blue-50 shadow-sm mb-4 relative">
+                  <div className="w-16 h-16 rounded-xl overflow-hidden bg-gradient-to-br from-orange-100 to-blue-50 shadow-sm mb-4 relative">
                     <Image
                       src={tool.logo || `https://ui-avatars.com/api/?name=${encodeURIComponent(tool.name)}`}
                       alt={tool.name}
@@ -131,8 +131,8 @@ export const Upcoming = () => {
                   variant={isSaved(tool.id) ? "default" : "outline"}
                   className={`rounded-xl ${
                     isSaved(tool.id)
-                      ? "bg-purple-600 text-white hover:bg-purple-700"
-                      : "border-2 border-purple-200 text-purple-600 hover:bg-purple-50 hover:border-purple-300"
+                      ? "bg-orange-600 text-white hover:bg-orange-700"
+                      : "border-2 border-orange-200 text-orange-600 hover:bg-orange-50 hover:border-orange-300"
                   } transition-all duration-300 group-hover:shadow-md`}
                   onClick={(e) => {
                     e.preventDefault();
@@ -154,7 +154,7 @@ export const Upcoming = () => {
         <div className="flex justify-center mt-12">
           <Button 
             variant="outline"
-            className="rounded-xl hover:bg-purple-50 border-purple-200"
+            className="rounded-xl hover:bg-orange-50 border-orange-200"
             onClick={loadMore}
           >
             Load More

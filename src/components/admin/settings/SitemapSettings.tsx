@@ -100,7 +100,7 @@ export default function SitemapSettings() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="pt-0">
-                      <div className="text-2xl font-bold text-purple-600">
+                      <div className="text-2xl font-bold text-orange-600">
                         {statsLoading ? (
                           <Loader2 className="w-6 h-6 animate-spin" />
                         ) : (

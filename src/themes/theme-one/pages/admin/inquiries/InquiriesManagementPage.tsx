@@ -98,7 +98,7 @@ export default function InquiriesManagementPage() {
               <TableRow>
                 <TableCell colSpan={7} className="text-center py-8">
                   <div className="flex justify-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600" />
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600" />
                   </div>
                 </TableCell>
               </TableRow>

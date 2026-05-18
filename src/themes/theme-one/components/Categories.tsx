@@ -44,7 +44,7 @@ const getCategoryColor = (category: string): { light: string; dark: string } => 
     case "code assistant":
       return { light: "from-emerald-500/10 to-teal-600/10", dark: "from-emerald-500 to-teal-600" };
     case "writing":
-      return { light: "from-violet-500/10 to-purple-600/10", dark: "from-violet-500 to-purple-600" };
+      return { light: "from-violet-500/10 to-orange-600/10", dark: "from-violet-500 to-orange-600" };
     case "audio":
       return { light: "from-orange-500/10 to-amber-600/10", dark: "from-orange-500 to-amber-600" };
     case "video":
@@ -68,12 +68,12 @@ export const Categories = ({
           className={`
             group relative overflow-hidden rounded-full transition-all duration-300 shadow-sm hover:shadow-md
             ${selectedCategory === "all" 
-              ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700" 
-              : "hover:bg-gradient-to-r hover:from-purple-50 hover:to-blue-50"
+              ? "bg-gradient-to-r from-orange-600 to-blue-600 text-white hover:from-orange-700 hover:to-blue-700" 
+              : "hover:bg-gradient-to-r hover:from-orange-50 hover:to-blue-50"
             }
           `}
         >
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           <Sparkles className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
           <span className="relative">All Tools</span>
         </Button>

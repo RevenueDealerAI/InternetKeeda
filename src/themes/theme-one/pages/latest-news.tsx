@@ -83,10 +83,10 @@ export const LatestNews = () => {
     <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 mt-16 sm:mt-20">
       {/* Header */}
       <div className="flex flex-col items-center text-center mb-8 sm:mb-12">
-        <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-purple-100 mb-4">
-          <Newspaper className="w-6 h-6 sm:w-8 sm:h-8 text-purple-600" />
+        <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-orange-100 mb-4">
+          <Newspaper className="w-6 h-6 sm:w-8 sm:h-8 text-orange-600" />
         </div>
-        <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-3 sm:mb-4">
+        <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-orange-600 to-blue-600 bg-clip-text text-transparent mb-3 sm:mb-4">
           Latest AI News & Updates
         </h1>
         <p className="text-gray-600 max-w-xl sm:max-w-2xl text-sm sm:text-base">
@@ -101,7 +101,7 @@ export const LatestNews = () => {
             <Button
               key={category}
               variant={selectedCategory === category ? "default" : "outline"}
-              className="rounded-xl hover:bg-purple-50 text-xs sm:text-sm h-8 sm:h-10"
+              className="rounded-xl hover:bg-orange-50 text-xs sm:text-sm h-8 sm:h-10"
               onClick={() => setSelectedCategory(category)}
             >
               {category}
@@ -149,7 +149,7 @@ export const LatestNews = () => {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent" />
                   <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 z-10">
                     <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-white/80 text-xs sm:text-sm mb-2 sm:mb-4">
-                      <span className="bg-purple-600 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full">Trending</span>
+                      <span className="bg-orange-600 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full">Trending</span>
                       <span className="flex items-center gap-1 sm:gap-2">
                         <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
                         {new Date(post.createdAt).toLocaleDateString()}
@@ -159,7 +159,7 @@ export const LatestNews = () => {
                         {post.views} views
                       </span>
                     </div>
-                    <h2 className="text-base sm:text-xl font-semibold text-white mb-1 sm:mb-2 group-hover:text-purple-200 transition-colors line-clamp-2">
+                    <h2 className="text-base sm:text-xl font-semibold text-white mb-1 sm:mb-2 group-hover:text-orange-200 transition-colors line-clamp-2">
                       {post.title}
                     </h2>
                     <p className="text-white/80 text-xs sm:text-sm line-clamp-2">
@@ -206,7 +206,7 @@ export const LatestNews = () => {
                       {post.views} views
                     </span>
                   </div>
-                  <h3 className="text-base sm:text-xl font-semibold mb-2 group-hover:text-purple-600 transition-colors line-clamp-2">
+                  <h3 className="text-base sm:text-xl font-semibold mb-2 group-hover:text-orange-600 transition-colors line-clamp-2">
                     {post.title}
                   </h3>
                   <p className="text-xs sm:text-sm text-gray-600 line-clamp-2 mb-3 sm:mb-4">
@@ -233,7 +233,7 @@ export const LatestNews = () => {
                       </div>
                       <span className="text-xs sm:text-sm text-gray-600">{post.author.name}</span>
                     </div>
-                    <span className="text-xs sm:text-sm text-purple-600 font-medium">
+                    <span className="text-xs sm:text-sm text-orange-600 font-medium">
                       {post.category}
                     </span>
                   </div>

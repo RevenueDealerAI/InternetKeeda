@@ -46,9 +46,9 @@ export default function ThemeSettings({ config, onSave }: ThemeSettingsProps) {
     // This will show a preview of each theme
     if (theme.id === 'theme-one') {
       return (
-        <div className="w-full h-32 bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg border-2 border-gray-200 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-100/50 to-blue-100/50"></div>
-          <div className="absolute top-2 left-2 w-8 h-8 bg-purple-300 rounded-full opacity-60"></div>
+        <div className="w-full h-32 bg-gradient-to-br from-orange-50 to-blue-50 rounded-lg border-2 border-gray-200 relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-orange-100/50 to-blue-100/50"></div>
+          <div className="absolute top-2 left-2 w-8 h-8 bg-orange-300 rounded-full opacity-60"></div>
           <div className="absolute top-4 right-4 w-6 h-6 bg-blue-300 rounded-full opacity-60"></div>
           <div className="absolute bottom-2 left-4 w-4 h-4 bg-pink-300 rounded-full opacity-60"></div>
           <div className="absolute bottom-4 right-2 w-5 h-5 bg-indigo-300 rounded-full opacity-60"></div>
@@ -86,7 +86,7 @@ export default function ThemeSettings({ config, onSave }: ThemeSettingsProps) {
             key={theme.id} 
             className={`cursor-pointer transition-all duration-200 hover:shadow-lg ${
               selectedTheme === theme.id 
-                ? (theme.id === 'theme-two' ? 'ring-2 ring-purple-500 border-purple-500' : 'ring-2 ring-blue-500 border-blue-500') 
+                ? (theme.id === 'theme-two' ? 'ring-2 ring-orange-500 border-orange-500' : 'ring-2 ring-blue-500 border-blue-500') 
                 : 'hover:border-gray-300'
             }`}
             onClick={() => handleThemeSelect(theme.id)}
@@ -96,7 +96,7 @@ export default function ThemeSettings({ config, onSave }: ThemeSettingsProps) {
                 <div className="flex items-center gap-2">
                   <CardTitle className="text-lg">{theme.name}</CardTitle>
                   {selectedTheme === theme.id && (
-                    <Badge variant="default" className={theme.id === 'theme-two' ? 'bg-purple-600' : 'bg-blue-500'}>
+                    <Badge variant="default" className={theme.id === 'theme-two' ? 'bg-orange-600' : 'bg-blue-500'}>
                       <Check className="h-3 w-3 mr-1" />
                       Active
                     </Badge>
@@ -123,7 +123,7 @@ export default function ThemeSettings({ config, onSave }: ThemeSettingsProps) {
                     className={
                       selectedTheme === theme.id
                         ? (theme.id === 'theme-two'
-                            ? 'rounded-full bg-gradient-to-r from-purple-600 to-pink-500 text-white hover:from-purple-700 hover:to-pink-600'
+                            ? 'rounded-full bg-gradient-to-r from-orange-600 to-pink-500 text-white hover:from-orange-700 hover:to-pink-600'
                             : 'rounded-full')
                         : 'rounded-full'
                     }

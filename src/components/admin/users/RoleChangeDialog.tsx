@@ -96,12 +96,12 @@ export function RoleChangeDialog({ user, open, onOpenChange, onSubmit }: RoleCha
               value={selectedRole}
               onValueChange={(value: User['role']) => setSelectedRole(value)}
             >
-              <SelectTrigger className="rounded-full focus-visible:ring-2 focus-visible:ring-purple-500">
+              <SelectTrigger className="rounded-full focus-visible:ring-2 focus-visible:ring-orange-500">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {ROLES.map((role) => (
-                  <SelectItem key={role.value} value={role.value} className="focus:bg-purple-50 focus:text-purple-700 data-[highlighted]:bg-purple-50 data-[highlighted]:text-purple-700">
+                  <SelectItem key={role.value} value={role.value} className="focus:bg-orange-50 focus:text-orange-700 data-[highlighted]:bg-orange-50 data-[highlighted]:text-orange-700">
                     {role.label}
                   </SelectItem>
                 ))}
@@ -123,7 +123,7 @@ export function RoleChangeDialog({ user, open, onOpenChange, onSubmit }: RoleCha
                   placeholder="Please provide a reason for this role change..."
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
-                  className="h-20 rounded-xl focus-visible:ring-2 focus-visible:ring-purple-500"
+                  className="h-20 rounded-xl focus-visible:ring-2 focus-visible:ring-orange-500"
                 />
               </div>
 
@@ -156,7 +156,7 @@ export function RoleChangeDialog({ user, open, onOpenChange, onSubmit }: RoleCha
           <Button
             onClick={handleSubmit}
             disabled={!isRoleChange || !reason || isSubmitting}
-            className="gap-2 rounded-full bg-purple-600 text-white hover:bg-purple-700"
+            className="gap-2 rounded-full bg-orange-600 text-white hover:bg-orange-700"
           >
             {isSubmitting ? (
               <>

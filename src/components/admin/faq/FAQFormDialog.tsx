@@ -113,7 +113,7 @@ export function FAQFormDialog({
                     <Input
                       placeholder="Enter question"
                       {...field}
-                      className="rounded-full focus-visible:ring-2 focus-visible:ring-purple-500"
+                      className="rounded-full focus-visible:ring-2 focus-visible:ring-orange-500"
                     />
                   </FormControl>
                   <FormMessage />
@@ -132,7 +132,7 @@ export function FAQFormDialog({
                       placeholder="Enter answer"
                       rows={6}
                       {...field}
-                      className="rounded-xl focus-visible:ring-2 focus-visible:ring-purple-500"
+                      className="rounded-xl focus-visible:ring-2 focus-visible:ring-orange-500"
                     />
                   </FormControl>
                   <FormMessage />
@@ -149,7 +149,7 @@ export function FAQFormDialog({
                     <FormLabel>Category</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <SelectTrigger className="rounded-full focus-visible:ring-2 focus-visible:ring-purple-500">
+                        <SelectTrigger className="rounded-full focus-visible:ring-2 focus-visible:ring-orange-500">
                           <SelectValue placeholder="Select category" />
                         </SelectTrigger>
                       </FormControl>
@@ -158,7 +158,7 @@ export function FAQFormDialog({
                           <SelectItem
                             key={cat}
                             value={cat}
-                            className="focus:bg-purple-50 focus:text-purple-700 data-[highlighted]:bg-purple-50 data-[highlighted]:text-purple-700"
+                            className="focus:bg-orange-50 focus:text-orange-700 data-[highlighted]:bg-orange-50 data-[highlighted]:text-orange-700"
                           >
                             {cat}
                           </SelectItem>
@@ -182,7 +182,7 @@ export function FAQFormDialog({
                         min="0"
                         {...field}
                         onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                        className="rounded-full focus-visible:ring-2 focus-visible:ring-purple-500"
+                        className="rounded-full focus-visible:ring-2 focus-visible:ring-orange-500"
                       />
                     </FormControl>
                     <FormMessage />
@@ -207,7 +207,7 @@ export function FAQFormDialog({
                       type="checkbox"
                       checked={field.value}
                       onChange={field.onChange}
-                      className="h-5 w-5 accent-purple-600 rounded cursor-pointer"
+                      className="h-5 w-5 accent-orange-600 rounded cursor-pointer"
                     />
                   </FormControl>
                 </FormItem>
@@ -225,7 +225,7 @@ export function FAQFormDialog({
               </Button>
               <Button
                 type="submit"
-                className="rounded-full bg-purple-600 text-white hover:bg-purple-700"
+                className="rounded-full bg-orange-600 text-white hover:bg-orange-700"
               >
                 {faq ? "Update FAQ" : "Create FAQ"}
               </Button>

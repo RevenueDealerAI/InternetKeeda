@@ -93,7 +93,7 @@ export default function AdvertisingPlansPage() {
       case 'featured':
         return 'bg-blue-100 text-blue-800';
       case 'premium':
-        return 'bg-purple-100 text-purple-800';
+        return 'bg-orange-100 text-orange-800';
       case 'sponsored':
         return 'bg-green-100 text-green-800';
       default:
@@ -170,7 +170,7 @@ export default function AdvertisingPlansPage() {
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-purple-600">
+              <div className="text-2xl font-bold text-orange-600">
                 {stats.totalPurchases > 0 
                   ? `${((stats.activePurchases / stats.totalPurchases) * 100).toFixed(1)}%`
                   : '0%'

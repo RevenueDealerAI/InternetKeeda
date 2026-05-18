@@ -75,11 +75,11 @@ export function AuthFlowModals({ children, mode, className, email, onBack, onSuc
         {children}
       </DialogTrigger>
       <DialogContent className={cn(
-        "sm:max-w-[400px] p-0 gap-0 bg-white border-none shadow-2xl shadow-purple-500/10",
+        "sm:max-w-[400px] p-0 gap-0 bg-white border-none shadow-2xl shadow-orange-500/10",
         className
       )}>
         <div className="relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-blue-500" />
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-500 to-blue-500" />
           
           <DialogHeader className="space-y-2 p-6 pb-4">
             {onBack && (
@@ -93,25 +93,25 @@ export function AuthFlowModals({ children, mode, className, email, onBack, onSuc
             <DialogTitle className="text-xl font-semibold tracking-tight flex items-center gap-2">
               {mode === "verify-email" && (
                 <>
-                  <Icons.mail className="w-5 h-5 text-purple-500" />
+                  <Icons.mail className="w-5 h-5 text-orange-500" />
                   Verify your email
                 </>
               )}
               {mode === "forgot-password" && (
                 <>
-                  <Icons.lock className="w-5 h-5 text-purple-500" />
+                  <Icons.lock className="w-5 h-5 text-orange-500" />
                   Reset your password
                 </>
               )}
               {mode === "reset-password" && (
                 <>
-                  <Icons.key className="w-5 h-5 text-purple-500" />
+                  <Icons.key className="w-5 h-5 text-orange-500" />
                   Create new password
                 </>
               )}
               {mode === "otp" && (
                 <>
-                  <Icons.key className="w-5 h-5 text-purple-500" />
+                  <Icons.key className="w-5 h-5 text-orange-500" />
                   Enter verification code
                 </>
               )}
@@ -143,7 +143,7 @@ export function AuthFlowModals({ children, mode, className, email, onBack, onSuc
                   value={inputEmail}
                   onChange={(e) => setInputEmail(e.target.value)}
                   disabled={isLoading}
-                  className="h-10 border focus:ring-2 focus:ring-purple-100 focus:border-purple-500 transition-colors"
+                  className="h-10 border focus:ring-2 focus:ring-orange-100 focus:border-orange-500 transition-colors"
                   required
                 />
               </div>
@@ -157,7 +157,7 @@ export function AuthFlowModals({ children, mode, className, email, onBack, onSuc
                     id="new-password"
                     type="password"
                     disabled={isLoading}
-                    className="h-10 border focus:ring-2 focus:ring-purple-100 focus:border-purple-500 transition-colors"
+                    className="h-10 border focus:ring-2 focus:ring-orange-100 focus:border-orange-500 transition-colors"
                     required
                   />
                 </div>
@@ -167,7 +167,7 @@ export function AuthFlowModals({ children, mode, className, email, onBack, onSuc
                     id="confirm-password"
                     type="password"
                     disabled={isLoading}
-                    className="h-10 border focus:ring-2 focus:ring-purple-100 focus:border-purple-500 transition-colors"
+                    className="h-10 border focus:ring-2 focus:ring-orange-100 focus:border-orange-500 transition-colors"
                     required
                   />
                 </div>
@@ -187,7 +187,7 @@ export function AuthFlowModals({ children, mode, className, email, onBack, onSuc
                       onChange={(e) => handleOtpChange(index, e.target.value)}
                       onKeyDown={(e) => handleOtpKeyDown(index, e)}
                       maxLength={1}
-                      className="h-12 w-12 text-center text-lg font-semibold border focus:ring-2 focus:ring-purple-100 focus:border-purple-500 transition-colors"
+                      className="h-12 w-12 text-center text-lg font-semibold border focus:ring-2 focus:ring-orange-100 focus:border-orange-500 transition-colors"
                       required
                     />
                   ))}
@@ -203,7 +203,7 @@ export function AuthFlowModals({ children, mode, className, email, onBack, onSuc
                 <Button
                   type="button"
                   variant="link"
-                  className="text-purple-600 hover:text-purple-700 p-0 h-auto font-medium"
+                  className="text-orange-600 hover:text-orange-700 p-0 h-auto font-medium"
                 >
                   Click to resend
                 </Button>
@@ -214,7 +214,7 @@ export function AuthFlowModals({ children, mode, className, email, onBack, onSuc
               <Button 
                 type="submit" 
                 disabled={isLoading}
-                className="w-full bg-purple-600 hover:bg-purple-700 text-white shadow transition-all duration-200 h-10"
+                className="w-full bg-orange-600 hover:bg-orange-700 text-white shadow transition-all duration-200 h-10"
               >
                 {isLoading ? (
                   <>
@@ -238,7 +238,7 @@ export function AuthFlowModals({ children, mode, className, email, onBack, onSuc
                 <Button
                   type="button"
                   variant="link"
-                  className="text-purple-600 hover:text-purple-700 p-0 h-auto font-medium text-sm"
+                  className="text-orange-600 hover:text-orange-700 p-0 h-auto font-medium text-sm"
                 >
                   Didn't receive the code? Resend
                 </Button>

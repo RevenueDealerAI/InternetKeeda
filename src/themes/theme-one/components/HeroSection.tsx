@@ -237,7 +237,7 @@ export const HeroSection = ({
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
-          className="inline-flex items-center justify-center p-1.5 rounded-full bg-gradient-to-r from-emerald-500/10 via-blue-500/10 to-purple-500/10 backdrop-blur-sm mb-6"
+          className="inline-flex items-center justify-center p-1.5 rounded-full bg-gradient-to-r from-emerald-500/10 via-blue-500/10 to-orange-500/10 backdrop-blur-sm mb-6"
         >
           <div className="px-4 py-1.5 rounded-full bg-white border border-gray-100 shadow-sm">
             <div className="flex items-center space-x-2">
@@ -278,7 +278,7 @@ export const HeroSection = ({
         >
           {/* Search Bar */}
           <div className="relative group" onClick={handleSearchClick}>
-            <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500 via-blue-500 to-purple-500 rounded-full blur opacity-10 group-hover:opacity-25 transition duration-1000 group-hover:duration-200"></div>
+            <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500 via-blue-500 to-orange-500 rounded-full blur opacity-10 group-hover:opacity-25 transition duration-1000 group-hover:duration-200"></div>
             <div className="relative flex items-center cursor-pointer">
               <div className="relative w-full">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 sm:pl-4 pointer-events-none">

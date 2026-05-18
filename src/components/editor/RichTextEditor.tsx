@@ -40,7 +40,7 @@ export function RichTextEditor({ content, onChange, placeholder = 'Write somethi
       Link.configure({
         openOnClick: false,
         HTMLAttributes: {
-          class: 'text-purple-600 underline cursor-pointer',
+          class: 'text-orange-600 underline cursor-pointer',
         },
       }),
       Image.configure({

@@ -174,7 +174,7 @@ export function NewsDetail() {
                   <span className="font-medium">{post.author.name}</span>
                 </div>
                 <time className="text-gray-500">{format(new Date(post.createdAt), 'MMM d, yyyy')}</time>
-                <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-200">{post.category}</Badge>
+                <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-200">{post.category}</Badge>
               </div>
             </header>
 

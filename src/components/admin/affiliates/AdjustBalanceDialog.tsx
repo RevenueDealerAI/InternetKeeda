@@ -73,9 +73,9 @@ export function AdjustBalanceDialog({ open, onOpenChange, affiliateId, currentBa
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[450px] p-0 overflow-hidden bg-white border border-gray-100 shadow-2xl rounded-2xl">
-                <div className="p-6 bg-gradient-to-br from-purple-50 to-white border-b border-purple-100">
+                <div className="p-6 bg-gradient-to-br from-orange-50 to-white border-b border-orange-100">
                     <DialogHeader>
-                        <DialogTitle className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-600">
+                        <DialogTitle className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-orange-600 to-pink-600">
                             Adjust Balance
                         </DialogTitle>
                         <DialogDescription className="text-gray-500 mt-1">
@@ -97,7 +97,7 @@ export function AdjustBalanceDialog({ open, onOpenChange, affiliateId, currentBa
                         <div className="space-y-2">
                             <Label className="text-xs font-semibold uppercase text-gray-500">Action Type</Label>
                             <Select value={type} onValueChange={(v: any) => setType(v)}>
-                                <SelectTrigger className="h-11 rounded-xl border-gray-200 focus:ring-purple-500">
+                                <SelectTrigger className="h-11 rounded-xl border-gray-200 focus:ring-orange-500">
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -110,12 +110,12 @@ export function AdjustBalanceDialog({ open, onOpenChange, affiliateId, currentBa
                         <div className="space-y-2">
                             <Label className="text-xs font-semibold uppercase text-gray-500">Amount ($)</Label>
                             <div className="relative">
-                                <Coins className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-purple-500" />
+                                <Coins className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-orange-500" />
                                 <Input
                                     type="number"
                                     step="0.01"
                                     placeholder="0.00"
-                                    className="pl-9 h-11 rounded-xl border-gray-200 focus:border-purple-500 focus:ring-purple-500"
+                                    className="pl-9 h-11 rounded-xl border-gray-200 focus:border-orange-500 focus:ring-orange-500"
                                     value={amount}
                                     onChange={(e) => setAmount(e.target.value)}
                                 />
@@ -129,7 +129,7 @@ export function AdjustBalanceDialog({ open, onOpenChange, affiliateId, currentBa
                             <FileText className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                             <Textarea
                                 placeholder="e.g. Compensation for missed tracking..."
-                                className="pl-9 min-h-[80px] rounded-xl border-gray-200 focus:border-purple-500 focus:ring-purple-500 resize-none"
+                                className="pl-9 min-h-[80px] rounded-xl border-gray-200 focus:border-orange-500 focus:ring-orange-500 resize-none"
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
                             />
@@ -149,7 +149,7 @@ export function AdjustBalanceDialog({ open, onOpenChange, affiliateId, currentBa
                     <Button
                         onClick={handleSave}
                         disabled={loading}
-                        className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white shadow-md hover:shadow-lg transition-all rounded-lg px-6"
+                        className="bg-gradient-to-r from-orange-600 to-pink-500 hover:from-orange-700 hover:to-pink-600 text-white shadow-md hover:shadow-lg transition-all rounded-lg px-6"
                     >
                         {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-2 h-4 w-4" />}
                         Apply Adjustment
