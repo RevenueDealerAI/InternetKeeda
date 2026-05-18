@@ -8,6 +8,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowUpCircle, ExternalLink, Star } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import { staggerCardProps } from "@/lib/animations";
+import { ToolCardSkeletonGrid } from "../components/ToolCardSkeleton";
 import { useTools } from "@/lib/api/tools";
 import { Tool } from "@/types/tool";
 import { useToolActions } from "@/hooks/useToolActions";
@@ -106,8 +107,8 @@ const TrendingPage = () => {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      <div className="container mx-auto px-4 py-8 mt-24">
+        <ToolCardSkeletonGrid count={9} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" />
       </div>
     );
   }

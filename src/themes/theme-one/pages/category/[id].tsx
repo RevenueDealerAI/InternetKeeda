@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { motion, useReducedMotion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import { staggerCardProps } from "@/lib/animations";
+import { ToolCardSkeletonGrid } from "../../components/ToolCardSkeleton";
 
 export default function CategoryPage() {
   const contextParams = useContext(ParamsContext);
@@ -127,8 +128,9 @@ export default function CategoryPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
+      <div className="container mx-auto px-4 py-8 mt-24">
+        <div className="h-10 w-64 mb-8 bg-gradient-to-r from-gray-200 via-gray-100/70 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded-md" />
+        <ToolCardSkeletonGrid count={9} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" />
       </div>
     );
   }

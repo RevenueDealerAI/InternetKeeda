@@ -11,6 +11,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { getToolLogo } from '@/utils/toolHelpers';
 import { staggerCardPropsOnMount } from "@/lib/animations";
+import { AiRecommendationSkeleton } from "./ToolCardSkeleton";
 
 // Mock tool data type to match Tool interface
 interface MockTool extends Partial<Tool> {
@@ -339,34 +340,44 @@ export const HeroSection = ({
                 </div>
 
                 {recommendations.length === 0 ? (
-                  <form onSubmit={handleChatSubmit} className="mb-2">
-                    <div className="relative">
-                      <Input
-                        value={chatQuery}
-                        onChange={(e) => setChatQuery(e.target.value)}
-                        placeholder="e.g., I need tools for content writing"
-                        className="pr-24 py-2 h-12 border-gray-200 rounded-lg"
-                        disabled={isLoading}
-                      />
-                      <Button
-                        type="submit"
-                        className="absolute right-1 top-1 h-10 bg-green-500 hover:bg-green-600 text-white rounded-md"
-                        disabled={isLoading || !chatQuery.trim()}
-                      >
-                        {isLoading ? (
-                          <div className="flex items-center gap-2">
-                            <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                            <span>Finding...</span>
-                          </div>
-                        ) : (
-                          <span>Find Tools</span>
-                        )}
-                      </Button>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-2">
-                      Describe your use case or the problem you're trying to solve
-                    </p>
-                  </form>
+                  <>
+                    <form onSubmit={handleChatSubmit} className="mb-2">
+                      <div className="relative">
+                        <Input
+                          value={chatQuery}
+                          onChange={(e) => setChatQuery(e.target.value)}
+                          placeholder="e.g., I need tools for content writing"
+                          className="pr-24 py-2 h-12 border-gray-200 rounded-lg"
+                          disabled={isLoading}
+                        />
+                        <Button
+                          type="submit"
+                          className="absolute right-1 top-1 h-10 bg-orange-500 hover:bg-orange-600 text-white rounded-md"
+                          disabled={isLoading || !chatQuery.trim()}
+                        >
+                          {isLoading ? (
+                            <div className="flex items-center gap-2">
+                              <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                              <span>Finding...</span>
+                            </div>
+                          ) : (
+                            <span>Find Tools</span>
+                          )}
+                        </Button>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-2">
+                        Describe your use case or the problem you're trying to solve
+                      </p>
+                    </form>
+                    {/* Tier 1c — skeleton placeholders while GPT is thinking */}
+                    {isLoading && (
+                      <div className="space-y-3 mt-4 max-h-[300px] overflow-y-auto pr-1">
+                        {Array.from({ length: 3 }).map((_, i) => (
+                          <AiRecommendationSkeleton key={i} />
+                        ))}
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <div className="mb-4">
                     <div className="bg-green-50 rounded-lg p-3 mb-4">

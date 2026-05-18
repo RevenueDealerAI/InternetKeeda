@@ -153,7 +153,7 @@ export default {
         "fade-in": "fade-in 0.5s ease-out",
         "fade-in-up": "fade-in-up 0.5s ease-out",
         "gradient-shift": "gradient-shift 8s ease infinite",
-        "shimmer": "shimmer 2.5s linear infinite",
+        "shimmer": "shimmer 1.5s linear infinite",
       },
     },
   },

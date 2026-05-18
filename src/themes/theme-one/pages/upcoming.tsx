@@ -6,6 +6,7 @@ import { useTools } from "@/lib/api/tools";
 import { useToolActions } from "@/hooks/useToolActions";
 import { motion, useReducedMotion } from "framer-motion";
 import { staggerCardProps } from "@/lib/animations";
+import { ToolCardSkeletonGrid } from "../components/ToolCardSkeleton";
 
 export const Upcoming = () => {
   const { data, isLoading, error } = useTools({ limit: 500 });
@@ -50,8 +51,12 @@ export const Upcoming = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
+      <div className="container mx-auto px-4 py-8 mt-24 max-w-4xl">
+        <div className="space-y-6">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-40 rounded-2xl bg-gradient-to-r from-gray-200 via-gray-100/70 to-gray-200 bg-[length:200%_100%] animate-shimmer" />
+          ))}
+        </div>
       </div>
     );
   }

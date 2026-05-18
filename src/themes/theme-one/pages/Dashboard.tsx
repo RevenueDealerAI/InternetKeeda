@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { motion, useReducedMotion } from "framer-motion";
 import { staggerCardProps } from "@/lib/animations";
+import { DashboardToolSkeleton } from "../components/ToolCardSkeleton";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -1105,7 +1106,11 @@ export default function Dashboard() {
               </div>
 
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {savedToolObjects.length > 0 ? (
+                {isLoadingTools ? (
+                  Array.from({ length: 6 }).map((_, i) => (
+                    <DashboardToolSkeleton key={`saved-skel-${i}`} />
+                  ))
+                ) : savedToolObjects.length > 0 ? (
                   savedToolObjects.slice(0, savedPageSize).map((tool, idx) => (
                     <motion.div key={tool.id} {...staggerCardProps(idx, reduceMotion)}>
                       <Link href={`/ai-tools/${tool.id}`}
@@ -1171,7 +1176,11 @@ export default function Dashboard() {
               </div>
 
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {upvotedToolObjects.length > 0 ? (
+                {isLoadingTools ? (
+                  Array.from({ length: 6 }).map((_, i) => (
+                    <DashboardToolSkeleton key={`upv-skel-${i}`} />
+                  ))
+                ) : upvotedToolObjects.length > 0 ? (
                   upvotedToolObjects.slice(0, upvotedPageSize).map((tool, idx) => (
                     <motion.div key={tool.id} {...staggerCardProps(idx, reduceMotion)}>
                       <Link href={`/ai-tools/${tool.id}`}

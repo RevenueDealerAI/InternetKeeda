@@ -15,6 +15,7 @@ import { Tool } from "@/types/tool";
 import { HeroSection } from "../components/HeroSection";
 import { Categories as ExploreCategories } from "../components/home/Categories";
 import { FilterBar } from "../components/FilterBar";
+import { ToolCardSkeleton, ToolCardSkeletonGrid } from "../components/ToolCardSkeleton";
 import { getToolLogo } from "@/utils/toolHelpers";
 import { AdSlot } from "@/components/ads/AdSlot";
 import { useSiteConfig } from "@/contexts/SiteConfigContext";
@@ -609,22 +610,7 @@ export default function Index() {
         {/* Tools Grid with Animation */}
         <AnimatePresence mode="popLayout">
           {(initialLoad || isToolsLoading) ? (
-            // Loading skeletons
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-8">
-              {[...Array(8)].map((_, i) => (
-                <div key={i} className="bg-white rounded-2xl p-6">
-                  <div className="flex gap-4 mb-4">
-                    <Skeleton className="w-16 h-16 rounded-xl" />
-                    <div className="flex-1">
-                      <Skeleton className="h-6 w-3/4 mb-2" />
-                      <Skeleton className="h-4 w-1/2" />
-                    </div>
-                  </div>
-                  <Skeleton className="h-4 w-full mb-2" />
-                  <Skeleton className="h-4 w-2/3" />
-                </div>
-              ))}
-            </div>
+            <ToolCardSkeletonGrid count={8} />
           ) : visibleTools.length === 0 && filteredTools.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-center">
               <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mb-4">
@@ -758,6 +744,12 @@ export default function Index() {
                   </motion.div>
                 ))}
               </AnimatePresence>
+              {/* Tier 1c — skeleton row appended below existing cards while pagination loads */}
+              {loading && Array.from({ length: 4 }).map((_, i) => (
+                <div key={`page-skel-${i}`} className="h-[320px]">
+                  <ToolCardSkeleton />
+                </div>
+              ))}
             </motion.div>
           )}
         </AnimatePresence>
