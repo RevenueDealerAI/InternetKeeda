@@ -134,7 +134,7 @@ temp/
 
 # Local artifacts (zips, screenshots, playwright)
 *.zip
-home-*.png
+/*.png
 .playwright-mcp/
 
 # Raw archive extraction (canonical sources live in src/ and scripts/seed-data/)
