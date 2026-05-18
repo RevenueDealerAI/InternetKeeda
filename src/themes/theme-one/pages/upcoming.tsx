@@ -4,12 +4,15 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useTools } from "@/lib/api/tools";
 import { useToolActions } from "@/hooks/useToolActions";
+import { motion, useReducedMotion } from "framer-motion";
+import { staggerCardProps } from "@/lib/animations";
 
 export const Upcoming = () => {
   const { data, isLoading, error } = useTools({ limit: 500 });
   const tools = data?.data || [];
   const { toggleSave, isSaved } = useToolActions();
   const [pageSize, setPageSize] = useState(9);
+  const reduceMotion = useReducedMotion();
   const [subscriberCounts, setSubscriberCounts] = useState<{ [key: string]: number }>({});
 
   // Get only upcoming tools
@@ -87,9 +90,10 @@ export const Upcoming = () => {
             <p className="text-gray-500">Check back soon for new announcements!</p>
           </div>
         ) : (
-          visibleTools.map((tool) => (
-            <div 
+          visibleTools.map((tool, idx) => (
+            <motion.div
               key={tool.id}
+              {...staggerCardProps(idx, reduceMotion)}
               className="relative bg-white rounded-2xl p-6 mb-8 border border-gray-100 hover:border-orange-200 transition-all duration-300 hover:shadow-lg group"
             >
               {/* Launch Date Badge */}
@@ -144,7 +148,7 @@ export const Upcoming = () => {
                   {isSaved(tool.id) ? "Subscribed" : "Get Notified"}
                 </Button>
               </div>
-            </div>
+            </motion.div>
           ))
         )}
       </div>

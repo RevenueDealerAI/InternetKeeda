@@ -4,6 +4,8 @@ import { useState, useEffect, useMemo } from "react";
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import { motion, useReducedMotion } from "framer-motion";
+import { staggerCardProps } from "@/lib/animations";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -412,6 +414,7 @@ export default function Dashboard() {
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const reduceMotion = useReducedMotion();
 
   // Profile editing state
   const [editingField, setEditingField] = useState<'name' | 'username' | null>(null);
@@ -1103,11 +1106,11 @@ export default function Dashboard() {
 
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {savedToolObjects.length > 0 ? (
-                  savedToolObjects.slice(0, savedPageSize).map((tool) => (
-                    <Link href={`/ai-tools/${tool.id}`}
-                      key={tool.id}
-                      className="group relative bg-white rounded-3xl p-6 shadow-sm ring-1 ring-black/[0.08] transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
-                    >
+                  savedToolObjects.slice(0, savedPageSize).map((tool, idx) => (
+                    <motion.div key={tool.id} {...staggerCardProps(idx, reduceMotion)}>
+                      <Link href={`/ai-tools/${tool.id}`}
+                        className="group relative bg-white rounded-3xl p-6 shadow-sm ring-1 ring-black/[0.08] transition-all duration-300 hover:shadow-lg hover:-translate-y-1 block"
+                      >
                       <div className="flex items-start gap-4">
                         <div className="w-16 h-16 rounded-2xl overflow-hidden bg-gradient-to-br from-green-50 to-green-100/50 flex-shrink-0 relative">
                           <Image
@@ -1137,6 +1140,7 @@ export default function Dashboard() {
                         </div>
                       </div>
                     </Link>
+                    </motion.div>
                   ))
                 ) : (
                   <div className="col-span-full text-center py-8">
@@ -1168,11 +1172,11 @@ export default function Dashboard() {
 
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {upvotedToolObjects.length > 0 ? (
-                  upvotedToolObjects.slice(0, upvotedPageSize).map((tool) => (
-                    <Link href={`/ai-tools/${tool.id}`}
-                      key={tool.id}
-                      className="group relative bg-white rounded-3xl p-6 shadow-sm ring-1 ring-black/[0.08] transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
-                    >
+                  upvotedToolObjects.slice(0, upvotedPageSize).map((tool, idx) => (
+                    <motion.div key={tool.id} {...staggerCardProps(idx, reduceMotion)}>
+                      <Link href={`/ai-tools/${tool.id}`}
+                        className="group relative bg-white rounded-3xl p-6 shadow-sm ring-1 ring-black/[0.08] transition-all duration-300 hover:shadow-lg hover:-translate-y-1 block"
+                      >
                       <div className="flex items-start gap-4">
                         <div className="w-16 h-16 rounded-2xl overflow-hidden bg-gradient-to-br from-green-50 to-green-100/50 flex-shrink-0 relative">
                           <Image
@@ -1208,6 +1212,7 @@ export default function Dashboard() {
                         </div>
                       </div>
                     </Link>
+                    </motion.div>
                   ))
                 ) : (
                   <div className="col-span-full text-center py-8">

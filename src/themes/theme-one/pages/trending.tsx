@@ -6,7 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowUpCircle, ExternalLink, Star } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
+import { staggerCardProps } from "@/lib/animations";
 import { useTools } from "@/lib/api/tools";
 import { Tool } from "@/types/tool";
 import { useToolActions } from "@/hooks/useToolActions";
@@ -18,6 +19,7 @@ const TrendingPage = () => {
   const { data, isLoading, error } = useTools({ limit: 500 });
   const tools = data?.data || [];
   const { toggleUpvote, isUpvoted, toggleSave, isSaved } = useToolActions();
+  const reduceMotion = useReducedMotion();
 
   // Filter tools by time period
   const trendingTools = useMemo(() => {
@@ -144,14 +146,9 @@ const TrendingPage = () => {
         </TabsList>
       </Tabs>
 
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-      >
-        {trendingTools.map((tool) => (
-          <motion.div key={tool.id} variants={itemVariants}>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {trendingTools.map((tool, idx) => (
+          <motion.div key={tool.id} {...staggerCardProps(idx, reduceMotion)}>
             <Card 
               onClick={() => handleCardClick(tool.id, tool.slug)}
               className="group relative h-full overflow-hidden bg-gradient-to-b from-white to-gray-50/50 border-0 
@@ -255,7 +252,7 @@ const TrendingPage = () => {
             </Card>
           </motion.div>
         ))}
-      </motion.div>
+      </div>
     </div>
   );
 };

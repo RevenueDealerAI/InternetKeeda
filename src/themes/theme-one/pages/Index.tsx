@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { staggerCardProps } from "@/lib/animations";
 import { useDebounce } from "use-debounce";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { Badge } from "@/components/ui/badge";
@@ -174,6 +175,7 @@ export default function Index() {
   const [currentFomo, setCurrentFomo] = useState<{ tool: Tool, activity: FomoActivityType } | null>(null);
   const [showFomo, setShowFomo] = useState(false);
   const { config } = useSiteConfig();
+  const reduceMotion = useReducedMotion();
 
   const { data, isLoading: isToolsLoading, error: toolsError } = useTools({ 
     limit: selectedCategory !== "all" ? 10000 : 1000, 
@@ -649,10 +651,8 @@ export default function Index() {
                 {visibleTools.map((tool, index) => (
                   <motion.div
                     key={tool.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 20 }}
-                    transition={{ duration: 0.2, delay: index * 0.05 }}
+                    {...staggerCardProps(index, reduceMotion)}
+                    {...(reduceMotion ? {} : { exit: { opacity: 0, y: 20 } })}
                     className="h-[320px]"
                   >
                     <Link href={`/ai-tools/${tool.slug}`} className="group block h-full">

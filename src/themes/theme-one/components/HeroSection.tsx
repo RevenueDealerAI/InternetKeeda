@@ -6,10 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Search, Sparkles, ChevronRight, MessageCircle, X, Star } from "lucide-react";
 import { SearchDialog } from "./SearchDialog";
 import { Tool } from "@/types/tool";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { getToolLogo } from '@/utils/toolHelpers';
+import { staggerCardPropsOnMount } from "@/lib/animations";
 
 // Mock tool data type to match Tool interface
 interface MockTool extends Partial<Tool> {
@@ -52,6 +53,7 @@ export const HeroSection = ({
   const [isLoading, setIsLoading] = useState(false);
   const [recommendations, setRecommendations] = useState<MockTool[]>([]);
   const [toolsCount, setToolsCount] = useState(12114); // Default fallback
+  const reduceMotion = useReducedMotion();
 
   const router = useRouter();
 
@@ -383,10 +385,11 @@ export const HeroSection = ({
                       {recommendations.length > 1 && recommendations[1].category && recommendations[1].category !== recommendations[0].category && ` and ${recommendations[1].category.toLowerCase()}`}.
                     </p>
                     <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
-                      {recommendations.map((tool) => (
-                        <div
+                      {recommendations.map((tool, idx) => (
+                        <motion.div
                           key={tool.id}
-                          className="bg-white border border-gray-200 rounded-lg p-3 flex items-start hover:border-green-200 hover:shadow-sm transition-all"
+                          {...staggerCardPropsOnMount(idx, reduceMotion)}
+                          className="bg-white border border-gray-200 rounded-lg p-3 flex items-start hover:border-orange-200 hover:shadow-sm transition-all"
                           onClick={() => router.push(`/ai-tools/${tool.slug}`)}
                         >
                           <div className="w-10 h-10 bg-white rounded-md flex items-center justify-center overflow-hidden mr-3 border border-gray-100 relative">
@@ -415,7 +418,7 @@ export const HeroSection = ({
                               </Badge>
                             </div>
                           </div>
-                        </div>
+                        </motion.div>
                       ))}
                     </div>
                     <Button
