@@ -11,7 +11,9 @@
     "seed": "tsx scripts/seed-tools.ts",
     "seed:smoke": "tsx scripts/seed-tools.ts --limit 25",
     "seed:reset": "tsx scripts/seed-tools.ts --reset",
-    "audit:categories": "tsx scripts/category-audit.ts"
+    "audit:categories": "tsx scripts/category-audit.ts",
+    "apply-merges": "tsx scripts/apply-merges.ts",
+    "apply-merges:dry": "tsx scripts/apply-merges.ts --dry-run"
   },
   "dependencies": {
     "@clerk/backend": "^1.24.1",
