@@ -656,31 +656,31 @@ export default function Index() {
                     className="h-[320px]"
                   >
                     <Link href={`/ai-tools/${tool.slug}`} className="group block h-full">
-                      <article className="relative h-full transform-gpu transition-all duration-500 group overflow-hidden">
+                      <article className="relative h-full transform-gpu transition-all duration-200 group overflow-hidden">
                         {/* Base layer with refined background */}
-                        <div className="absolute inset-0 bg-white/90 backdrop-blur-md rounded-2xl shadow-[0_2px_8px_-2px_rgba(22,23,24,0.05)] group-hover:shadow-lg group-hover:shadow-purple-500/10 transition-all duration-500" />
+                        <div className="absolute inset-0 bg-white/90 backdrop-blur-md rounded-2xl shadow-[0_2px_8px_-2px_rgba(22,23,24,0.05)] group-hover:shadow-lg group-hover:shadow-purple-500/10 transition-all duration-200" />
                         
                         {/* Gradient overlay with subtle color */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-purple-50/50 via-white/50 to-blue-50/50 rounded-2xl opacity-40 group-hover:opacity-60 transition-all duration-500" />
+                        <div className="absolute inset-0 bg-gradient-to-br from-purple-50/50 via-white/50 to-blue-50/50 rounded-2xl opacity-40 group-hover:opacity-60 transition-all duration-200" />
                         
                         {/* Enhanced border effect */}
-                        <div className="absolute inset-0 ring-1 ring-inset ring-gray-200 group-hover:ring-purple-200 rounded-2xl transition-all duration-500" />
-                        <div className="absolute inset-[1px] ring-1 ring-inset ring-black/[0.025] group-hover:ring-purple-900/[0.05] rounded-[15px] transition-all duration-500" />
+                        <div className="absolute inset-0 ring-1 ring-inset ring-gray-200 group-hover:ring-purple-200 rounded-2xl transition-all duration-200" />
+                        <div className="absolute inset-[1px] ring-1 ring-inset ring-black/[0.025] group-hover:ring-purple-900/[0.05] rounded-[15px] transition-all duration-200" />
                         
                         {/* Hover glow effect */}
-                        <div className="absolute -inset-0.5 bg-gradient-to-br from-purple-500/[0.07] via-transparent to-blue-500/[0.07] rounded-[1rem] opacity-0 group-hover:opacity-100 blur transition-all duration-500" />
+                        <div className="absolute -inset-0.5 bg-gradient-to-br from-purple-500/[0.07] via-transparent to-blue-500/[0.07] rounded-[1rem] opacity-0 group-hover:opacity-100 blur transition-all duration-200" />
                         
                         {/* Content container */}
-                        <div className="relative p-6 flex flex-col h-full group-hover:translate-y-[-2px] transition-all duration-500">
+                        <div className="relative p-6 flex flex-col h-full group-hover:translate-y-[-2px] transition-all duration-200">
                           {/* Header with Image and Title */}
                           <div className="flex items-start gap-4 mb-3">
-                            <div className="relative shrink-0 group-hover:scale-[1.02] transition-transform duration-500">
-                              <div className="w-16 h-16 rounded-xl overflow-hidden bg-gradient-to-br from-purple-100/80 to-blue-50/80 shadow-sm ring-1 ring-black/[0.08] group-hover:shadow-md group-hover:shadow-purple-500/10 transition-all duration-500 relative">
+                            <div className="relative shrink-0 group-hover:scale-[1.02] transition-transform duration-200">
+                              <div className="w-16 h-16 rounded-xl overflow-hidden bg-gradient-to-br from-purple-100/80 to-blue-50/80 shadow-sm ring-1 ring-black/[0.08] group-hover:shadow-md group-hover:shadow-purple-500/10 transition-all duration-200 relative">
                                 <Image
                                   src={getToolLogo(tool)}
                                   alt={tool.name}
                                   fill
-                                  className="object-cover transform transition-transform duration-500 group-hover:scale-[1.05]"
+                                  className="object-cover transform transition-transform duration-200 group-hover:scale-[1.05]"
                                   unoptimized
                                   onLoad={() => {
                                     console.log(`[Image] Successfully loaded logo for: ${tool.name}`);
@@ -697,7 +697,7 @@ export default function Index() {
                                 />
                               </div>
                               {(tool.isTrending || tool.isNew) && (
-                                <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-1 shadow-md transform group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
+                                <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-1 shadow-md transform group-hover:scale-110 group-hover:rotate-3 transition-all duration-200">
                                   {tool.isTrending ? (
                                     <div className="bg-gradient-to-r from-orange-500 to-pink-500 rounded-full p-1">
                                       <TrendingUp className="w-3 h-3 text-white" />
@@ -712,11 +712,11 @@ export default function Index() {
                             </div>
                             
                             <div className="flex-1 min-w-0">
-                              <h3 className="text-lg font-semibold text-gray-900 truncate group-hover:text-purple-600 transition-all duration-500">
+                              <h3 className="text-lg font-semibold text-gray-900 truncate group-hover:text-purple-600 transition-all duration-200">
                                 {tool.name}
                               </h3>
                               <div className="flex items-center gap-2 mt-1.5">
-                                <div className="flex items-center bg-yellow-50 px-2 py-0.5 rounded-full group-hover:bg-yellow-100 group-hover:scale-[1.02] transition-all duration-500">
+                                <div className="flex items-center bg-yellow-50 px-2 py-0.5 rounded-full group-hover:bg-yellow-100 group-hover:scale-[1.02] transition-all duration-200">
                                   <Star className="w-3.5 h-3.5 text-yellow-500" />
                                   <span className="ml-1 text-sm font-medium text-yellow-700">{tool.rating}</span>
                                 </div>
@@ -725,30 +725,30 @@ export default function Index() {
                           </div>
 
                           {/* Description with improved readability */}
-                          <p className="text-sm text-gray-600 mb-3 line-clamp-2 group-hover:text-gray-700 transition-all duration-500">
+                          <p className="text-sm text-gray-600 mb-3 line-clamp-2 group-hover:text-gray-700 transition-all duration-200">
                             {tool.description}
                           </p>
 
                           {/* Tags Row with enhanced interactivity */}
                           <div className="flex flex-wrap gap-2 mb-4">
-                            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-medium bg-gray-100/80 text-gray-600 group-hover:bg-gray-200 group-hover:text-gray-700 group-hover:scale-[1.02] transition-all duration-500">
-                              <Tag className="w-3 h-3 text-gray-400 group-hover:text-gray-500 transition-colors duration-500" />
+                            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-medium bg-gray-100/80 text-gray-600 group-hover:bg-gray-200 group-hover:text-gray-700 group-hover:scale-[1.02] transition-all duration-200">
+                              <Tag className="w-3 h-3 text-gray-400 group-hover:text-gray-500 transition-colors duration-200" />
                               {tool.category}
                             </span>
-                            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-medium bg-purple-100/80 text-purple-600 group-hover:bg-purple-200 group-hover:text-purple-700 group-hover:scale-[1.02] transition-all duration-500">
+                            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-medium bg-purple-100/80 text-purple-600 group-hover:bg-purple-200 group-hover:text-purple-700 group-hover:scale-[1.02] transition-all duration-200">
                               <Zap className="w-3 h-3" />
                               {tool.pricing.type}
                             </span>
                           </div>
 
                           {/* Bottom Stats with subtle animations */}
-                          <div className="flex items-center justify-between pt-4 border-t border-gray-100 mt-auto group-hover:border-gray-200 transition-all duration-500">
-                            <div className="flex items-center gap-1.5 text-gray-500 group-hover:text-gray-600 transition-all duration-500">
-                              <Eye className="w-4 h-4 group-hover:scale-110 transition-transform duration-500" />
+                          <div className="flex items-center justify-between pt-4 border-t border-gray-100 mt-auto group-hover:border-gray-200 transition-all duration-200">
+                            <div className="flex items-center gap-1.5 text-gray-500 group-hover:text-gray-600 transition-all duration-200">
+                              <Eye className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" />
                               <AnimatedCounter value={tool.views} className="text-sm" />
                             </div>
-                            <div className="flex items-center gap-1.5 text-gray-500 group-hover:text-gray-600 transition-all duration-500">
-                              <ArrowUp className="w-4 h-4 group-hover:scale-110 transition-transform duration-500" />
+                            <div className="flex items-center gap-1.5 text-gray-500 group-hover:text-gray-600 transition-all duration-200">
+                              <ArrowUp className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" />
                               <AnimatedCounter value={tool.votes} className="text-sm" />
                             </div>
                           </div>
