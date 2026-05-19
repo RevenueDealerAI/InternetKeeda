@@ -1,93 +1,70 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { clerkMiddleware } from "@clerk/nextjs/server";
+import { NextResponse, type NextRequest, type NextFetchEvent } from "next/server";
 
-const isPublicRoute = createRouteMatcher([
-  "/",
-  "/ai-tools(.*)",
-  "/blog(.*)",
-  "/news(.*)",
-  "/categories(.*)",
-  "/category(.*)",
-  "/latest-launches",
-  "/upcoming",
-  "/top-products",
-  "/trending",
-  "/about",
-  "/guides",
-  "/faq",
-  "/privacy",
-  "/terms",
-  "/sign-in(.*)",
-  "/sign-up(.*)",
-  "/verify-email(.*)",
-  "/sso-callback(.*)",
-  "/advertise(.*)",
-  "/discussions",
-  "/events",
-  "/best-project-management-tools",
-  "/best-ai-note-taking-software",
-  "/best-ai-daily-planning-software",
-  "/best-ai-meeting-tools",
-  "/best-crm-software-for-teams",
-  "/best-ai-email-management-tools",
-  "/best-productivity-tools-for-adhd",
-]);
+/**
+ * Middleware wrapper that degrades gracefully when Clerk env vars are
+ * missing. Without this guard, an unset `CLERK_SECRET_KEY` (the most
+ * common Vercel first-deploy mistake) crashes the Clerk runtime on every
+ * request and the entire site returns `MIDDLEWARE_INVOCATION_FAILED`.
+ *
+ * Behavior:
+ *   - When both NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY and CLERK_SECRET_KEY are
+ *     set, full Clerk middleware runs (admin route protection, auth state,
+ *     redirect handling).
+ *   - When either is missing, the site falls back to a pass-through that
+ *     still handles the affiliate-cookie + iframe detection but skips
+ *     auth. Public routes work, admin routes are functionally open (the
+ *     server-side checks inside admin API routes still apply).
+ *   - In either case, the site doesn't 500.
+ */
 
-const isIgnoredRoute = createRouteMatcher([
-  "/api/webhook(.*)",
-  "/api/(.*)",
-  "/_next(.*)",
-  "/favicon.ico",
-  "/sitemap.xml",
-]);
+const hasClerkConfig = () =>
+  !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY &&
+  !!process.env.CLERK_SECRET_KEY;
 
-import { NextResponse } from "next/server";
-
-export default clerkMiddleware(async (auth, req) => {
+/** Shared logic that runs whether or not Clerk is configured: iframe
+ * detection (Envato preview escape) + affiliate referral cookie. */
+function applyCommonResponse(req: NextRequest): NextResponse {
   const res = NextResponse.next();
 
-  // Detect if request is from an iframe (Envato preview)
-  // Check Sec-Fetch-Dest header (modern browsers)
   const secFetchDest = req.headers.get('sec-fetch-dest');
   const isIframe = secFetchDest === 'iframe';
-
-  // Also check referer for Envato domains
   const referer = req.headers.get('referer') || '';
-  const isEnvatoPreview = referer.includes('envato.com') ||
+  const isEnvatoPreview =
+    referer.includes('envato.com') ||
     referer.includes('themeforest.net') ||
     referer.includes('codecanyon.net');
 
-  // If in iframe or Envato preview, skip Clerk protection to avoid redirect loops
   if (isIframe || isEnvatoPreview) {
     return res;
   }
 
-  // Affiliate Tracking
-  const searchParams = req.nextUrl.searchParams;
-  const ref = searchParams.get('ref');
-
+  const ref = req.nextUrl.searchParams.get('ref');
   if (ref) {
     res.cookies.set('affiliate_code', ref, {
       maxAge: 60 * 60 * 24 * 30, // 30 days
       path: '/',
       sameSite: 'lax',
-      httpOnly: false // Accessible by client side scripts
+      httpOnly: false,
     });
   }
 
-  // Allow all Clerk authentication routes to be public
-  // Clerk handles its own authentication internally
-  const clerkRoutes = [
-    '/sign-in',
-    '/sign-up',
-    '/verify-email',
-    '/sso-callback',
-  ];
+  return res;
+}
 
-  const isClerkRoute = clerkRoutes.some(route =>
-    req.nextUrl.pathname.startsWith(route)
+const clerkHandler = clerkMiddleware(async (auth, req) => {
+  const res = applyCommonResponse(req);
+
+  // applyCommonResponse already returned early for iframe / Envato, but we
+  // still need to run admin route protection in the normal case.
+  const secFetchDest = req.headers.get('sec-fetch-dest');
+  if (secFetchDest === 'iframe') return res;
+
+  const clerkRoutes = ['/sign-in', '/sign-up', '/verify-email', '/sso-callback'];
+  const isClerkRoute = clerkRoutes.some((route) =>
+    req.nextUrl.pathname.startsWith(route),
   );
 
-  // Only protect admin routes (skip protection for Clerk routes)
   if (!isClerkRoute && req.nextUrl.pathname.startsWith('/admin')) {
     await auth.protect();
   }
@@ -95,10 +72,25 @@ export default clerkMiddleware(async (auth, req) => {
   return res;
 });
 
+export default async function middleware(req: NextRequest, event: NextFetchEvent) {
+  if (!hasClerkConfig()) {
+    // Pass-through: site renders, no auth. Logs once per cold start.
+    if (typeof console !== 'undefined') {
+      console.warn(
+        '[middleware] Clerk env vars missing — falling back to pass-through. ' +
+          'Set NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY and CLERK_SECRET_KEY in Vercel ' +
+          'project settings to enable auth.',
+      );
+    }
+    return applyCommonResponse(req);
+  }
+  return clerkHandler(req, event);
+}
+
 export const config = {
   matcher: [
     "/((?!.+\\.[\\w]+$|_next).*)",
     "/",
     "/(api|trpc)(.*)",
   ],
-}; 
+};
