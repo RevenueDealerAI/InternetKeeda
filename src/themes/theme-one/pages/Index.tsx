@@ -178,6 +178,58 @@ export default function Index() {
   const { config } = useSiteConfig();
   const reduceMotion = useReducedMotion();
 
+  // Hero AI-search state — lifted up so the grid below can render AI matches.
+  const [aiQuery, setAiQuery] = useState<string>('');
+  const [aiResults, setAiResults] = useState<Tool[]>([]);
+  const [aiLoading, setAiLoading] = useState<boolean>(false);
+
+  const handleAiSearch = useCallback(async (query: string) => {
+    const trimmed = query.trim();
+    if (!trimmed) return;
+    setAiQuery(trimmed);
+    setAiLoading(true);
+    setAiResults([]);
+    try {
+      const res = await fetch('/api/tools/ai-search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: trimmed }),
+      });
+      if (!res.ok) throw new Error(`AI search failed (${res.status})`);
+      const data = await res.json();
+      const tools = Array.isArray(data?.tools) ? (data.tools as Tool[]) : [];
+      setAiResults(tools);
+      // Fallback: if AI returned nothing, drive the keyword filter instead so
+      // the user still sees relevant results.
+      if (tools.length === 0) {
+        setSearchQuery(trimmed);
+      }
+    } catch (err) {
+      console.error('AI search error:', err);
+      // Hard fallback to keyword search
+      setSearchQuery(trimmed);
+      setAiResults([]);
+    } finally {
+      setAiLoading(false);
+    }
+  }, []);
+
+  const clearAiSearch = useCallback(() => {
+    setAiQuery('');
+    setAiResults([]);
+    setAiLoading(false);
+  }, []);
+
+  // Any change to the user-driven filters clears the AI mode — they're asking
+  // a different question than the semantic one.
+  useEffect(() => {
+    if (aiResults.length > 0 || aiQuery) {
+      setAiResults([]);
+      setAiQuery('');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCategory, selectedPricing, selectedRating, selectedSpecialFilter, sortBy]);
+
   const { data, isLoading: isToolsLoading, error: toolsError } = useTools({ 
     limit: selectedCategory !== "all" ? 10000 : 1000, 
     category: selectedCategory !== "all" ? selectedCategory : undefined,
@@ -457,6 +509,8 @@ export default function Index() {
         setSearchQuery={setSearchQuery}
         setIsSearchOpen={setIsSearchOpen}
         siteDescription={config?.siteDescription}
+        onAiSearch={handleAiSearch}
+        aiLoading={aiLoading}
       />
 
       <ExploreCategories />
@@ -607,11 +661,41 @@ export default function Index() {
           </DialogContent>
         </Dialog>
 
+        {/* AI search banner — appears when an AI query produced results.
+            Surfaces the query, the result count, and a Clear button so the
+            user can flip back to the keyword/filter-driven view. */}
+        {(aiQuery || aiLoading) && (
+          <div className="mb-6 flex items-center justify-between gap-3 rounded-xl border border-orange-200 bg-orange-50 px-4 py-3">
+            <div className="flex items-center gap-2 text-sm text-orange-900 min-w-0">
+              <Sparkles className="w-4 h-4 text-orange-600 shrink-0" />
+              {aiLoading ? (
+                <span className="truncate">Looking up AI-matched tools for <span className="font-medium">&ldquo;{aiQuery}&rdquo;</span>…</span>
+              ) : (
+                <span className="truncate">
+                  AI matches for <span className="font-medium">&ldquo;{aiQuery}&rdquo;</span>
+                  {aiResults.length > 0 && (
+                    <span className="text-orange-700/80 ml-1">· {aiResults.length} result{aiResults.length === 1 ? '' : 's'}</span>
+                  )}
+                </span>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={clearAiSearch}
+              className="shrink-0 text-xs font-medium text-orange-700 hover:text-orange-900 underline-offset-2 hover:underline"
+            >
+              Clear
+            </button>
+          </div>
+        )}
+
         {/* Tools Grid with Animation */}
         <AnimatePresence mode="popLayout">
-          {(initialLoad || isToolsLoading) ? (
+          {aiLoading ? (
             <ToolCardSkeletonGrid count={8} />
-          ) : visibleTools.length === 0 && filteredTools.length === 0 ? (
+          ) : (initialLoad || isToolsLoading) ? (
+            <ToolCardSkeletonGrid count={8} />
+          ) : visibleTools.length === 0 && filteredTools.length === 0 && aiResults.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-center">
               <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mb-4">
                 <Sparkles className="w-8 h-8 text-orange-600" />
@@ -634,7 +718,7 @@ export default function Index() {
               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-8"
             >
               <AnimatePresence mode="popLayout">
-                {visibleTools.map((tool, index) => (
+                {(aiResults.length > 0 ? aiResults : visibleTools).map((tool, index) => (
                   <motion.div
                     key={tool.id}
                     {...staggerCardProps(index, reduceMotion)}
@@ -754,8 +838,8 @@ export default function Index() {
           )}
         </AnimatePresence>
 
-        {/* Load More Button */}
-        {(hasMore || loading) && (
+        {/* Load More Button — hidden when AI mode is showing curated results */}
+        {(hasMore || loading) && aiResults.length === 0 && !aiLoading && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

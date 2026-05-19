@@ -11,6 +11,12 @@ interface HeroSectionProps {
   setIsSearchOpen?: React.Dispatch<React.SetStateAction<boolean>>;
   /** Kept for prop compatibility with the previous hero — unused in the new design. */
   siteDescription?: string;
+  /** Semantic / AI search handler. Hero calls this on submit; parent owns
+   * the loading + results state and renders matches in the grid below. */
+  onAiSearch?: (query: string) => void | Promise<void>;
+  /** Mirror of parent's aiLoading state — drives the Search button label
+   * and disables interaction while GPT is processing. */
+  aiLoading?: boolean;
 }
 
 const TRY_QUERIES = [
@@ -26,6 +32,8 @@ export const HeroSection = ({
   searchQuery: externalQuery,
   setSearchQuery: externalSetQuery,
   setIsSearchOpen,
+  onAiSearch,
+  aiLoading,
 }: HeroSectionProps) => {
   // Local input mirrors the parent's searchQuery so chips can update the
   // visible value while the parent's grid filter only fires on submit.
@@ -86,35 +94,43 @@ export const HeroSection = ({
     };
   }, [reduceMotion]);
 
+  const scrollToGrid = useCallback(() => {
+    if (typeof window === "undefined") return;
+    const grid =
+      document.getElementById("tool-grid") ??
+      document.querySelector("[data-tool-grid]");
+    if (grid instanceof HTMLElement) {
+      grid.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, []);
+
+  const runSearch = useCallback(
+    (value: string) => {
+      const trimmed = value.trim();
+      if (!trimmed) return;
+      // Prefer the semantic AI handler when the parent provides it; the
+      // parent's handler will fall back to keyword filtering if GPT misses.
+      if (onAiSearch) {
+        onAiSearch(trimmed);
+      } else if (externalSetQuery) {
+        externalSetQuery(trimmed);
+      }
+      scrollToGrid();
+    },
+    [onAiSearch, externalSetQuery, scrollToGrid],
+  );
+
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
-      const value = localQuery.trim();
-      if (externalSetQuery) externalSetQuery(value);
-      // Scroll the page to the tool grid (FilterBar marker)
-      if (typeof window !== "undefined") {
-        const grid =
-          document.getElementById("tool-grid") ??
-          document.querySelector('[data-tool-grid]');
-        if (grid instanceof HTMLElement) {
-          grid.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
-      }
+      runSearch(localQuery);
     },
-    [localQuery, externalSetQuery],
+    [localQuery, runSearch],
   );
 
   const handleChipClick = (q: string) => {
     setLocalQuery(q);
-    if (externalSetQuery) externalSetQuery(q);
-    if (typeof window !== "undefined") {
-      const grid =
-        document.getElementById("tool-grid") ??
-        document.querySelector('[data-tool-grid]');
-      if (grid instanceof HTMLElement) {
-        grid.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
-    }
+    runSearch(q);
   };
 
   // Listen for Cmd/Ctrl+K → open the existing SearchDialog overlay.
@@ -226,10 +242,20 @@ export const HeroSection = ({
             />
             <Button
               type="submit"
-              className="absolute right-2 top-1/2 -translate-y-1/2 h-12 px-5 bg-orange-500 hover:bg-orange-600 text-white rounded-full font-medium shadow-[0_8px_24px_-8px_rgba(249,115,22,0.6)] active:scale-[0.98] transition-transform"
+              disabled={aiLoading}
+              className="absolute right-2 top-1/2 -translate-y-1/2 h-12 px-5 bg-orange-500 hover:bg-orange-600 disabled:opacity-80 text-white rounded-full font-medium shadow-[0_8px_24px_-8px_rgba(249,115,22,0.6)] active:scale-[0.98] transition-transform"
             >
-              <span className="hidden sm:inline">Search</span>
-              <ArrowRight className="w-4 h-4 sm:ml-2" />
+              {aiLoading ? (
+                <>
+                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin sm:mr-2" />
+                  <span className="hidden sm:inline">Finding…</span>
+                </>
+              ) : (
+                <>
+                  <span className="hidden sm:inline">Search</span>
+                  <ArrowRight className="w-4 h-4 sm:ml-2" />
+                </>
+              )}
             </Button>
           </div>
         </form>
