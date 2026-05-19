@@ -3,6 +3,7 @@ import { connectDB } from '../api/lib/db';
 import { Tool } from '../api/models/Tool';
 import { BlogPost } from '../api/models/BlogPost';
 import { NewsPost } from '../api/models/NewsPost';
+import { Category } from '../api/models/Category';
 
 export const dynamic = 'force-dynamic';
 
@@ -43,10 +44,11 @@ export async function GET(req: NextRequest) {
         
         const frontendUrl = determineFrontendUrl(req);
         
-        const [tools, blogPosts, newsPosts] = await Promise.all([
+        const [tools, blogPosts, newsPosts, categories] = await Promise.all([
             Tool.find({ status: { $in: ['published', 'approved'] } }).select('slug updatedAt createdAt').sort({ updatedAt: -1 }),
             BlogPost.find({ status: 'published' }).select('slug updatedAt date').sort({ updatedAt: -1 }),
-            NewsPost.find({ status: 'published' }).select('slug updatedAt date').sort({ updatedAt: -1 })
+            NewsPost.find({ status: 'published' }).select('slug updatedAt date').sort({ updatedAt: -1 }),
+            Category.find({ isActive: { $ne: false } }).select('slug name updatedAt toolCount').sort({ toolCount: -1 }),
         ]);
 
         const staticPages = [
@@ -80,6 +82,21 @@ export async function GET(req: NextRequest) {
   </url>`;
         });
 
+        // Category pages — 678 in production. Prioritised 0.8 since they're
+        // the long-tail SEO opportunity for the directory.
+        const categorySlug = (cat: { slug?: string; name: string }) =>
+            cat.slug || encodeURIComponent(cat.name.toLowerCase());
+        categories.forEach(cat => {
+            const lastmod = (cat as { updatedAt?: Date }).updatedAt || new Date();
+            sitemap += `
+  <url>
+    <loc>${frontendUrl}/category/${categorySlug(cat)}</loc>
+    <lastmod>${lastmod.toISOString()}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>`;
+        });
+
         tools.forEach(tool => {
             const lastmod = tool.updatedAt || tool.createdAt;
             sitemap += `
@@ -87,7 +104,7 @@ export async function GET(req: NextRequest) {
     <loc>${frontendUrl}/ai-tools/${tool.slug}</loc>
     <lastmod>${lastmod.toISOString()}</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.6</priority>
   </url>`;
         });
 
