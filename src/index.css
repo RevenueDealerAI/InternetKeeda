@@ -71,6 +71,15 @@
   h1, h2, h3, h4 {
     letter-spacing: -0.02em;
   }
+
+  /* Hide Next.js 15 dev-mode overlays (segment explorer, build badge,
+   * error indicator). They render into a custom <nextjs-portal> element
+   * that Next 15 no longer exposes via config (devIndicators.* deprecated).
+   * Production builds never inject this element, so the rule is a no-op
+   * in deployment. */
+  nextjs-portal {
+    display: none !important;
+  }
 }
 
 @layer components {
