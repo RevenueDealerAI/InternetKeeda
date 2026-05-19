@@ -51,6 +51,7 @@ function formatTool(tool: {
     name: string;
     slug?: string;
     description: string;
+    description_ai?: string;
     websiteUrl: string;
     category: string;
     tags: string[];
@@ -75,6 +76,7 @@ function formatTool(tool: {
         name: tool.name,
         slug: tool.slug,
         description: tool.description,
+        description_ai: tool.description_ai,
         websiteUrl: tool.websiteUrl,
         url: tool.websiteUrl,
         website: new URL(tool.websiteUrl).hostname,

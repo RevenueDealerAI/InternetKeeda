@@ -269,7 +269,7 @@ export default function BestAIEmailManagementTools() {
 
               {/* Tool Content with simplified design */}
               <div className="p-6">
-                <p className="text-gray-700 leading-relaxed mb-8">{tool.description_ai || tool.description}</p>
+                <p className="text-gray-700 leading-relaxed mb-8">{tool.description}</p>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                   {/* Pros and Cons in two columns */}

@@ -339,7 +339,7 @@ export default function BestProjectManagementTools() {
                   </div>
                 </div>
                 
-                <p className="text-gray-700 leading-relaxed mb-6">{tool.description_ai || tool.description}</p>
+                <p className="text-gray-700 leading-relaxed mb-6">{tool.description}</p>
                 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                   {/* Features and Pros/Cons */}

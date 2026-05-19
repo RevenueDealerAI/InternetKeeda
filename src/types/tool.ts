@@ -5,6 +5,9 @@ export interface Tool {
   name: string;
   slug: string;
   description: string;
+  /** AI-rewritten original description. Display in preference to
+   * `description` (which is the seller's scraped fallback). */
+  description_ai?: string;
   websiteUrl: string;
   category: string;
   tags: string[];
