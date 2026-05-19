@@ -41,6 +41,7 @@ import mongoose from 'mongoose';
 import ReviewForm from "../components/reviews/ReviewForm";
 import ReviewList from "../components/reviews/ReviewList";
 import { formatTextIntoParagraphs } from "@/utils/textFormatter";
+import { getToolLogo } from "@/utils/toolHelpers";
 
 // Logo cache utilities
 const LOGO_CACHE_KEY = 'ai_tools_logo_cache';
@@ -326,7 +327,7 @@ export const AIToolDetail = () => {
                         <div className="relative">
                           <div className="w-28 h-28 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-gradient-to-br from-green-100 to-blue-50 shadow-sm flex items-center justify-center relative">
                             <Image
-                              src={tool.logo || `https://ui-avatars.com/api/?name=${encodeURIComponent(tool.name)}`}
+                              src={getToolLogo(tool)}
                               alt={tool.name}
                               fill
                               className="object-contain sm:object-cover p-2"
