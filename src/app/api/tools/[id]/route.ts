@@ -46,6 +46,7 @@ function formatTool(tool: ITool & { _id: { toString(): string } }) {
         name: tool.name,
         slug: tool.slug,
         description: tool.description,
+        description_ai: tool.description_ai,
         websiteUrl: tool.websiteUrl,
         url: tool.websiteUrl,
         website: new URL(tool.websiteUrl).hostname,
