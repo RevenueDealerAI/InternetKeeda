@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from 'next/image';
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   NavigationMenu,
@@ -49,7 +49,7 @@ import {
   FileText,
   Shield
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useUser, useClerk, SignInButton, SignUpButton } from "@clerk/clerk-react";
 import { AuthModals } from "@/components/AuthModals";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -73,6 +73,37 @@ export const Navigation = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
   const { config } = useSiteConfig();
+  const pathname = usePathname();
+
+  // The home page now has the dark-bleed hero, so the header runs dark
+  // (transparent → blurred-dark on scroll). Every other route keeps a
+  // light header (white → blurred-white on scroll). Driven by pathname
+  // rather than scroll-into-section detection — simpler and stable.
+  const isHomePage = pathname === '/';
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 12);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  const headerSurface = isHomePage
+    ? (scrolled
+        ? 'bg-[#0A0A0F]/80 backdrop-blur-md border-b border-white/5'
+        : 'bg-transparent border-b border-transparent')
+    : (scrolled
+        ? 'bg-white/85 backdrop-blur-md border-b border-gray-100 shadow-[0_1px_0_0_rgba(0,0,0,0.02)]'
+        : 'bg-white border-b border-transparent');
+  const textPrimary = isHomePage ? 'text-white' : 'text-gray-900';
+  const textNav = isHomePage
+    ? 'text-gray-300 hover:text-white data-[state=open]:text-white'
+    : 'text-gray-600 hover:text-gray-900';
+  const signInBtn = isHomePage
+    ? 'bg-transparent border border-white/10 text-white hover:bg-white/5 hover:border-white/20 h-10'
+    : 'border-gray-200 hover:border-gray-300 text-gray-700 h-10';
+  const mobileBtnColor = isHomePage ? 'text-white' : 'text-gray-900';
+
   const { data: categoriesData } = useCategories(true);
   const topCategories = (categoriesData?.data ?? [])
     .filter((c) => (c.toolCount ?? 0) > 0)
@@ -109,16 +140,16 @@ export const Navigation = () => {
 
   return (
     <>
-      <div className="fixed top-0 left-0 right-0 z-[999] px-4 sm:px-6 lg:px-8 pt-4">
-        {/* Main navigation */}
-        <div className="bg-white shadow-sm border border-gray-100 rounded-xl mx-auto max-w-7xl">
-          <div className="container mx-auto px-4 py-3">
-            <div className="flex items-center justify-between h-14">
+      {/* Full-bleed header. Surface + text colors theme-switch off pathname
+          (dark on home over the hero, light everywhere else). */}
+      <div className={`fixed top-0 left-0 right-0 z-[60] transition-colors duration-200 ${headerSurface}`}>
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
               {/* Logo and main navigation */}
               <div className="flex items-center gap-8">
-                <Link 
-                  href="/" 
-                  className="flex items-center gap-2 text-xl font-semibold text-gray-900"
+                <Link
+                  href="/"
+                  className={`flex items-center gap-2 text-xl font-semibold ${textPrimary}`}
                 >
                   {config?.logo ? (
                     <Image
@@ -144,7 +175,7 @@ export const Navigation = () => {
                   <NavigationMenuList className="space-x-1">
                     {/* Launches */}
                     <NavigationMenuItem>
-                      <NavigationMenuTrigger className="h-10 px-4 text-gray-600 hover:text-gray-900">
+                      <NavigationMenuTrigger className={`h-10 px-4 bg-transparent ${textNav}`}>
                         Launches
                       </NavigationMenuTrigger>
                       <NavigationMenuContent>
@@ -163,7 +194,7 @@ export const Navigation = () => {
 
                     {/* Categories — mega menu with top 30 by tool count */}
                     <NavigationMenuItem>
-                      <NavigationMenuTrigger className="h-10 px-4 text-gray-600 hover:text-gray-900">
+                      <NavigationMenuTrigger className={`h-10 px-4 bg-transparent ${textNav}`}>
                         Categories
                       </NavigationMenuTrigger>
                       <NavigationMenuContent>
@@ -209,7 +240,7 @@ export const Navigation = () => {
 
                     {/* Products */}
                     <NavigationMenuItem>
-                      <NavigationMenuTrigger className="h-10 px-4 text-gray-600 hover:text-gray-900">
+                      <NavigationMenuTrigger className={`h-10 px-4 bg-transparent ${textNav}`}>
                         Products
                       </NavigationMenuTrigger>
                       <NavigationMenuContent>
@@ -228,7 +259,7 @@ export const Navigation = () => {
 
                     {/* News */}
                     <NavigationMenuItem>
-                      <NavigationMenuTrigger className="h-10 px-4 text-gray-600 hover:text-gray-900">
+                      <NavigationMenuTrigger className={`h-10 px-4 bg-transparent ${textNav}`}>
                         News
                       </NavigationMenuTrigger>
                       <NavigationMenuContent>
@@ -248,7 +279,7 @@ export const Navigation = () => {
                     {/* Advertise */}
                     <NavigationMenuItem>
                       <NavigationMenuLink asChild>
-                        <Link href="/advertise" className="inline-flex h-10 px-4 items-center text-gray-600 hover:text-gray-900">
+                        <Link href="/advertise" className={`inline-flex h-10 px-4 items-center ${textNav}`}>
                           Advertise
                         </Link>
                       </NavigationMenuLink>
@@ -261,7 +292,7 @@ export const Navigation = () => {
               <div className="flex items-center space-x-4">
                 {/* Submit tool button */}
                 <Button
-                  className="hidden md:flex bg-green-500 hover:bg-green-600 text-white h-10 px-4"
+                  className="hidden md:flex bg-orange-500 hover:bg-orange-600 text-white h-10 px-4 shadow-[0_6px_20px_-8px_rgba(249,115,22,0.6)]"
                   onClick={() => setIsSubmitModalOpen(true)}
                 >
                   <Plus className="w-4 h-4 mr-2" />
@@ -274,13 +305,13 @@ export const Navigation = () => {
                     <Button
                       variant="outline"
                       onClick={() => router.push("/sign-in")}
-                      className="border-gray-200 hover:border-gray-300 text-gray-700 h-10"
+                      className={signInBtn}
                     >
                       Sign in
                     </Button>
                     <Button
                       onClick={() => router.push("/sign-up")}
-                      className="bg-green-500 hover:bg-green-600 text-white h-10"
+                      className="bg-orange-500 hover:bg-orange-600 text-white h-10"
                     >
                       Sign up
                     </Button>
@@ -338,7 +369,7 @@ export const Navigation = () => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="md:hidden"
+                  className={`md:hidden ${mobileBtnColor} ${isHomePage ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}
                   onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 >
                   {isMobileMenuOpen ? (
@@ -350,7 +381,6 @@ export const Navigation = () => {
               </div>
             </div>
           </div>
-        </div>
 
         {/* Enhanced Mobile Navigation Menu */}
         {isMobileMenuOpen && (

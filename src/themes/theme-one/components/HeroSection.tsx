@@ -149,7 +149,7 @@ export const HeroSection = ({
   return (
     <section
       ref={heroRef}
-      className="relative isolate overflow-hidden bg-[#0A0A0F] min-h-[calc(100vh-72px)] flex items-center"
+      className="relative isolate overflow-hidden bg-[#0A0A0F] min-h-screen flex items-center pt-16"
     >
       {/* Backdrop layer 1 — subtle upper-right radial glow */}
       <div

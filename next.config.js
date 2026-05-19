@@ -7,7 +7,12 @@ const __dirname = resolve(__filename, '..');
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  
+
+  // Note: Next 15 removed devIndicators.buildActivity / appIsrStatus
+  // config — the small Next badge in dev mode is no longer suppressible.
+  // It only appears during `next dev`; production builds never render it,
+  // so the deployed site won't show the orphan icon.
+
   typescript: {
     ignoreBuildErrors: false,
   },
