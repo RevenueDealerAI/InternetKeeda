@@ -334,9 +334,11 @@ export const AIToolDetail = () => {
                               unoptimized
                             />
                           </div>
-                          <div className="absolute -bottom-3 -right-3 bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
-                            #{Math.floor((tool.votes || 0) / 100)}
-                          </div>
+                          {(tool.votes || 0) >= 100 && (
+                            <div className="absolute -bottom-3 -right-3 bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
+                              #{Math.floor((tool.votes || 0) / 100)}
+                            </div>
+                          )}
                         </div>
 
                         {/* Tool Details */}

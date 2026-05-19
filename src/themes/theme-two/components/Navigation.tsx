@@ -130,7 +130,7 @@ export const Navigation = () => {
                             <div className="text-xs text-gray-500 mt-1">New AI tools this week</div>
                           </Link>
                           <Link href="/upcoming" className="group block p-3 rounded-lg hover:bg-gray-50">
-                            <div className="text-sm font-medium text-gray-900">Upcoming</div>
+                            <div className="text-sm font-medium text-gray-900">Recently Added</div>
                             <div className="text-xs text-gray-500 mt-1">Soon to be launched</div>
                           </Link>
                         </div>
@@ -335,7 +335,7 @@ export const Navigation = () => {
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   <CalendarClock className="h-4 w-4 mr-3 text-gray-500" />
-                  Upcoming
+                  Recently Added
                 </Link>
                 <Link 
                   href="/top-products"

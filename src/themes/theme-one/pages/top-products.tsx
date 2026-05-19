@@ -24,47 +24,57 @@ const getPricingColor = (type: string) => {
 export const TopProducts = () => {
   const router = useRouter();
   const [timeFilter, setTimeFilter] = useState<'all' | 'month' | 'week'>('all');
-  const [sortBy, setSortBy] = useState<'votes' | 'trending' | 'recent'>('votes');
+  const [sortBy, setSortBy] = useState<'votes' | 'trending' | 'recent'>('trending');
   const { data, isLoading, error } = useTools({ limit: 500 });
   const reduceMotion = useReducedMotion();
   const tools = data?.data || [];
   const { toggleUpvote, isUpvoted, toggleSave, isSaved } = useToolActions();
 
+  // Top Products derivation: Wilson-style ranking that weights rating by
+  // log(votes+1) so a 5★ tool with 1 vote can't outrank a 4.7★ tool with
+  // 800 votes. Editorial `isTopRated=true` tools pin to the top so admins
+  // can override the data ranking. The sort dropdown still works — it
+  // toggles between the derived score, raw votes, and recency.
   const getFilteredAndSortedTools = () => {
-    let filteredTools = tools.filter(tool => tool.isTopRated);
+    let filteredTools = [...tools];
 
-    // Apply time filter if needed
     if (timeFilter !== 'all') {
       const now = new Date();
       filteredTools = filteredTools.filter(tool => {
         const toolDate = new Date(tool.createdAt);
-        const diffTime = Math.abs(now.getTime() - toolDate.getTime());
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        
-        switch (timeFilter) {
-          case 'week':
-            return diffDays <= 7;
-          case 'month':
-            return diffDays <= 30;
-          default:
-            return true;
-        }
+        const diffDays = (now.getTime() - toolDate.getTime()) / (1000 * 60 * 60 * 24);
+        return timeFilter === 'week' ? diffDays <= 7 : diffDays <= 30;
       });
     }
 
-    // Apply sorting
+    const wilsonScore = (t: typeof filteredTools[number]) =>
+      (t.rating || 0) * Math.log((t.votes || 0) + 1);
+    // Editorial pin: isTopRated tools always float above the derived list.
+    const PIN = 1_000_000;
+
     switch (sortBy) {
       case 'votes':
-        return filteredTools.sort((a, b) => (b.votes || 0) - (a.votes || 0));
-      case 'trending':
-        return filteredTools.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-      case 'recent':
-        return filteredTools.sort((a, b) => 
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        filteredTools.sort((a, b) =>
+          ((b.isTopRated ? PIN : 0) + (b.votes || 0)) -
+          ((a.isTopRated ? PIN : 0) + (a.votes || 0))
         );
+        break;
+      case 'recent':
+        filteredTools.sort((a, b) =>
+          ((b.isTopRated ? PIN : 0) + new Date(b.createdAt).getTime() / 1e10) -
+          ((a.isTopRated ? PIN : 0) + new Date(a.createdAt).getTime() / 1e10)
+        );
+        break;
+      case 'trending':
       default:
-        return filteredTools;
+        filteredTools.sort((a, b) =>
+          ((b.isTopRated ? PIN : 0) + wilsonScore(b)) -
+          ((a.isTopRated ? PIN : 0) + wilsonScore(a))
+        );
+        break;
     }
+
+    return filteredTools.slice(0, 50);
   };
 
   const visibleTools = getFilteredAndSortedTools().slice(0, 9);
@@ -195,7 +205,7 @@ export const TopProducts = () => {
             </div>
             <div className="w-full md:w-1/2 space-y-4">
               <h2 className="text-2xl font-bold">{featuredTool.name}</h2>
-              <p className="text-gray-600">{featuredTool.description}</p>
+              <p className="text-gray-600">{featuredTool.description_ai || featuredTool.description}</p>
               <div className="flex flex-wrap gap-2">
                 <Badge variant="secondary" className="bg-gray-100">
                   {featuredTool.category}

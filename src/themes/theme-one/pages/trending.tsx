@@ -22,39 +22,36 @@ const TrendingPage = () => {
   const { toggleUpvote, isUpvoted, toggleSave, isSaved } = useToolActions();
   const reduceMotion = useReducedMotion();
 
-  // Filter tools by time period
+  // Trending derivation: top by total views, with the time filter narrowing
+  // to tools added in that window. Editorial `isTrending=true` tools pin
+  // to the top regardless of view count so admins can override the data
+  // ranking. Default is "Today" tab → narrowest window, but if that's
+  // empty we silently expand so the page never reads as broken.
   const trendingTools = useMemo(() => {
     const now = new Date();
-    let startDate: Date;
+    const windowMs = timeFilter === 'today' ? 24 * 60 * 60 * 1000
+      : timeFilter === 'week' ? 7 * 24 * 60 * 60 * 1000
+      : 30 * 24 * 60 * 60 * 1000;
+    const cutoff = now.getTime() - windowMs;
 
-    switch (timeFilter) {
-      case 'today':
-        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        break;
-      case 'week':
-        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        break;
-      case 'month':
-        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-        break;
-      default:
-        startDate = new Date(0); // All time
-    }
+    const inWindow = tools.filter(tool => {
+      if (!tool.createdAt) return false;
+      return new Date(tool.createdAt).getTime() >= cutoff;
+    });
 
-    return tools
-      .filter(tool => {
-        if (!tool.isTrending) return false;
-        
-        // Filter by createdAt date if available
-        if (tool.createdAt) {
-          const toolDate = new Date(tool.createdAt);
-          return toolDate >= startDate;
-        }
-        
-        // If no createdAt, include it (for backward compatibility)
-        return true;
-      })
-      .sort((a, b) => (b.votes || 0) - (a.votes || 0));
+    // Sort: editorial pins first (preserve admin order via views fallback),
+    // then everyone else by total views desc.
+    const rank = (t: Tool) =>
+      (t.isTrending ? 1_000_000_000 : 0) + (t.views || 0);
+
+    const ranked = [...inWindow].sort((a, b) => rank(b) - rank(a));
+    // Fallback: if the window is empty (fresh site, narrow tab), expand
+    // to all-time so the user always sees something to engage with.
+    const finalList = ranked.length > 0
+      ? ranked
+      : [...tools].sort((a, b) => rank(b) - rank(a));
+
+    return finalList.slice(0, 50);
   }, [tools, timeFilter]);
 
   const containerVariants = {
