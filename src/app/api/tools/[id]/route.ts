@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '../../lib/db';
 import { requireAuth, errorResponse } from '../../lib/auth';
+import { formatTool } from '../../lib/formatTool';
 import { Tool } from '../../models/Tool';
-import type { ITool } from '../../models/Tool';
 import { z } from 'zod';
 import mongoose from 'mongoose';
 
@@ -38,39 +38,6 @@ const toolSchema = z.object({
     reviews: z.number().default(0),
     slug: z.string().optional(),
 });
-
-function formatTool(tool: ITool & { _id: { toString(): string } }) {
-    return {
-        _id: tool._id.toString(),
-        id: tool._id.toString(),
-        name: tool.name,
-        slug: tool.slug,
-        description: tool.description,
-        description_ai: tool.description_ai,
-        websiteUrl: tool.websiteUrl,
-        url: tool.websiteUrl,
-        website: new URL(tool.websiteUrl).hostname,
-        category: tool.category,
-        tags: tool.tags,
-        pricing: {
-            type: tool.pricing?.type || 'free',
-            startingPrice: tool.pricing?.startingPrice || undefined,
-        },
-        features: tool.features,
-        status: tool.status,
-        isTrending: tool.isTrending || false,
-        isNew: tool.isNewTool || false,
-        isUpcoming: tool.isUpcoming || false,
-        isTopRated: tool.isTopRated || false,
-        views: tool.views || 0,
-        votes: tool.votes || 0,
-        rating: tool.rating || 0,
-        reviews: tool.reviews || 0,
-        createdAt: tool.createdAt,
-        updatedAt: tool.updatedAt,
-        logo: tool.logo
-    };
-}
 
 export async function GET(
     req: NextRequest,

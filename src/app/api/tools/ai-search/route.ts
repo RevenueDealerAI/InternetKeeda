@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '../../lib/db';
 import { errorResponse } from '../../lib/auth';
+import { formatTool } from '../../lib/formatTool';
 import { Tool } from '../../models/Tool';
 import mongoose from 'mongoose';
 
@@ -42,12 +43,12 @@ export async function POST(req: NextRequest) {
       return await semanticSearchFallback(query);
     }
 
-    // Fetch all published tools
-    const tools = await Tool.find({ 
-      status: { $in: ['published', 'approved'] } 
-    })
-      .select('name slug description category tags features pricing rating views websiteUrl logo')
-      .limit(500); // Limit to prevent token limits
+    // Fetch all published tools. No .select() — the shared formatTool
+    // helper needs the full doc shape (status, isTrending, etc.). 500
+    // tools at ~2KB each is well under the route's memory budget.
+    const tools = await Tool.find({
+      status: { $in: ['published', 'approved'] }
+    }).limit(500);
 
     if (tools.length === 0) {
       return NextResponse.json({ tools: [] });
@@ -138,27 +139,7 @@ Return a JSON array of the most relevant tool indices (1-based) that match the u
     // Get the selected tools from the original tools array
     const recommendedTools = recommendedIndices.map(idx => tools[idx]).filter(Boolean);
 
-    // Format tools for frontend
-    const formattedTools = recommendedTools.map((tool: any) => ({
-      id: tool._id.toString(),
-      _id: tool._id.toString(),
-      name: tool.name,
-      slug: tool.slug,
-      description: tool.description,
-      description_ai: tool.description_ai,
-      category: tool.category,
-      tags: tool.tags || [],
-      features: tool.features || [],
-      pricing: {
-        type: tool.pricing?.type || 'free'
-      },
-      rating: tool.rating || 0,
-      views: tool.views || 0,
-      logo: tool.logo || `https://www.google.com/s2/favicons?domain=${tool.name}&sz=128`,
-      websiteUrl: tool.websiteUrl || `https://${tool.name.toLowerCase().replace(/\s+/g, '')}.com`,
-      isTrending: (tool.views || 0) > 1000,
-      createdAt: tool.createdAt?.toISOString() || new Date().toISOString()
-    }));
+    const formattedTools = recommendedTools.map(formatTool);
 
     return NextResponse.json({ tools: formattedTools });
 
@@ -185,30 +166,10 @@ async function semanticSearchFallback(query: string) {
         { features: { $in: searchTerms } }
       ]
     })
-      .select('name slug description category tags features pricing rating views websiteUrl logo createdAt')
       .sort({ rating: -1, views: -1 })
       .limit(8);
 
-    const formattedTools = tools.map(tool => ({
-      id: tool._id.toString(),
-      _id: tool._id.toString(),
-      name: tool.name,
-      slug: tool.slug,
-      description: tool.description,
-      description_ai: tool.description_ai,
-      category: tool.category,
-      tags: tool.tags || [],
-      features: tool.features || [],
-      pricing: {
-        type: tool.pricing?.type || 'free'
-      },
-      rating: tool.rating || 0,
-      views: tool.views || 0,
-      logo: `https://www.google.com/s2/favicons?domain=${tool.name}&sz=128`,
-      websiteUrl: tool.websiteUrl || `https://${tool.name.toLowerCase().replace(/\s+/g, '')}.com`,
-      isTrending: (tool.views || 0) > 1000,
-      createdAt: tool.createdAt?.toISOString() || new Date().toISOString()
-    }));
+    const formattedTools = tools.map(formatTool);
 
     return NextResponse.json({ tools: formattedTools });
   } catch (error: unknown) {

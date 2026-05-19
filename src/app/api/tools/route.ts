@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '../lib/db';
 import { requireAuth, unauthorizedResponse, errorResponse } from '../lib/auth';
+import { formatTool } from '../lib/formatTool';
 import { Tool } from '../models/Tool';
 import { z } from 'zod';
 import mongoose from 'mongoose';
@@ -44,62 +45,6 @@ function generateSlug(name: string): string {
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-+|-+$/g, '')
         .replace(/-+/g, '-');
-}
-
-function formatTool(tool: {
-    _id: { toString(): string };
-    name: string;
-    slug?: string;
-    description: string;
-    description_ai?: string;
-    websiteUrl: string;
-    category: string;
-    tags: string[];
-    pricing?: { type?: string; startingPrice?: number };
-    features: string[];
-    status: string;
-    isTrending?: boolean;
-    isNewTool?: boolean;
-    isUpcoming?: boolean;
-    isTopRated?: boolean;
-    views?: number;
-    votes?: number;
-    rating?: number;
-    reviews?: number;
-    createdAt?: Date;
-    updatedAt?: Date;
-    logo?: string;
-}) {
-    return {
-        _id: tool._id.toString(),
-        id: tool._id.toString(),
-        name: tool.name,
-        slug: tool.slug,
-        description: tool.description,
-        description_ai: tool.description_ai,
-        websiteUrl: tool.websiteUrl,
-        url: tool.websiteUrl,
-        website: new URL(tool.websiteUrl).hostname,
-        category: tool.category,
-        tags: tool.tags,
-        pricing: {
-            type: tool.pricing?.type || 'free',
-            startingPrice: tool.pricing?.startingPrice || undefined,
-        },
-        features: tool.features,
-        status: tool.status,
-        isTrending: tool.isTrending || false,
-        isNew: tool.isNewTool || false,
-        isUpcoming: tool.isUpcoming || false,
-        isTopRated: tool.isTopRated || false,
-        views: tool.views || 0,
-        votes: tool.votes || 0,
-        rating: tool.rating || 0,
-        reviews: tool.reviews || 0,
-        createdAt: tool.createdAt,
-        updatedAt: tool.updatedAt,
-        logo: tool.logo
-    };
 }
 
 export async function GET(req: NextRequest) {
