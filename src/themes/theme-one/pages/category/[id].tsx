@@ -31,9 +31,10 @@ export default function CategoryPage() {
   const [categoryName, setCategoryName] = useState<string>("");
   const [categoryIntro, setCategoryIntro] = useState<string>("");
 
-  // Pull the AI-generated intro paragraph for this category. Falls back
-  // gracefully if the API doesn't return one (e.g. older categories that
-  // never went through the gen:categories pass).
+  // Resolve canonical category name + intro from the API.
+  // The URL is a slug ("image-generation") but Tool.category stores the
+  // canonical display name ("Image Generation"), so we MUST look up the
+  // canonical name server-side before filtering.
   useEffect(() => {
     if (!id) return;
     let cancelled = false;
@@ -43,84 +44,43 @@ export default function CategoryPage() {
         if (!res.ok) return;
         const json = await res.json();
         if (cancelled) return;
+        const name = json?.data?.name;
+        if (typeof name === 'string' && name.length > 0) {
+          setCategoryName(name);
+        }
         const intro = json?.data?.intro;
         if (typeof intro === 'string' && intro.length > 0) {
           setCategoryIntro(intro);
         }
       } catch {
-        // Silent — page still renders without the intro paragraph.
+        // Silent — fall back to state/slug below.
       }
     })();
     return () => {
       cancelled = true;
     };
   }, [id]);
-  
+
   useEffect(() => {
-    // Set category name based on ID if not available from state
+    // Fallbacks only — the API effect above is the source of truth.
+    // 1) If we navigated from a card with state.category, prefer that
+    //    (avoids a flash of empty state while the fetch is in flight).
+    // 2) Otherwise decode the slug as a last-resort string.
+    if (categoryName) return;
     if (categoryFromState) {
       setCategoryName(categoryFromState);
     } else if (id) {
-      const decodedCategory = decodeURIComponent(id);
-      
-      const categoryMap: { [key: string]: string } = {
-        "chatbots": "AI Chatbots and Assistants",
-        "image": "AI for Image Generation",
-        "code": "AI for Coding and Development",
-        "video": "AI for Video Generation",
-        "audio": "AI for Audio Enhancement",
-        "research": "AI Search Engines and Research Tools",
-        "productivity": "AI for Productivity",
-        "automation": "AI for Automation",
-      };
-      
-      if (categoryMap[id.toLowerCase()]) {
-        setCategoryName(categoryMap[id.toLowerCase()]);
-      } else {
-        const matchingCategory = tools.find(tool => 
-          tool.category.toLowerCase() === decodedCategory.toLowerCase()
-        )?.category;
-        
-        if (matchingCategory) {
-          setCategoryName(matchingCategory);
-        } else {
-          setCategoryName(decodedCategory);
-        }
-      }
+      setCategoryName(decodeURIComponent(id));
     }
-  }, [id, categoryFromState, tools]);
+  }, [id, categoryFromState, categoryName]);
 
   const filteredTools = tools.filter(tool => {
-    // Only show published or approved tools
     const allowedStatuses = ['published', 'approved'] as const;
     if (!allowedStatuses.includes(tool.status as typeof allowedStatuses[number])) {
       return false;
     }
-    
-    if (!categoryName) return false; // Don't show all tools if category name is not set
-    
-    // Handle special cases with multiple category name variations
-    if (id === "code") {
-      return (
-        tool.category === "AI for Coding and Development" ||
-        tool.category === "AI for Development" ||
-        tool.category.toLowerCase() === "code & development"
-      );
-    } else if (id === "video") {
-      return (
-        tool.category === "AI for Video Generation" ||
-        tool.category === "AI for Video Editing"
-      );
-    } else if (id === "audio") {
-      return (
-        tool.category === "AI for Audio Enhancement" ||
-        tool.category === "AI for Music Generation" ||
-        tool.category === "AI for Voice Generation"
-      );
-    } else {
-      // Case-insensitive exact match
-      return tool.category.toLowerCase() === categoryName.toLowerCase();
-    }
+    if (!categoryName) return false;
+    return tool.category.toLowerCase() === categoryName.toLowerCase();
   });
 
   const visibleTools = filteredTools.slice(0, pageSize);
@@ -172,20 +132,7 @@ export default function CategoryPage() {
     );
   }
 
-  // Get friendly category name for display
-  const getFriendlyCategoryName = () => {
-    switch (id) {
-      case "chatbots": return "Chatbots & Assistants";
-      case "image": return "Image Generation";
-      case "code": return "Code & Development";
-      case "video": return "Video & Animation";
-      case "audio": return "Audio & Music";
-      case "research": return "Research & Analysis";
-      case "productivity": return "Productivity";
-      case "automation": return "Automation";
-      default: return categoryName;
-    }
-  };
+  const getFriendlyCategoryName = () => categoryName;
 
   return (
     <div className="container mx-auto px-4 py-8 mt-20">
