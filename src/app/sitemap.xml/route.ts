@@ -55,7 +55,7 @@ export async function GET(req: NextRequest) {
             { url: '', priority: '1.0', changefreq: 'daily' },
             { url: '/latest-launches', priority: '0.8', changefreq: 'daily' },
             { url: '/top-products', priority: '0.8', changefreq: 'daily' },
-            { url: '/upcoming', priority: '0.7', changefreq: 'daily' },
+            { url: '/recently-added', priority: '0.7', changefreq: 'daily' },
             { url: '/categories', priority: '0.8', changefreq: 'weekly' },
             { url: '/trending', priority: '0.7', changefreq: 'daily' },
             { url: '/blog', priority: '0.7', changefreq: 'daily' },

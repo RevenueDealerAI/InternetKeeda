@@ -197,7 +197,7 @@ export const ThemeRouter: React.FC<ThemeRouterProps> = ({ isAdminRoute }) => {
             <Route path="/product/:id" element={<ThemeOneProductDetail />} />
             <Route path="/add-product" element={<ThemeOneAddProduct />} />
             <Route path="/latest-launches" element={<LatestLaunches />} />
-            <Route path="/upcoming" element={<Upcoming />} />
+            <Route path="/recently-added" element={<Upcoming />} />
             <Route path="/top-products" element={<TopProducts />} />
             <Route path="/categories" element={<ThemeOneCategories />} />
             <Route path="/category/:id" element={<CategoryPage />} />
@@ -244,7 +244,7 @@ export const ThemeRouter: React.FC<ThemeRouterProps> = ({ isAdminRoute }) => {
             <Route path={`${safeTheme.path}/product/:id`} element={<ThemeOneProductDetail />} />
             <Route path={`${safeTheme.path}/add-product`} element={<ThemeOneAddProduct />} />
             <Route path={`${safeTheme.path}/latest-launches`} element={<LatestLaunches />} />
-            <Route path={`${safeTheme.path}/upcoming`} element={<Upcoming />} />
+            <Route path={`${safeTheme.path}/recently-added`} element={<Upcoming />} />
             <Route path={`${safeTheme.path}/top-products`} element={<TopProducts />} />
             <Route path={`${safeTheme.path}/categories`} element={<ThemeOneCategories />} />
             <Route path={`${safeTheme.path}/category/:id`} element={<CategoryPage />} />
@@ -280,7 +280,7 @@ export const ThemeRouter: React.FC<ThemeRouterProps> = ({ isAdminRoute }) => {
           <>
             <Route path="/" element={<ThemeTwoHomePage />} />
             <Route path="/latest-launches" element={<ThemeTwoLatestLaunches />} />
-            <Route path="/upcoming" element={<ThemeTwoUpcoming />} />
+            <Route path="/recently-added" element={<ThemeTwoUpcoming />} />
             <Route path="/top-products" element={<ThemeTwoTopProducts />} />
             <Route path="/categories" element={<CategoriesPage />} />
             <Route path="/category/:id" element={<ThemeTwoCategoryPage />} />

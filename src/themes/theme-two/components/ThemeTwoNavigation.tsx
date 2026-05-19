@@ -150,9 +150,9 @@ export const ThemeTwoNavigation: React.FC = () => {
                             <div className="text-sm font-medium text-gray-900">Latest Launches</div>
                             <div className="text-xs text-gray-500 mt-1">New AI tools this week</div>
                           </Link>
-                          <Link href="/upcoming" className="group block p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                            <div className="text-sm font-medium text-gray-900">Upcoming</div>
-                            <div className="text-xs text-gray-500 mt-1">Soon to be launched</div>
+                          <Link href="/recently-added" className="group block p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                            <div className="text-sm font-medium text-gray-900">Recently Added</div>
+                            <div className="text-xs text-gray-500 mt-1">Newest tools in the catalog</div>
                           </Link>
                         </div>
                       </NavigationMenuContent>
@@ -355,8 +355,8 @@ export const ThemeTwoNavigation: React.FC = () => {
                         <Link href="/latest-launches" className="block text-gray-600 hover:text-purple-600 px-3 py-2 rounded-md text-sm">
                           Latest Launches
                         </Link>
-                        <Link href="/upcoming" className="block text-gray-600 hover:text-purple-600 px-3 py-2 rounded-md text-sm">
-                          Upcoming
+                        <Link href="/recently-added" className="block text-gray-600 hover:text-purple-600 px-3 py-2 rounded-md text-sm">
+                          Recently Added
                         </Link>
                       </div>
                     )}

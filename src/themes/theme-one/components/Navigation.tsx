@@ -182,7 +182,7 @@ export const Navigation = () => {
                             <div className={`text-sm font-medium ${ddTextPrimary}`}>Latest Launches</div>
                             <div className={`text-xs ${ddTextMuted} mt-1`}>New AI tools this week</div>
                           </Link>
-                          <Link href="/upcoming" className={`group block p-3 rounded-lg ${ddHover}`}>
+                          <Link href="/recently-added" className={`group block p-3 rounded-lg ${ddHover}`}>
                             <div className={`text-sm font-medium ${ddTextPrimary}`}>Recently Added</div>
                             <div className={`text-xs ${ddTextMuted} mt-1`}>Newest tools in the catalog</div>
                           </Link>
@@ -423,8 +423,8 @@ export const Navigation = () => {
                   <Rocket className="h-4 w-4 mr-3 text-gray-500" />
                   Latest Launches
                 </Link>
-                <Link 
-                  href="/upcoming"
+                <Link
+                  href="/recently-added"
                   className="flex items-center p-3 rounded-lg hover:bg-gray-50 text-sm font-medium text-gray-900"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >

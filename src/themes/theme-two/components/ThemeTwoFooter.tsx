@@ -185,7 +185,7 @@ export const ThemeTwoFooter: React.FC = () => {
             <ul className="space-y-3">
               <li><Link href="/latest-launches" className="text-gray-300 hover:text-white transition-colors">Latest Launches</Link></li>
               <li><Link href="/top-products" className="text-gray-300 hover:text-white transition-colors">Top Products</Link></li>
-              <li><Link href="/upcoming" className="text-gray-300 hover:text-white transition-colors">Upcoming</Link></li>
+              <li><Link href="/recently-added" className="text-gray-300 hover:text-white transition-colors">Recently Added</Link></li>
               <li><Link href="/categories" className="text-gray-300 hover:text-white transition-colors">Categories</Link></li>
               <li><Link href="/trending" className="text-gray-300 hover:text-white transition-colors">Trending</Link></li>
             </ul>

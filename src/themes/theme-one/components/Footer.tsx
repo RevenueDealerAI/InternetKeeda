@@ -185,8 +185,8 @@ export const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link href="/upcoming" className="text-sm text-gray-600 hover:text-green-500 transition-colors">
-                  Upcoming
+                <Link href="/recently-added" className="text-sm text-gray-600 hover:text-green-500 transition-colors">
+                  Recently Added
                 </Link>
               </li>
               <li>

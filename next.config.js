@@ -54,6 +54,16 @@ const nextConfig = {
       bodySizeLimit: '10mb',
     },
   },
+
+  async redirects() {
+    return [
+      {
+        source: '/upcoming',
+        destination: '/recently-added',
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
