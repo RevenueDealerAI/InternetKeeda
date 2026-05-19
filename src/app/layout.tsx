@@ -16,6 +16,7 @@ import { AffiliateTracker } from '../components/AffiliateTracker';
 import { IframeDetectionBanner } from '../components/IframeDetectionBanner';
 import { ConditionalClerkProvider } from '../components/ConditionalClerkProvider';
 import { NextRouterAdapter } from './NextRouterAdapter';
+import { PageTransition } from '../components/PageTransition';
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { initializeVoteCounts } from '../utils/voteUtils';
@@ -107,7 +108,7 @@ export default function RootLayout({
                           <AppInitializer />
                           <ScrollBehaviorFix />
                           <NextRouterAdapter>
-                            {children}
+                            <PageTransition>{children}</PageTransition>
                           </NextRouterAdapter>
                           <Toaster />
                           <Sonner position="top-right" />
