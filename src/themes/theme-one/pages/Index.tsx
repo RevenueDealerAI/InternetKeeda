@@ -100,17 +100,6 @@ const saveLogoToCache = (toolId: string, url: string) => {
   }
 };
 
-// Add these mock activities near your other constants
-const FOMO_ACTIVITIES = [
-  { type: 'view' as const, message: 'Someone from New York is viewing' },
-  { type: 'upvote' as const, message: 'John D. just upvoted' },
-  { type: 'visit' as const, message: 'A developer from India visited' },
-  { type: 'share' as const, message: 'People shared' },
-  { type: 'comment' as const, message: 'New review added by Sarah' },
-];
-
-type FomoActivityType = typeof FOMO_ACTIVITIES[number];
-
 const AnimatedCounter = ({ value, className }: { value: string | number; className?: string }) => {
   const numericValue = typeof value === 'string' 
     ? parseInt(value.replace(/[^0-9]/g, ''), 10)
@@ -173,8 +162,6 @@ export default function Index() {
     }
   });
   const [selectedIndex, setSelectedIndex] = useState(-1);
-  const [currentFomo, setCurrentFomo] = useState<{ tool: Tool, activity: FomoActivityType } | null>(null);
-  const [showFomo, setShowFomo] = useState(false);
   const { config } = useSiteConfig();
   const reduceMotion = useReducedMotion();
 
@@ -485,22 +472,6 @@ export default function Index() {
       }
     }
   };
-
-  // Add this effect for FOMO notifications
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const randomTool = tools[Math.floor(Math.random() * tools.length)];
-      const randomActivity = FOMO_ACTIVITIES[Math.floor(Math.random() * FOMO_ACTIVITIES.length)];
-      
-      setCurrentFomo({ tool: randomTool, activity: randomActivity });
-      setShowFomo(true);
-      
-      // Hide after 5 seconds
-      setTimeout(() => setShowFomo(false), 5000);
-    }, 8000); // Show new notification every 8 seconds
-
-    return () => clearInterval(interval);
-  }, [tools]);
 
   return (
     <div className="min-h-screen">
@@ -856,76 +827,6 @@ export default function Index() {
         )}
       </div>
 
-      {/* FOMO Notification */}
-      <AnimatePresence>
-        {showFomo && currentFomo && currentFomo.tool && currentFomo.tool.slug && (
-          <motion.div
-            initial={{ opacity: 0, x: -100 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -100 }}
-            className="fixed bottom-6 left-6 z-50"
-          >
-            <Link href={`/ai-tools/${currentFomo.tool.slug}`}
-              className="flex items-center gap-3 bg-white/90 backdrop-blur-sm p-4 rounded-xl shadow-lg border border-orange-100 hover:shadow-orange-100/50 transition-all duration-300 group hover:translate-x-1"
-            >
-              <div className="relative">
-                <div className="w-12 h-12 rounded-lg overflow-hidden bg-gradient-to-br from-orange-100 to-blue-50 relative">
-                  <Image
-                    src={getToolLogo(currentFomo.tool)}
-                    alt={currentFomo.tool.name}
-                    fill
-                    className="object-cover"
-                    unoptimized
-                    onLoad={() => {
-                      console.log(`[Image] Successfully loaded logo for FOMO: ${currentFomo.tool.name}`);
-                    }}
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      const originalSrc = target.src;
-                      console.error(`[Image] Failed to load logo for FOMO: ${currentFomo.tool.name}, URL: ${originalSrc}`);
-                      target.onerror = null;
-                      const fallbackUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentFomo.tool.name)}&background=6366f1&color=fff&bold=true&format=svg`;
-                      console.log(`[Image] Using fallback for FOMO: ${currentFomo.tool.name}, URL: ${fallbackUrl}`);
-                      target.src = fallbackUrl;
-                    }}
-                  />
-                </div>
-                <div className="absolute -bottom-2 -right-2 bg-white rounded-full p-1 shadow-md">
-                  {currentFomo.activity.type === 'view' && (
-                    <div className="bg-blue-500 rounded-full p-1">
-                      <Users className="w-3 h-3 text-white" />
-                    </div>
-                  )}
-                  {currentFomo.activity.type === 'upvote' && (
-                    <div className="bg-red-500 rounded-full p-1">
-                      <Heart className="w-3 h-3 text-white" />
-                    </div>
-                  )}
-                  {currentFomo.activity.type === 'visit' && (
-                    <div className="bg-green-500 rounded-full p-1">
-                      <ExternalLink className="w-3 h-3 text-white" />
-                    </div>
-                  )}
-                  {currentFomo.activity.type === 'comment' && (
-                    <div className="bg-yellow-500 rounded-full p-1">
-                      <MessageSquare className="w-3 h-3 text-white" />
-                    </div>
-                  )}
-                </div>
-              </div>
-              <div className="pr-4">
-                <p className="text-sm text-gray-600">{currentFomo.activity.message}</p>
-                <p className="text-sm font-medium text-gray-900">{currentFomo.tool.name}</p>
-              </div>
-              <div className="flex items-center self-stretch pl-4 border-l border-gray-100">
-                <div className="text-xs font-medium text-orange-600 opacity-0 group-hover:opacity-100 transition-opacity">
-                  View →
-                </div>
-              </div>
-            </Link>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

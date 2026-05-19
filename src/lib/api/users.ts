@@ -102,26 +102,6 @@ async function getUserActivity(token: string, userId: string) {
   return response.json();
 }
 
-async function setAdminRole(token: string, userId: string) {
-  // Remove 'user_' prefix if it exists
-  const cleanUserId = userId.replace('user_', '');
-
-  const response = await fetch(`/api/users/user/${cleanUserId}/set-admin-role`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-  }
-
-  return response.json();
-}
-
 // React Query hooks
 export function useUsers() {
   const { getToken } = useAuth();
@@ -187,13 +167,3 @@ export function useUpdateUserStatus() {
   });
 }
 
-export function useSetAdminRole() {
-  const { getToken } = useAuth();
-
-  return useMutation({
-    mutationFn: async (userId: string) => {
-      const token = await getToken();
-      return setAdminRole(token, userId);
-    },
-  });
-} 

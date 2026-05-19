@@ -58,7 +58,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { toast } from "sonner";
-import { useSetAdminRole } from "@/lib/api/users";
 import { SubmitToolModal } from "./modals/SubmitToolModal";
 import { useSiteConfig } from '@/contexts/SiteConfigContext';
 import { getUserDisplayName } from '@/lib/utils';
@@ -66,7 +65,6 @@ import { getUserDisplayName } from '@/lib/utils';
 export const Navigation = () => {
   const { user } = useUser();
   const { signOut, openUserProfile } = useClerk();
-  const setAdminRole = useSetAdminRole();
   const router = useRouter();
   const hasNotifications = true;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -83,19 +81,6 @@ export const Navigation = () => {
     await signOut();
     router.push("/");
     setIsMobileMenuOpen(false);
-  };
-
-  const handleSetAdminRole = async () => {
-    if (!user) return;
-    try {
-      console.log('Setting admin role for user:', user.id);
-      await setAdminRole.mutateAsync(user.id);
-      toast.success("Admin role set successfully. Please refresh the page.");
-    } catch (error: unknown) {
-      console.error('Error setting admin role:', error);
-      const errorMessage = (error instanceof Error ? error.message : String(error)) || 'Failed to set admin role';
-      toast.error(errorMessage);
-    }
   };
 
   return (
