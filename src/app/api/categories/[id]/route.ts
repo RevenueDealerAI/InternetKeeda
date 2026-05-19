@@ -21,12 +21,13 @@ export async function GET(
     await connectDB();
     const { id } = await params;
 
-    const category = await Category.findOne({
-      $or: [
-        { _id: id },
-        { slug: id }
-      ]
-    });
+    // The `id` param is typically a slug (e.g. "image-generation"). Only
+    // include the _id branch when the value actually looks like a Mongo
+    // ObjectId, otherwise mongoose throws CastError trying to cast it.
+    const isObjectId = /^[0-9a-fA-F]{24}$/.test(id);
+    const orQuery: Record<string, unknown>[] = [{ slug: id }, { name: id }];
+    if (isObjectId) orQuery.unshift({ _id: id });
+    const category = await Category.findOne({ $or: orQuery });
 
     if (!category) {
       return NextResponse.json(

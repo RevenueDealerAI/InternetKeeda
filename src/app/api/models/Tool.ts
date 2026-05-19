@@ -4,6 +4,9 @@ export interface ITool {
   name: string;
   slug: string;
   description: string;
+  /** AI-rewritten original description, displayed in preference to
+   * `description` (which is the seller's scraped fallback). */
+  description_ai?: string;
   websiteUrl: string;
   category: string;
   tags: string[];
@@ -32,6 +35,7 @@ const toolSchema = new mongoose.Schema<ITool>({
   name: { type: String, required: true },
   slug: { type: String, required: true, unique: true },
   description: { type: String, required: true },
+  description_ai: { type: String },
   websiteUrl: { type: String, required: true },
   category: { type: String, required: true },
   tags: [{ type: String }],

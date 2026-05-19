@@ -7,8 +7,12 @@ export interface ICategory {
   icon?: string;
   color?: string;
   isActive: boolean;
-  isDefault: boolean; 
-  toolCount?: number; 
+  isDefault: boolean;
+  toolCount?: number;
+  /** SEO meta description (150-160 chars), AI-generated. */
+  meta_description?: string;
+  /** Human-facing 80-100 word intro paragraph, AI-generated. */
+  intro?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -23,7 +27,9 @@ const categorySchema = new mongoose.Schema<ICategory>({
   color: { type: String },
   isActive: { type: Boolean, default: true },
   isDefault: { type: Boolean, default: false },
-  toolCount: { type: Number, default: 0 }
+  toolCount: { type: Number, default: 0 },
+  meta_description: { type: String },
+  intro: { type: String }
 }, {
   timestamps: true
 });

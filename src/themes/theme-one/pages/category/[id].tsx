@@ -29,6 +29,32 @@ export default function CategoryPage() {
   // Get category name from state or from ID
   const categoryFromState = location.state?.category;
   const [categoryName, setCategoryName] = useState<string>("");
+  const [categoryIntro, setCategoryIntro] = useState<string>("");
+
+  // Pull the AI-generated intro paragraph for this category. Falls back
+  // gracefully if the API doesn't return one (e.g. older categories that
+  // never went through the gen:categories pass).
+  useEffect(() => {
+    if (!id) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/api/categories/${encodeURIComponent(id)}`);
+        if (!res.ok) return;
+        const json = await res.json();
+        if (cancelled) return;
+        const intro = json?.data?.intro;
+        if (typeof intro === 'string' && intro.length > 0) {
+          setCategoryIntro(intro);
+        }
+      } catch {
+        // Silent — page still renders without the intro paragraph.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
   
   useEffect(() => {
     // Set category name based on ID if not available from state
@@ -175,9 +201,15 @@ export default function CategoryPage() {
         <h1 className="text-4xl font-bold mb-4">
           {getFriendlyCategoryName()} Tools
         </h1>
-        <p className="text-gray-600">
-          Explore the best AI tools for {getFriendlyCategoryName().toLowerCase()}.
-        </p>
+        {categoryIntro ? (
+          <p className="text-gray-700 leading-relaxed max-w-3xl">
+            {categoryIntro}
+          </p>
+        ) : (
+          <p className="text-gray-600">
+            Explore the best AI tools for {getFriendlyCategoryName().toLowerCase()}.
+          </p>
+        )}
       </div>
 
       {filteredTools.length === 0 ? (
