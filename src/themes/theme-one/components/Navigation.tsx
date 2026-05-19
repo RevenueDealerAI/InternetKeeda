@@ -104,6 +104,19 @@ export const Navigation = () => {
     : 'border-gray-200 hover:border-gray-300 text-gray-700 h-10';
   const mobileBtnColor = isHomePage ? 'text-white' : 'text-gray-900';
 
+  // Dropdown popover surface theming — dark on home (over the hero),
+  // light everywhere else. Avoids white-card-over-dark-page contrast.
+  const ddSurface = isHomePage
+    ? 'bg-[#0A0A0F]/95 backdrop-blur-md border border-white/10 rounded-lg'
+    : 'bg-white border border-gray-100 rounded-lg';
+  const ddTextPrimary = isHomePage ? 'text-white' : 'text-gray-900';
+  const ddTextMuted = isHomePage ? 'text-gray-400' : 'text-gray-500';
+  const ddHover = isHomePage ? 'hover:bg-white/5' : 'hover:bg-gray-50';
+  const ddSkeleton = isHomePage ? 'bg-white/5' : 'bg-gray-100';
+  const ddCatHover = isHomePage ? 'hover:bg-white/5' : 'hover:bg-orange-50/60';
+  const ddCatText = isHomePage ? 'text-gray-200' : 'text-gray-800';
+  const ddCatCount = isHomePage ? 'text-gray-500' : 'text-gray-400';
+
   const { data: categoriesData } = useCategories(true);
   const topCategories = (categoriesData?.data ?? [])
     .filter((c) => (c.toolCount ?? 0) > 0)
@@ -179,14 +192,14 @@ export const Navigation = () => {
                         Launches
                       </NavigationMenuTrigger>
                       <NavigationMenuContent>
-                        <div className="grid gap-2 p-4 w-[400px] bg-white">
-                          <Link href="/latest-launches" className="group block p-3 rounded-lg hover:bg-gray-50">
-                            <div className="text-sm font-medium text-gray-900">Latest Launches</div>
-                            <div className="text-xs text-gray-500 mt-1">New AI tools this week</div>
+                        <div className={`grid gap-2 p-4 w-[400px] ${ddSurface}`}>
+                          <Link href="/latest-launches" className={`group block p-3 rounded-lg ${ddHover}`}>
+                            <div className={`text-sm font-medium ${ddTextPrimary}`}>Latest Launches</div>
+                            <div className={`text-xs ${ddTextMuted} mt-1`}>New AI tools this week</div>
                           </Link>
-                          <Link href="/upcoming" className="group block p-3 rounded-lg hover:bg-gray-50">
-                            <div className="text-sm font-medium text-gray-900">Upcoming</div>
-                            <div className="text-xs text-gray-500 mt-1">Soon to be launched</div>
+                          <Link href="/upcoming" className={`group block p-3 rounded-lg ${ddHover}`}>
+                            <div className={`text-sm font-medium ${ddTextPrimary}`}>Upcoming</div>
+                            <div className={`text-xs ${ddTextMuted} mt-1`}>Soon to be launched</div>
                           </Link>
                         </div>
                       </NavigationMenuContent>
@@ -198,14 +211,14 @@ export const Navigation = () => {
                         Categories
                       </NavigationMenuTrigger>
                       <NavigationMenuContent>
-                        <div className="w-[720px] bg-white p-5">
+                        <div className={`w-[720px] p-5 ${ddSurface}`}>
                           <div className="flex items-baseline justify-between mb-3 px-1">
-                            <div className="text-xs font-semibold uppercase tracking-wider text-gray-500">
+                            <div className={`text-xs font-semibold uppercase tracking-wider ${ddTextMuted}`}>
                               Top 30 by catalog size
                             </div>
                             <Link
                               href="/categories"
-                              className="text-xs font-medium text-[#FF5A1F] hover:text-[#E64A0E]"
+                              className="text-xs font-medium text-[#FF5A1F] hover:text-[#FF7A45]"
                             >
                               View all{totalCategoryCount ? ` ${totalCategoryCount}` : ''} →
                             </Link>
@@ -213,7 +226,7 @@ export const Navigation = () => {
                           {topCategories.length === 0 ? (
                             <div className="grid grid-cols-3 gap-x-4 gap-y-1.5">
                               {Array.from({ length: 30 }).map((_, i) => (
-                                <div key={i} className="h-6 bg-gray-100 rounded animate-pulse" />
+                                <div key={i} className={`h-6 ${ddSkeleton} rounded animate-pulse`} />
                               ))}
                             </div>
                           ) : (
@@ -222,12 +235,12 @@ export const Navigation = () => {
                                 <Link
                                   key={cat.slug ?? cat.name}
                                   href={`/category/${cat.slug ?? encodeURIComponent(cat.name.toLowerCase())}`}
-                                  className="group flex items-center justify-between px-2 py-1.5 rounded-md hover:bg-orange-50/60 transition-colors"
+                                  className={`group flex items-center justify-between px-2 py-1.5 rounded-md ${ddCatHover} transition-colors`}
                                 >
-                                  <span className="text-sm font-medium text-gray-800 group-hover:text-[#FF5A1F] truncate">
+                                  <span className={`text-sm font-medium ${ddCatText} group-hover:text-[#FF5A1F] truncate`}>
                                     {cat.name}
                                   </span>
-                                  <span className="text-xs text-gray-400 group-hover:text-[#FF5A1F] ml-2 shrink-0">
+                                  <span className={`text-xs ${ddCatCount} group-hover:text-[#FF5A1F] ml-2 shrink-0`}>
                                     {cat.toolCount}
                                   </span>
                                 </Link>
@@ -244,14 +257,14 @@ export const Navigation = () => {
                         Products
                       </NavigationMenuTrigger>
                       <NavigationMenuContent>
-                        <div className="grid gap-2 p-4 w-[400px] bg-white">
-                          <Link href="/top-products" className="group block p-3 rounded-lg hover:bg-gray-50">
-                            <div className="text-sm font-medium text-gray-900">Top Products</div>
-                            <div className="text-xs text-gray-500 mt-1">Most popular AI tools</div>
+                        <div className={`grid gap-2 p-4 w-[400px] ${ddSurface}`}>
+                          <Link href="/top-products" className={`group block p-3 rounded-lg ${ddHover}`}>
+                            <div className={`text-sm font-medium ${ddTextPrimary}`}>Top Products</div>
+                            <div className={`text-xs ${ddTextMuted} mt-1`}>Most popular AI tools</div>
                           </Link>
-                          <Link href="/trending" className="group block p-3 rounded-lg hover:bg-gray-50">
-                            <div className="text-sm font-medium text-gray-900">Trending</div>
-                            <div className="text-xs text-gray-500 mt-1">Most popular right now</div>
+                          <Link href="/trending" className={`group block p-3 rounded-lg ${ddHover}`}>
+                            <div className={`text-sm font-medium ${ddTextPrimary}`}>Trending</div>
+                            <div className={`text-xs ${ddTextMuted} mt-1`}>Most popular right now</div>
                           </Link>
                         </div>
                       </NavigationMenuContent>
@@ -263,14 +276,14 @@ export const Navigation = () => {
                         News
                       </NavigationMenuTrigger>
                       <NavigationMenuContent>
-                        <div className="grid gap-2 p-4 w-[400px] bg-white">
-                          <Link href="/latest-news" className="group block p-3 rounded-lg hover:bg-gray-50">
-                            <div className="text-sm font-medium text-gray-900">Latest News</div>
-                            <div className="text-xs text-gray-500 mt-1">AI industry updates</div>
+                        <div className={`grid gap-2 p-4 w-[400px] ${ddSurface}`}>
+                          <Link href="/latest-news" className={`group block p-3 rounded-lg ${ddHover}`}>
+                            <div className={`text-sm font-medium ${ddTextPrimary}`}>Latest News</div>
+                            <div className={`text-xs ${ddTextMuted} mt-1`}>AI industry updates</div>
                           </Link>
-                          <Link href="/blog" className="group block p-3 rounded-lg hover:bg-gray-50">
-                            <div className="text-sm font-medium text-gray-900">Blog</div>
-                            <div className="text-xs text-gray-500 mt-1">Insights and guides</div>
+                          <Link href="/blog" className={`group block p-3 rounded-lg ${ddHover}`}>
+                            <div className={`text-sm font-medium ${ddTextPrimary}`}>Blog</div>
+                            <div className={`text-xs ${ddTextMuted} mt-1`}>Insights and guides</div>
                           </Link>
                         </div>
                       </NavigationMenuContent>
