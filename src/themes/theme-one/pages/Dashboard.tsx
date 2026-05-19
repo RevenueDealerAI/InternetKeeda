@@ -1131,7 +1131,7 @@ export default function Dashboard() {
                             {tool.name}
                           </h3>
                           <p className="text-sm text-gray-600 line-clamp-2">
-                            {tool.description}
+                            {tool.description_ai || tool.description}
                           </p>
                         </div>
                       </div>
@@ -1201,7 +1201,7 @@ export default function Dashboard() {
                             {tool.name}
                           </h3>
                           <p className="text-sm text-gray-600 line-clamp-2">
-                            {tool.description}
+                            {tool.description_ai || tool.description}
                           </p>
                         </div>
                       </div>

@@ -219,7 +219,7 @@ const TrendingPage = () => {
                 {/* Description */}
                 <p className="text-sm sm:text-[15px] leading-relaxed text-gray-600 line-clamp-2 
                   group-hover:line-clamp-3 transition-all duration-300">
-                  {tool.description}
+                  {tool.description_ai || tool.description}
                 </p>
 
                 {/* Action buttons - Stacked on mobile, side by side on larger screens */}

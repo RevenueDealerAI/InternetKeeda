@@ -234,7 +234,7 @@ export default function CategoryPage() {
                   id={tool.id}
                   slug={tool.slug}
                   name={tool.name}
-                  description={tool.description}
+                  description={tool.description_ai || tool.description}
                   category={tool.category}
                   votes={tool.votes}
                   imageUrl={tool.logo || `https://ui-avatars.com/api/?name=${encodeURIComponent(tool.name)}`}

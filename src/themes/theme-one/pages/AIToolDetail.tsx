@@ -361,12 +361,12 @@ export const AIToolDetail = () => {
                                 {tool.name}
                               </h1>
                               <div className="text-base sm:text-lg text-gray-600 leading-relaxed">
-                                {formatTextIntoParagraphs(tool.description).slice(0, 2).map((paragraph, index) => (
+                                {formatTextIntoParagraphs(tool.description_ai || tool.description).slice(0, 2).map((paragraph, index) => (
                                   <p key={index} className="mb-4 last:mb-0">
                                     {paragraph}
                                   </p>
                                 ))}
-                                {formatTextIntoParagraphs(tool.description).length > 2 && (
+                                {formatTextIntoParagraphs(tool.description_ai || tool.description).length > 2 && (
                                   <p className="text-sm text-gray-500 mt-2">
                                     View more details in the About section below...
                                   </p>
@@ -499,7 +499,7 @@ export const AIToolDetail = () => {
                         <TabsContent value="about" className="mt-6">
                           <div className="prose prose-sm sm:prose-lg max-w-none">
                             <div className="text-base sm:text-lg text-gray-600 leading-relaxed space-y-4">
-                              {formatTextIntoParagraphs(tool.description).map((paragraph, index) => (
+                              {formatTextIntoParagraphs(tool.description_ai || tool.description).map((paragraph, index) => (
                                 <p key={index}>
                                   {paragraph}
                                 </p>

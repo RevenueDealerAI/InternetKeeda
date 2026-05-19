@@ -123,7 +123,7 @@ export const Upcoming = () => {
                     />
                   </div>
                   <p className="text-gray-600 mb-4">
-                    {tool.description}
+                    {tool.description_ai || tool.description}
                   </p>
                   <div className="flex items-center gap-4">
                     <span className="text-sm text-gray-500">

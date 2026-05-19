@@ -119,7 +119,7 @@ export const SearchDialog = ({
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="text-lg font-medium text-gray-900">{tool.name}</h3>
-                    <p className="text-sm text-gray-600 mt-1 line-clamp-3 leading-relaxed">{tool.description}</p>
+                    <p className="text-sm text-gray-600 mt-1 line-clamp-3 leading-relaxed">{tool.description_ai || tool.description}</p>
                   </div>
                 </div>
               </div>
