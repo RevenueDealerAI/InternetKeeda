@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
@@ -163,6 +163,7 @@ export default function Index() {
   const { toggleUpvote, isUpvoted, isLoading: isActionLoading } = useToolActions();
   const [hasMore, setHasMore] = useState(true);
   const router = useRouter();
+  const urlSearchParams = useSearchParams();
   const initializedRef = useRef(false);
   const [recentSearches, setRecentSearches] = useState<string[]>(() => {
     try {
@@ -446,12 +447,40 @@ export default function Index() {
     // Mobile nav's search icon dispatches this so it doesn't need to
     // know about the dialog state.
     const onOpen = () => setIsSearchOpen(true);
+
+    // Mobile search FAB submits a query via this event so we can run
+    // it without a full navigation when the user's already on /.
+    const onRunSearch = (e: Event) => {
+      const detail = (e as CustomEvent<{ query?: string }>).detail;
+      const q = (detail?.query || '').trim();
+      if (!q) return;
+      setSearchQuery(q);
+      handleAiSearch(q);
+      // Scroll to the tool grid so the user sees results immediately.
+      window.setTimeout(() => {
+        document.getElementById('tool-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 80);
+    };
+
     document.addEventListener("keydown", down);
     window.addEventListener("ik:open-search", onOpen);
+    window.addEventListener("ik:run-search", onRunSearch as EventListener);
     return () => {
       document.removeEventListener("keydown", down);
       window.removeEventListener("ik:open-search", onOpen);
+      window.removeEventListener("ik:run-search", onRunSearch as EventListener);
     };
+  }, [handleAiSearch]);
+
+  // Read ?q= from the URL on first mount so direct links + FAB-from-
+  // another-page submissions land with the search already applied.
+  useEffect(() => {
+    const q = urlSearchParams?.get('q');
+    if (q && q.trim()) {
+      setSearchQuery(q.trim());
+      handleAiSearch(q.trim());
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Update the getFilteredTools references in the search handlers

@@ -19,6 +19,7 @@ import { NextRouterAdapter } from './NextRouterAdapter';
 import { PageTransition } from '../components/PageTransition';
 import { ScrollProgress } from '@/themes/theme-one/components/ScrollProgress';
 import { HeadFavicons } from '../components/HeadFavicons';
+import { MobileSearchFab } from '../components/MobileSearchFab';
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { initializeVoteCounts } from '../utils/voteUtils';
@@ -114,6 +115,7 @@ export default function RootLayout({
                           <NextRouterAdapter>
                             <PageTransition>{children}</PageTransition>
                           </NextRouterAdapter>
+                          <MobileSearchFab />
                           <Toaster />
                           <Sonner position="top-right" />
                           <AuthModalManager />
