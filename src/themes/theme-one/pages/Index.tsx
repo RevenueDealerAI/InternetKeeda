@@ -12,13 +12,19 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { useTools } from "@/lib/api/tools";
 import { Tool } from "@/types/tool";
+import dynamic from "next/dynamic";
 import { HeroSection } from "../components/HeroSection";
 import { Categories as ExploreCategories } from "../components/home/Categories";
-import { HowItWorks } from "../components/home/HowItWorks";
-import { FeaturedToolsCarousel } from "../components/home/FeaturedToolsCarousel";
-import { TrendingThisWeek } from "../components/home/TrendingThisWeek";
-import { Testimonials } from "../components/home/Testimonials";
 import { FilterBar } from "../components/FilterBar";
+
+// Below-fold sections — defer their JS to keep the home-page critical
+// bundle lean. ssr:false makes sense because every one of them depends
+// on client hooks (useTools, useReducedMotion, useScroll); no SEO loss
+// because the fold-above hero + categories + grid are server-rendered.
+const HowItWorks            = dynamic(() => import("../components/home/HowItWorks").then(m => m.HowItWorks), { ssr: false });
+const FeaturedToolsCarousel = dynamic(() => import("../components/home/FeaturedToolsCarousel").then(m => m.FeaturedToolsCarousel), { ssr: false });
+const TrendingThisWeek      = dynamic(() => import("../components/home/TrendingThisWeek").then(m => m.TrendingThisWeek), { ssr: false });
+const Testimonials          = dynamic(() => import("../components/home/Testimonials").then(m => m.Testimonials), { ssr: false });
 import { ToolCardSkeleton, ToolCardSkeletonGrid } from "../components/ToolCardSkeleton";
 import { getToolLogo } from "@/utils/toolHelpers";
 import { AdSlot } from "@/components/ads/AdSlot";

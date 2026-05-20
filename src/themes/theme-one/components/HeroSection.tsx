@@ -181,15 +181,15 @@ export const HeroSection = ({
         className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#FAFAFA] via-white to-white"
       />
 
-      {/* Gradient mesh — three blurred blobs drift independently behind the
-       * content. KEEDA red as the primary blob (matches logo), violet +
-       * indigo as cool counterweights. mix-blend-multiply keeps colors
-       * readable on white. Parallax wrapper translates the whole mesh a
-       * few px with the mouse. */}
+      {/* Gradient mesh — three blurred blobs drift independently behind
+       * the content. Heavy on GPU (mix-blend + 80px blur + keyframes),
+       * so we ONLY render on md and up. Mobile gets the soft off-white
+       * wash instead, which keeps the hero lightweight on the platform
+       * where the perf budget matters most. */}
       <div
         aria-hidden
         ref={parallaxRef}
-        className="pointer-events-none absolute inset-0 will-change-transform"
+        className="pointer-events-none absolute inset-0 will-change-transform hidden md:block"
         style={{ transform: "translate3d(0,0,0)" }}
       >
         <div

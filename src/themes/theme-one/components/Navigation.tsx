@@ -85,9 +85,12 @@ export const Navigation = () => {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  // Solid white on mobile (so the hamburger always reads), translucent
+  // backdrop-blur on md and up where the gradient mesh leaking through
+  // adds nice atmospheric depth on bigger screens.
   const headerSurface = scrolled
-    ? 'bg-white/85 backdrop-blur-md border-b border-gray-100 shadow-[0_1px_0_0_rgba(0,0,0,0.02)]'
-    : 'bg-white/60 backdrop-blur-sm border-b border-transparent';
+    ? 'bg-white md:bg-white/85 backdrop-blur-md border-b border-gray-100 shadow-[0_1px_0_0_rgba(0,0,0,0.02)]'
+    : 'bg-white md:bg-white/60 md:backdrop-blur-sm border-b border-transparent';
   const textPrimary = 'text-gray-900';
   const textNav = 'text-gray-600 hover:text-gray-900';
   const signInBtn = 'border-gray-200 hover:border-gray-300 text-gray-700 h-10';
@@ -350,26 +353,34 @@ export const Navigation = () => {
                   </DropdownMenu>
                 )}
 
-                {/* Mobile menu button */}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className={`md:hidden ${mobileBtnColor} hover:bg-gray-100`}
+                {/* Mobile menu trigger — solid pill so it stays visible
+                 * even when the gradient mesh would bleed through the
+                 * header at scrollY 0. Explicit aria-label + expanded
+                 * state for screen readers. */}
+                <button
+                  type="button"
+                  aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
+                  aria-expanded={isMobileMenuOpen}
+                  aria-controls="mobile-nav-panel"
                   onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                  className="md:hidden inline-flex items-center justify-center w-10 h-10 rounded-lg text-gray-900 bg-white ring-1 ring-gray-200 shadow-sm hover:bg-gray-50 active:scale-95 transition"
                 >
                   {isMobileMenuOpen ? (
-                    <X className="h-6 w-6" />
+                    <X className="h-5 w-5" aria-hidden />
                   ) : (
-                    <Menu className="h-6 w-6" />
+                    <Menu className="h-5 w-5" aria-hidden />
                   )}
-                </Button>
+                </button>
               </div>
             </div>
           </div>
 
-        {/* Enhanced Mobile Navigation Menu */}
+        {/* Mobile nav panel — z-[70] sits ABOVE the sticky header (z-[60])
+         * so the panel covers the whole viewport including the header
+         * strip. Solid white bg (no /60 opacity) so the gradient mesh
+         * doesn't leak through. */}
         {isMobileMenuOpen && (
-          <div className="md:hidden fixed inset-0 bg-white z-50 pt-20 pb-20 animate-in slide-in-from-top-5 duration-300">
+          <div id="mobile-nav-panel" className="md:hidden fixed inset-0 bg-white z-[70] pt-20 pb-20 animate-in slide-in-from-top-5 duration-300">
             <div className="absolute top-4 right-4 z-50">
               <Button
                 variant="ghost"
