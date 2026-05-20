@@ -74,7 +74,7 @@ const siteConfigSchema = new mongoose.Schema({
   },
   primaryColor: {
     type: String,
-    default: '#FF5A1F'
+    default: '#DC2626'
   },
   secondaryColor: {
     type: String,

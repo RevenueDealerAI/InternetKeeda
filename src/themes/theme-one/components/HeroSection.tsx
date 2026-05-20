@@ -182,8 +182,10 @@ export const HeroSection = ({
       />
 
       {/* Gradient mesh — three blurred blobs drift independently behind the
-       * content. mix-blend-multiply keeps colors readable on white. Parallax
-       * wrapper translates the whole mesh a few px with the mouse. */}
+       * content. KEEDA red as the primary blob (matches logo), violet +
+       * indigo as cool counterweights. mix-blend-multiply keeps colors
+       * readable on white. Parallax wrapper translates the whole mesh a
+       * few px with the mouse. */}
       <div
         aria-hidden
         ref={parallaxRef}
@@ -192,8 +194,7 @@ export const HeroSection = ({
       >
         <div
           className={
-            "mesh-blob bg-orange-400 " +
-            (reduceMotion ? "" : "motion-safe:animate-blob-a")
+            "mesh-blob " + (reduceMotion ? "" : "motion-safe:animate-blob-a")
           }
           style={{
             width: "560px",
@@ -201,7 +202,7 @@ export const HeroSection = ({
             top: "-10%",
             left: "-8%",
             background:
-              "radial-gradient(closest-side, rgba(249,115,22,0.55), rgba(249,115,22,0))",
+              "radial-gradient(closest-side, rgba(220,38,38,0.55), rgba(220,38,38,0))",
           }}
         />
         <div
@@ -231,6 +232,29 @@ export const HeroSection = ({
           }}
         />
       </div>
+
+      {/* Spider mascot — moving GIF of the KEEDA logo dangling from the top
+       * right of the hero. The "Keeda" theme is a spider in a web, so we
+       * give it pride of place on the home hero. Only loaded on this page
+       * (the GIF is ~2.7 MB), pointer-events-none so it doesn't intercept
+       * clicks. Hidden on small screens to save bandwidth. */}
+      {!reduceMotion && (
+        <div
+          aria-hidden
+          className="pointer-events-none hidden md:block absolute top-16 right-6 lg:right-10 w-40 lg:w-56 xl:w-64 z-[5] opacity-90 mix-blend-multiply"
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/brand/internetkeeda-spider-moving.gif"
+            alt=""
+            width={256}
+            height={256}
+            loading="lazy"
+            decoding="async"
+            className="w-full h-auto drop-shadow-[0_8px_18px_rgba(220,38,38,0.18)]"
+          />
+        </div>
+      )}
 
       {/* Faint dot grid for texture — kept light so it's atmosphere, not pattern */}
       <div
@@ -305,7 +329,7 @@ export const HeroSection = ({
             <Button
               type="submit"
               disabled={aiLoading}
-              className="absolute right-2 top-1/2 -translate-y-1/2 h-12 px-5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 disabled:opacity-80 text-white rounded-full font-medium shadow-[0_8px_24px_-8px_rgba(249,115,22,0.55)] active:scale-[0.98] transition-transform"
+              className="absolute right-2 top-1/2 -translate-y-1/2 h-12 px-5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 disabled:opacity-80 text-white rounded-full font-medium shadow-[0_8px_24px_-8px_rgba(220,38,38,0.55)] active:scale-[0.98] transition-transform"
             >
               {aiLoading ? (
                 <>

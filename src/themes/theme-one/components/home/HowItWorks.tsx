@@ -62,7 +62,7 @@ export const HowItWorks = () => {
             >
               <defs>
                 <linearGradient id="howline" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%"  stopColor="#F97316" />
+                  <stop offset="0%"  stopColor="#DC2626" />
                   <stop offset="50%" stopColor="#8B5CF6" />
                   <stop offset="100%" stopColor="#6366F1" />
                 </linearGradient>

@@ -29,46 +29,30 @@ export default {
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
-        // InternetKeeda brand palette — warm electric orange
+        // InternetKeeda brand palette — KEEDA red (matches the
+        // Transparent/Transparent red.png logo, ~#DC2626 saturated).
         brand: {
-          50: "#FFF5F0",
-          100: "#FFE4D6",
-          200: "#FFCBA8",
-          300: "#FFAF7A",
-          400: "#FF8F4C",
-          500: "#FF5A1F",
-          600: "#E64A0E",
-          700: "#BF3D0B",
-          800: "#993009",
-          900: "#7A2607",
+          50:  "#FEF2F2",
+          100: "#FEE2E2",
+          200: "#FECACA",
+          300: "#FCA5A5",
+          400: "#F87171",
+          500: "#DC2626",
+          600: "#B91C1C",
+          700: "#991B1B",
+          800: "#7F1D1D",
+          900: "#671414",
         },
-        // The original theme uses green/emerald everywhere as brand color.
-        // Remap both palettes to brand orange so existing components re-skin
-        // without touching every file. Add a true success color via "success".
-        green: {
-          50: "#FFF5F0",
-          100: "#FFE4D6",
-          200: "#FFCBA8",
-          300: "#FFAF7A",
-          400: "#FF8F4C",
-          500: "#FF5A1F",
-          600: "#E64A0E",
-          700: "#BF3D0B",
-          800: "#993009",
-          900: "#7A2607",
-        },
-        emerald: {
-          50: "#FFF5F0",
-          100: "#FFE4D6",
-          200: "#FFCBA8",
-          300: "#FFAF7A",
-          400: "#FF8F4C",
-          500: "#FF5A1F",
-          600: "#E64A0E",
-          700: "#BF3D0B",
-          800: "#993009",
-          900: "#7A2607",
-        },
+        // Three palette names — green, emerald, orange — are all remapped
+        // to the brand red so every existing class (`bg-orange-500`,
+        // `text-green-700`, `from-emerald-600 to-orange-700`, etc.) paints
+        // the right brand color without touching every file. The earlier
+        // theme bootstrap put the codebase through this same pattern for
+        // green → orange. Now: orange/green/emerald all → red.
+        green:    { 50:"#FEF2F2",100:"#FEE2E2",200:"#FECACA",300:"#FCA5A5",400:"#F87171",500:"#DC2626",600:"#B91C1C",700:"#991B1B",800:"#7F1D1D",900:"#671414" },
+        emerald:  { 50:"#FEF2F2",100:"#FEE2E2",200:"#FECACA",300:"#FCA5A5",400:"#F87171",500:"#DC2626",600:"#B91C1C",700:"#991B1B",800:"#7F1D1D",900:"#671414" },
+        orange:   { 50:"#FEF2F2",100:"#FEE2E2",200:"#FECACA",300:"#FCA5A5",400:"#F87171",500:"#DC2626",600:"#B91C1C",700:"#991B1B",800:"#7F1D1D",900:"#671414" },
+        amber:    { 50:"#FEF2F2",100:"#FEE2E2",200:"#FECACA",300:"#FCA5A5",400:"#F87171",500:"#DC2626",600:"#B91C1C",700:"#991B1B",800:"#7F1D1D",900:"#671414" },
         success: {
           50: "#ECFDF5",
           500: "#10B981",

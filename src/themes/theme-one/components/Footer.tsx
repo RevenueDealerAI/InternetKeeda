@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Sparkles,
   Twitter,
   Github,
   Linkedin,
@@ -86,13 +86,15 @@ export const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-12 gap-10">
           {/* Brand + newsletter — wider column */}
           <div className="md:col-span-5 space-y-5">
-            <Link href="/" className="inline-flex items-center gap-2">
-              <span className="relative inline-flex w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 shadow-[0_8px_24px_-8px_rgba(249,115,22,0.5)] items-center justify-center">
-                <Sparkles className="w-5 h-5 text-white" />
-              </span>
-              <span className="text-xl font-bold tracking-tight text-gray-900">
-                {config?.siteName || "InternetKeeda"}
-              </span>
+            <Link href="/" className="inline-flex items-center gap-2 group" aria-label="InternetKeeda — home">
+              <Image
+                src="/brand/internetkeeda-logo-red.png"
+                width={180}
+                height={44}
+                alt="InternetKeeda"
+                className="h-11 w-auto object-contain group-hover:scale-[1.03] transition-transform"
+                unoptimized
+              />
             </Link>
             <p className="text-sm text-gray-600 leading-relaxed max-w-md">
               {siteDescription}
@@ -114,7 +116,7 @@ export const Footer = () => {
               <Button
                 type="submit"
                 disabled={isSubscribing || !email}
-                className="h-11 px-4 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-[0_8px_24px_-8px_rgba(249,115,22,0.55)]"
+                className="h-11 px-4 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-[0_8px_24px_-8px_rgba(220,38,38,0.55)]"
               >
                 {isSubscribing ? (
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />

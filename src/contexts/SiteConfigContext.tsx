@@ -21,7 +21,7 @@ const defaultConfig: SiteConfig = {
   logoLight: '/logo-light.svg',
   logoDark: '/logo-dark.svg',
   favicon: '/favicon.ico',
-  primaryColor: '#FF5A1F',
+  primaryColor: '#DC2626',
   secondaryColor: '#0F172A',
   allowUserRegistration: true,
   allowUserSubmissions: true,

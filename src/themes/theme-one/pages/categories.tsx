@@ -105,7 +105,7 @@ export default function Categories() {
               placeholder="Filter categories…"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF5A1F]/30 focus:border-[#FF5A1F]"
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#DC2626]/30 focus:border-[#DC2626]"
             />
           </div>
           <div className="inline-flex rounded-lg border border-gray-200 p-1 bg-white">
@@ -114,7 +114,7 @@ export default function Categories() {
               onClick={() => setSortMode("alpha")}
               className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
                 sortMode === "alpha"
-                  ? "bg-[#FF5A1F] text-white"
+                  ? "bg-[#DC2626] text-white"
                   : "text-gray-600 hover:bg-gray-50"
               }`}
             >
@@ -125,7 +125,7 @@ export default function Categories() {
               onClick={() => setSortMode("count")}
               className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
                 sortMode === "count"
-                  ? "bg-[#FF5A1F] text-white"
+                  ? "bg-[#DC2626] text-white"
                   : "text-gray-600 hover:bg-gray-50"
               }`}
             >
@@ -146,7 +146,7 @@ export default function Categories() {
               <Link key={c.slug} href={`/category/${c.slug}`}>
                 <Badge
                   variant="outline"
-                  className="px-3 py-1.5 bg-white border-gray-200 hover:border-[#FF5A1F] hover:text-[#FF5A1F] transition-colors cursor-pointer"
+                  className="px-3 py-1.5 bg-white border-gray-200 hover:border-[#DC2626] hover:text-[#DC2626] transition-colors cursor-pointer"
                 >
                   {c.name}
                   <span className="ml-1.5 text-gray-400">{c.toolCount}</span>
@@ -187,7 +187,7 @@ export default function Categories() {
           <p className="text-gray-500">No categories match &ldquo;{searchQuery}&rdquo;.</p>
           <Button
             variant="link"
-            className="text-[#FF5A1F] mt-2"
+            className="text-[#DC2626] mt-2"
             onClick={() => setSearchQuery("")}
           >
             Clear filter
@@ -201,9 +201,9 @@ export default function Categories() {
 function CategoryTile({ cat }: { cat: { name: string; slug: string; toolCount: number } }) {
   return (
     <Link href={`/category/${cat.slug}`} className="block group">
-      <Card className="border border-gray-100 hover:border-[#FF5A1F]/40 hover:shadow-sm transition-all duration-150 h-full">
+      <Card className="border border-gray-100 hover:border-[#DC2626]/40 hover:shadow-sm transition-all duration-150 h-full">
         <CardHeader className="pb-2">
-          <CardTitle className="text-base font-semibold text-gray-900 group-hover:text-[#FF5A1F] transition-colors line-clamp-2">
+          <CardTitle className="text-base font-semibold text-gray-900 group-hover:text-[#DC2626] transition-colors line-clamp-2">
             {cat.name}
           </CardTitle>
         </CardHeader>
@@ -212,7 +212,7 @@ function CategoryTile({ cat }: { cat: { name: string; slug: string; toolCount: n
             <span className="text-xs text-gray-500">
               {cat.toolCount} {cat.toolCount === 1 ? "tool" : "tools"}
             </span>
-            <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-[#FF5A1F] group-hover:translate-x-0.5 transition-all" />
+            <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-[#DC2626] group-hover:translate-x-0.5 transition-all" />
           </div>
         </CardContent>
       </Card>

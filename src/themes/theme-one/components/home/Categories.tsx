@@ -102,7 +102,7 @@ export const Categories = () => {
         className="pointer-events-none absolute inset-0"
         style={{
           background:
-            "radial-gradient(900px 400px at 50% 0%, rgba(249,115,22,0.04), transparent 60%)",
+            "radial-gradient(900px 400px at 50% 0%, rgba(220,38,38,0.04), transparent 60%)",
         }}
       />
 

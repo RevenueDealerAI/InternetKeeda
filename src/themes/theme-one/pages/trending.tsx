@@ -165,7 +165,7 @@ const TrendingPage = () => {
                   description={tool.description_ai || tool.description}
                   category={tool.category}
                   votes={tool.votes}
-                  imageUrl={tool.logo || `https://ui-avatars.com/api/?name=${encodeURIComponent(tool.name)}&background=F97316&color=fff&bold=true&format=svg`}
+                  imageUrl={tool.logo || `https://ui-avatars.com/api/?name=${encodeURIComponent(tool.name)}&background=DC2626&color=fff&bold=true&format=svg`}
                   onVote={(e) => handleVote(e, tool.id, tool.votes)}
                   isFavorite={isSaved(tool.id)}
                   onFavorite={(e) => {

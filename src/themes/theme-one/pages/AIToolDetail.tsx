@@ -457,7 +457,7 @@ export const AIToolDetail = () => {
                       </Button>
                       <Button
                         size="default"
-                        className="w-full sm:flex-1 sm:max-w-[200px] rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-[0_8px_24px_-8px_rgba(249,115,22,0.55)]"
+                        className="w-full sm:flex-1 sm:max-w-[200px] rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-[0_8px_24px_-8px_rgba(220,38,38,0.55)]"
                         onClick={() => tool.websiteUrl && window.open(tool.websiteUrl, '_blank')}
                       >
                         <ExternalLink className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />

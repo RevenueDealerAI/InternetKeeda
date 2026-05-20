@@ -133,7 +133,8 @@ export const Navigation = () => {
               <div className="flex items-center gap-8">
                 <Link
                   href="/"
-                  className={`flex items-center gap-2 text-xl font-semibold ${textPrimary}`}
+                  className={`flex items-center gap-2 text-xl font-semibold ${textPrimary} group`}
+                  aria-label="InternetKeeda — home"
                 >
                   {config?.logo ? (
                     <Image
@@ -145,13 +146,15 @@ export const Navigation = () => {
                       unoptimized
                     />
                   ) : (
-                    <div className="bg-gradient-to-br from-[#FF7A45] to-[#FF5A1F] rounded-lg w-10 h-10 flex items-center justify-center shadow-sm">
-                      <Sparkles className="h-5 w-5 text-white" />
-                    </div>
-                  )}
-                  {/* Only show the site name text if logo is not wide or if display name setting is enabled */}
-                  {(!config?.logo || (config?.showSiteNameWithLogo !== false)) && (
-                    <span className="font-semibold tracking-tight">{config?.siteName || 'InternetKeeda'}</span>
+                    <Image
+                      src="/brand/internetkeeda-logo-red.png"
+                      width={160}
+                      height={40}
+                      alt="InternetKeeda"
+                      priority
+                      className="h-10 w-auto object-contain group-hover:scale-[1.03] transition-transform"
+                      unoptimized
+                    />
                   )}
                 </Link>
 
@@ -189,7 +192,7 @@ export const Navigation = () => {
                             </div>
                             <Link
                               href="/categories"
-                              className="text-xs font-medium text-[#FF5A1F] hover:text-[#FF7A45]"
+                              className="text-xs font-medium text-[#DC2626] hover:text-[#EF4444]"
                             >
                               View all{totalCategoryCount ? ` ${totalCategoryCount}` : ''} →
                             </Link>
@@ -208,10 +211,10 @@ export const Navigation = () => {
                                   href={`/category/${cat.slug ?? encodeURIComponent(cat.name.toLowerCase())}`}
                                   className={`group flex items-center justify-between px-2 py-1.5 rounded-md ${ddCatHover} transition-colors`}
                                 >
-                                  <span className={`text-sm font-medium ${ddCatText} group-hover:text-[#FF5A1F] truncate`}>
+                                  <span className={`text-sm font-medium ${ddCatText} group-hover:text-[#DC2626] truncate`}>
                                     {cat.name}
                                   </span>
-                                  <span className={`text-xs ${ddCatCount} group-hover:text-[#FF5A1F] ml-2 shrink-0`}>
+                                  <span className={`text-xs ${ddCatCount} group-hover:text-[#DC2626] ml-2 shrink-0`}>
                                     {cat.toolCount}
                                   </span>
                                 </Link>
@@ -276,7 +279,7 @@ export const Navigation = () => {
               <div className="flex items-center space-x-4">
                 {/* Submit tool button */}
                 <Button
-                  className="hidden md:flex bg-orange-500 hover:bg-orange-600 text-white h-10 px-4 shadow-[0_6px_20px_-8px_rgba(249,115,22,0.6)]"
+                  className="hidden md:flex bg-orange-500 hover:bg-orange-600 text-white h-10 px-4 shadow-[0_6px_20px_-8px_rgba(220,38,38,0.6)]"
                   onClick={() => setIsSubmitModalOpen(true)}
                 >
                   <Plus className="w-4 h-4 mr-2" />

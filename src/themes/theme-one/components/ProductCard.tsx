@@ -82,7 +82,7 @@ export const ProductCard = ({
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.onerror = null;
-                  target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=F97316&color=fff&bold=true&format=svg`;
+                  target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=DC2626&color=fff&bold=true&format=svg`;
                 }}
               />
             </div>
