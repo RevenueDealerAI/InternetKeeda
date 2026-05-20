@@ -24,18 +24,27 @@ const STEPS = [
   },
 ];
 
+/** Two-track layout so the mobile read is tight and labels never collide
+ * with the icon disc:
+ *
+ * Mobile (<md): vertical stack — STEP n label (separate block, above)
+ *   → 56px icon → title → body. space-y-12 between steps.
+ *
+ * Desktop (md+): 3-column grid, larger 96px icon, dashed gradient line
+ *   draws between the columns on scroll. Title + body fall under the
+ *   icon as before. */
 export const HowItWorks = () => {
   const reduceMotion = useReducedMotion();
 
   return (
-    <section className="relative py-20 sm:py-24 bg-gradient-to-b from-white via-[#FAFAFA] to-white">
+    <section className="relative py-16 sm:py-24 bg-gradient-to-b from-white via-[#FAFAFA] to-white">
       <div className="container mx-auto px-4">
-        <div className="max-w-2xl mx-auto text-center mb-14">
+        <div className="max-w-2xl mx-auto text-center mb-12 sm:mb-14">
           <motion.span
             initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-80px" }}
-            className="inline-block text-xs font-semibold uppercase tracking-[0.18em] text-orange-600 mb-3"
+            className="inline-block text-xs font-semibold uppercase tracking-[0.18em] text-red-600 mb-3"
           >
             How it works
           </motion.span>
@@ -52,7 +61,7 @@ export const HowItWorks = () => {
         </div>
 
         <div className="relative max-w-5xl mx-auto">
-          {/* Connecting line drawn on scroll (desktop only) */}
+          {/* Connecting line — desktop only (md+). */}
           {!reduceMotion && (
             <svg
               aria-hidden
@@ -82,7 +91,7 @@ export const HowItWorks = () => {
             </svg>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 relative">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-8 relative">
             {STEPS.map((step, idx) => {
               const Icon = step.icon;
               return (
@@ -92,22 +101,29 @@ export const HowItWorks = () => {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: "-80px" }}
                   transition={{ duration: 0.5, delay: idx * 0.1 }}
-                  className="relative"
+                  className="relative flex flex-col items-center text-center md:items-start md:text-left"
                 >
-                  <div className="text-center md:text-left">
-                    <div className={`inline-flex w-24 h-24 rounded-full ${step.tint.bg} ring-8 ring-white items-center justify-center mx-auto md:mx-0 shadow-[0_8px_30px_-10px_rgba(15,23,42,0.15)] mb-6 relative z-10`}>
-                      <Icon className={`w-10 h-10 ${step.tint.text}`} />
-                    </div>
-                    <div className={`inline-flex items-center text-[11px] font-semibold uppercase tracking-wider ${step.tint.text} mb-2`}>
-                      Step {idx + 1}
-                    </div>
-                    <h3 className="text-2xl font-bold text-gray-900 tracking-tight mb-3">
-                      {step.title}
-                    </h3>
-                    <p className="text-gray-600 leading-relaxed">
-                      {step.body}
-                    </p>
+                  {/* STEP n label — own block, fixed mb to ensure clean
+                    * separation from the icon below. Never overlaps. */}
+                  <span className={`block text-[11px] font-semibold uppercase tracking-[0.2em] ${step.tint.text} mb-3`}>
+                    Step {idx + 1}
+                  </span>
+
+                  {/* Icon disc — 56px on mobile, 96px on desktop. ring-8
+                    * ring-white only on md+ so the mobile disc doesn't
+                    * get crowded by its halo. */}
+                  <div
+                    className={`inline-flex w-14 h-14 md:w-24 md:h-24 rounded-full ${step.tint.bg} md:ring-8 md:ring-white items-center justify-center shadow-[0_8px_30px_-10px_rgba(15,23,42,0.15)] mb-4 md:mb-6 relative z-10`}
+                  >
+                    <Icon className={`w-6 h-6 md:w-10 md:h-10 ${step.tint.text}`} />
                   </div>
+
+                  <h3 className="text-2xl font-bold text-gray-900 tracking-tight mb-2 md:mb-3">
+                    {step.title}
+                  </h3>
+                  <p className="text-base text-gray-600 leading-relaxed max-w-[360px] md:max-w-none">
+                    {step.body}
+                  </p>
                 </motion.div>
               );
             })}
