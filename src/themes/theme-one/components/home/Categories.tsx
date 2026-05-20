@@ -87,13 +87,12 @@ const itemVariants = {
  * stacked on mobile. Each tile has a soft category-tinted gradient bg,
  * an icon, a tool count, and a hover lift. */
 export const Categories = () => {
-  const { data, isLoading } = useCategories(true);
+  // Bento only renders 6 tiles — fetch the top 30 to leave headroom and
+  // keep the payload light.
+  const { data, isLoading } = useCategories(true, 30);
   const reduceMotion = useReducedMotion();
 
-  const top = (data?.data ?? [])
-    .filter((c) => (c.toolCount ?? 0) > 0)
-    .sort((a, b) => (b.toolCount ?? 0) - (a.toolCount ?? 0))
-    .slice(0, 6);
+  const top = (data?.data ?? []).filter((c) => (c.toolCount ?? 0) > 0).slice(0, 6);
 
   return (
     <section className="relative py-20 sm:py-24 bg-white">

@@ -247,7 +247,10 @@ export default function Index() {
     console.warn('No tools found. API returned:', data);
   }
 
-  const { data: categoriesData } = useCategories(true);
+  // FilterBar dropdown — top-80 by toolCount keeps the payload to
+  // ~32 KB instead of ~227 KB. The long-tail (~600 niche buckets) is
+  // still browsable via /categories, just not from the home filter.
+  const { data: categoriesData } = useCategories(true, 80);
   
   const categories = useMemo(() => {
     // Get categories from API (includes static + custom with toolCount)

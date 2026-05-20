@@ -104,11 +104,10 @@ export const Navigation = () => {
   const ddCatCount = 'text-gray-400';
   void pathname; // pathname retained for future use; no longer needed for theme switching
 
-  const { data: categoriesData } = useCategories(true);
-  const topCategories = (categoriesData?.data ?? [])
-    .filter((c) => (c.toolCount ?? 0) > 0)
-    .sort((a, b) => (b.toolCount ?? 0) - (a.toolCount ?? 0))
-    .slice(0, 30);
+  // Nav dropdown only shows top 30 — pass limit so the API returns
+  // ~12 KB instead of ~227 KB.
+  const { data: categoriesData } = useCategories(true, 30);
+  const topCategories = (categoriesData?.data ?? []).filter((c) => (c.toolCount ?? 0) > 0);
   const totalCategoryCount = (categoriesData?.data ?? []).filter(
     (c) => (c.toolCount ?? 0) > 0
   ).length;

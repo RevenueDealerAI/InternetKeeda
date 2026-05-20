@@ -16,17 +16,17 @@ export interface Category {
 interface CategoriesResponse {
   success: boolean;
   data: Category[];
-  static: Category[];
-  custom: Category[];
 }
 
-export function useCategories(includeToolCount = false) {
+export function useCategories(includeToolCount = false, limit?: number) {
   return useQuery<CategoriesResponse>({
-    queryKey: ['categories', includeToolCount],
+    queryKey: ['categories', includeToolCount, limit ?? 0],
     queryFn: async () => {
-      const response = await fetch(
-        `${API_BASE_URL}/api/categories?includeToolCount=${includeToolCount}`
-      );
+      const params = new URLSearchParams({
+        includeToolCount: String(includeToolCount),
+      });
+      if (limit && limit > 0) params.set('limit', String(limit));
+      const response = await fetch(`${API_BASE_URL}/api/categories?${params}`);
       if (!response.ok) {
         throw new Error('Failed to fetch categories');
       }

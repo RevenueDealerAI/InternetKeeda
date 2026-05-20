@@ -21,6 +21,11 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const includeInactive = searchParams.get('includeInactive') === 'true';
     const includeToolCount = searchParams.get('includeToolCount') === 'true';
+    // Optional limit — surfaces that only need the top-N (nav dropdown,
+    // home bento) ask for limit=30 instead of 678. Drops the payload from
+    // ~227 KB to ~12 KB.
+    const limitParam = parseInt(searchParams.get('limit') || '0', 10);
+    const limit = isFinite(limitParam) && limitParam > 0 ? limitParam : 0;
 
     const query: { isActive?: boolean } = {};
     if (!includeInactive) {
@@ -65,16 +70,28 @@ export async function GET(req: NextRequest) {
     });
 
     // Combine: static categories first, then custom categories
-    const allCategories = [
+    let allCategories = [
       ...staticCategories,
       ...categories.filter(cat => !TOOL_CATEGORIES.includes(cat.name as typeof TOOL_CATEGORIES[number])).map(cat => cat.toObject())
     ];
 
+    // When limit is requested AND tool counts are included, return the
+    // top-N by toolCount instead of alpha-sorted by name. Useful for nav
+    // dropdowns and home page surfaces that only render top categories.
+    if (limit > 0) {
+      if (includeToolCount) {
+        allCategories = allCategories
+          .slice()
+          .sort((a, b) => (b.toolCount || 0) - (a.toolCount || 0))
+          .slice(0, limit);
+      } else {
+        allCategories = allCategories.slice(0, limit);
+      }
+    }
+
     return NextResponse.json({
       success: true,
       data: allCategories,
-      static: staticCategories,
-      custom: categories.filter(cat => !TOOL_CATEGORIES.includes(cat.name as typeof TOOL_CATEGORIES[number])).map(cat => cat.toObject())
     }, {
       // Category list + tool counts change slowly. 5 minutes of CDN
       // freshness is fine; SWR for an hour lets the cache absorb spikes.
