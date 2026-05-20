@@ -1,7 +1,6 @@
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Star, ArrowUp, ExternalLink, Sparkles } from "lucide-react";
-import { motion, useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -52,19 +51,19 @@ export const ProductCard = ({
   isNew = false,
 }: ProductCardProps) => {
   const router = useRouter();
-  const reduceMotion = useReducedMotion();
 
   const handleCardClick = (e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest('button')) return;
     router.push(`/ai-tools/${slug}`);
   };
 
+  // Card hover: pure CSS (translate-y + shadow grow). Previously used
+  // framer-motion's whileHover which costs runtime per card — at 60
+  // cards on a home grid that's measurable on mobile.
   return (
-    <motion.article
+    <article
       onClick={handleCardClick}
-      whileHover={reduceMotion ? undefined : { y: -4 }}
-      transition={{ type: "spring", stiffness: 320, damping: 24 }}
-      className="gradient-border group relative h-full bg-white rounded-2xl border border-gray-200 shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:shadow-[0_18px_40px_-20px_rgba(220,38,38,0.25)] transition-shadow duration-200 cursor-pointer overflow-hidden"
+      className="gradient-border group relative h-full bg-white rounded-2xl border border-gray-200 shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:shadow-[0_18px_40px_-20px_rgba(220,38,38,0.25)] hover:-translate-y-1 transition-all duration-200 ease-out cursor-pointer overflow-hidden motion-reduce:transform-none"
     >
       <div className="p-5">
         <div className="flex items-start gap-4">
@@ -116,11 +115,15 @@ export const ProductCard = ({
               {description}
             </p>
 
+            {/* Action row — Tailwind: 44px tap targets on mobile (h-11),
+              * compact 36px (h-9) on sm+. The whole card is clickable so
+              * "View" is optional on mobile — collapse to just Vote + Save
+              * under sm. */}
             <div className="flex items-center gap-2 mt-4">
               <Button
                 size="sm"
                 variant="outline"
-                className="h-9 flex-1 border-gray-200 text-gray-700 hover:bg-orange-50 hover:border-orange-200 hover:text-orange-700 transition-colors"
+                className="h-11 sm:h-9 flex-1 border-gray-200 text-gray-700 hover:bg-orange-50 hover:border-orange-200 hover:text-orange-700 transition-colors"
                 onClick={onVote}
               >
                 <ArrowUp className="w-3.5 h-3.5 mr-1.5" />
@@ -130,7 +133,7 @@ export const ProductCard = ({
               <Button
                 size="sm"
                 variant="outline"
-                className="h-9 border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-900 transition-colors"
+                className="hidden sm:inline-flex h-11 sm:h-9 border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-900 transition-colors"
                 onClick={(e) => {
                   e.stopPropagation();
                   router.push(`/ai-tools/${slug}`);
@@ -146,7 +149,7 @@ export const ProductCard = ({
                   variant="ghost"
                   onClick={onFavorite}
                   className={cn(
-                    "h-9 w-9 p-0",
+                    "h-11 w-11 sm:h-9 sm:w-9 p-0",
                     isFavorite ? "text-amber-500" : "text-gray-400 hover:text-amber-500"
                   )}
                   aria-label={isFavorite ? "Remove from saved" : "Save tool"}
@@ -158,6 +161,6 @@ export const ProductCard = ({
           </div>
         </div>
       </div>
-    </motion.article>
+    </article>
   );
 };
