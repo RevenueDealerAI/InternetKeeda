@@ -440,8 +440,15 @@ export default function Index() {
       }
     };
 
+    // Mobile nav's search icon dispatches this so it doesn't need to
+    // know about the dialog state.
+    const onOpen = () => setIsSearchOpen(true);
     document.addEventListener("keydown", down);
-    return () => document.removeEventListener("keydown", down);
+    window.addEventListener("ik:open-search", onOpen);
+    return () => {
+      document.removeEventListener("keydown", down);
+      window.removeEventListener("ik:open-search", onOpen);
+    };
   }, []);
 
   // Update the getFilteredTools references in the search handlers

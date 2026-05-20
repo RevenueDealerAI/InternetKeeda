@@ -335,6 +335,23 @@ export const Navigation = () => {
                   </DropdownMenu>
                 )}
 
+                {/* Mobile search shortcut — opens the existing search
+                 * dialog. Wired via a `window` event so the trigger
+                 * lives in the nav (small, durable) while the actual
+                 * dialog state lives in Index.tsx. */}
+                <button
+                  type="button"
+                  aria-label="Search"
+                  onClick={() => {
+                    if (typeof window !== 'undefined') {
+                      window.dispatchEvent(new Event('ik:open-search'));
+                    }
+                  }}
+                  className="md:hidden inline-flex items-center justify-center w-10 h-10 rounded-lg text-gray-900 bg-white ring-1 ring-gray-200 shadow-sm hover:bg-gray-50 active:scale-95 transition"
+                >
+                  <Search className="h-5 w-5" aria-hidden />
+                </button>
+
                 {/* Mobile menu trigger — solid pill so it stays visible
                  * even when the gradient mesh would bleed through the
                  * header at scrollY 0. Explicit aria-label + expanded

@@ -72,6 +72,22 @@
     letter-spacing: -0.02em;
   }
 
+  /* iOS zooms inputs whose font-size < 16px when focused. Lock all
+   * form-field inputs to 16px on mobile so the viewport doesn't jump. */
+  @media (max-width: 767px) {
+    input[type="text"],
+    input[type="email"],
+    input[type="search"],
+    input[type="tel"],
+    input[type="url"],
+    input[type="password"],
+    input[type="number"],
+    textarea,
+    select {
+      font-size: 16px;
+    }
+  }
+
   /* Hide Next.js 15 dev-mode overlays (segment explorer, build badge,
    * error indicator). They render into a custom <nextjs-portal> element
    * that Next 15 no longer exposes via config (devIndicators.* deprecated).
@@ -130,6 +146,22 @@
   .gradient-border[data-active="true"]::before {
     opacity: 1;
     animation: border-sweep 4s ease infinite;
+  }
+
+  /* Hero entrance — CSS-driven so the headline paints immediately
+   * without waiting for framer-motion to hydrate. The keyframe runs
+   * once on the initial load; @media (prefers-reduced-motion) kills
+   * it so users who opted out see the final state on the first paint. */
+  .hero-fade-up {
+    opacity: 0;
+    transform: translateY(18px);
+    animation: hero-fade-up-anim 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  @keyframes hero-fade-up-anim {
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hero-fade-up { opacity: 1; transform: none; animation: none; }
   }
 
   /* Hero gradient mesh blob. Apply size + position + color via inline

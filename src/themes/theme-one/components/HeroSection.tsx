@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Search, ArrowRight, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { motion, useReducedMotion } from "framer-motion";
+import { useReducedMotion } from "framer-motion";
 
 interface HeroSectionProps {
   searchQuery?: string;
@@ -162,14 +162,9 @@ export const HeroSection = ({
     return () => document.removeEventListener("keydown", handler);
   }, [setIsSearchOpen]);
 
-  const fadeUp = reduceMotion
-    ? { initial: false, animate: { opacity: 1, y: 0 } }
-    : {
-        initial: { opacity: 0, y: 18 },
-        animate: { opacity: 1, y: 0 },
-        transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] as const },
-      };
-
+  // Hero entrance is now CSS-driven (.hero-fade-up class + per-element
+  // animation-delay). framer-motion was making the LCP headline invisible
+  // until hydration, which blew LCP out to 8s on mobile Lighthouse runs.
   return (
     <section
       ref={heroRef}
@@ -252,7 +247,7 @@ export const HeroSection = ({
       {/* Content */}
       <div className="relative z-10 mx-auto max-w-[1040px] w-full px-4 sm:px-6 lg:px-8 text-center">
         {/* Eyebrow pill */}
-        <motion.div {...fadeUp} className="flex justify-center">
+        <div className="flex justify-center hero-fade-up">
           <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/80 backdrop-blur-sm border border-orange-200/60 text-[11px] sm:text-xs font-semibold uppercase tracking-[0.18em] text-orange-700 shadow-sm">
             <span className="relative flex h-2 w-2">
               <span className="absolute inset-0 rounded-full bg-orange-500/40 animate-ping motion-reduce:hidden" />
@@ -260,35 +255,33 @@ export const HeroSection = ({
             </span>
             5,000+ AI tools · updated daily
           </span>
-        </motion.div>
+        </div>
 
-        {/* Headline */}
-        <motion.h1
-          {...fadeUp}
-          transition={{ ...(fadeUp as { transition?: { duration?: number; ease?: [number, number, number, number] } }).transition, delay: 0.05 }}
-          className="mt-7 font-bold tracking-tight text-gray-900 leading-[1.03]"
-          style={{ fontSize: "clamp(40px, 6vw, 80px)" }}
+        {/* Headline — LCP element. NO opacity:0 initial state so it
+         * paints immediately on first byte; the CSS fade-up runs once
+         * over 0.55s but the text is visible the whole time. */}
+        <h1
+          className="mt-7 font-bold tracking-tight text-gray-900 leading-[1.03] hero-fade-up"
+          style={{ fontSize: "clamp(40px, 6vw, 80px)", animationDelay: "0.05s" }}
         >
           Every AI tool,{" "}
           <span className="gradient-text inline-block">organized.</span>
-        </motion.h1>
+        </h1>
 
         {/* Subhead */}
-        <motion.p
-          {...fadeUp}
-          transition={{ ...(fadeUp as { transition?: { duration?: number; ease?: [number, number, number, number] } }).transition, delay: 0.1 }}
-          className="mt-6 text-base sm:text-lg md:text-xl text-gray-600 max-w-[640px] mx-auto leading-relaxed"
+        <p
+          className="mt-6 text-base sm:text-lg md:text-xl text-gray-600 max-w-[640px] mx-auto leading-relaxed hero-fade-up"
+          style={{ animationDelay: "0.1s" }}
         >
           Find the right AI for any job — writing, design, code, research, audio, video.
           Search semantically, browse by category, or let our AI pick for you.
-        </motion.p>
+        </p>
 
         {/* Search bar */}
-        <motion.form
-          {...fadeUp}
-          transition={{ ...(fadeUp as { transition?: { duration?: number; ease?: [number, number, number, number] } }).transition, delay: 0.15 }}
+        <form
           onSubmit={handleSubmit}
-          className="relative max-w-2xl mx-auto mt-10 group"
+          className="relative max-w-2xl mx-auto mt-10 group hero-fade-up"
+          style={{ animationDelay: "0.15s" }}
         >
           <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-red-500/0 via-red-700/0 to-black/0 blur-xl transition-all duration-300 group-focus-within:from-red-500/30 group-focus-within:via-red-700/20 group-focus-within:to-black/20" />
           <div className="relative">
@@ -322,13 +315,12 @@ export const HeroSection = ({
               )}
             </Button>
           </div>
-        </motion.form>
+        </form>
 
         {/* Try chips */}
-        <motion.div
-          {...fadeUp}
-          transition={{ ...(fadeUp as { transition?: { duration?: number; ease?: [number, number, number, number] } }).transition, delay: 0.2 }}
-          className="flex flex-wrap items-center justify-center gap-2 mt-5"
+        <div
+          className="flex flex-wrap items-center justify-center gap-2 mt-5 hero-fade-up"
+          style={{ animationDelay: "0.2s" }}
         >
           <span className="text-xs text-gray-500 mr-1">Try:</span>
           {TRY_QUERIES.map((q) => (
@@ -341,13 +333,12 @@ export const HeroSection = ({
               {q}
             </button>
           ))}
-        </motion.div>
+        </div>
 
         {/* Trust strip */}
-        <motion.div
-          {...fadeUp}
-          transition={{ ...(fadeUp as { transition?: { duration?: number; ease?: [number, number, number, number] } }).transition, delay: 0.25 }}
-          className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-2"
+        <div
+          className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 hero-fade-up"
+          style={{ animationDelay: "0.25s" }}
         >
           {TRUST_BULLETS.map((t) => (
             <span key={t} className="inline-flex items-center gap-1.5 text-sm text-gray-600">
@@ -355,13 +346,12 @@ export const HeroSection = ({
               {t}
             </span>
           ))}
-        </motion.div>
+        </div>
 
         {/* Social proof — featured AI tools logo row */}
-        <motion.div
-          {...fadeUp}
-          transition={{ ...(fadeUp as { transition?: { duration?: number; ease?: [number, number, number, number] } }).transition, delay: 0.3 }}
-          className="mt-12 flex flex-wrap items-center justify-center gap-x-5 sm:gap-x-8 gap-y-3"
+        <div
+          className="mt-12 flex flex-wrap items-center justify-center gap-x-5 sm:gap-x-8 gap-y-3 hero-fade-up"
+          style={{ animationDelay: "0.3s" }}
         >
           <span className="text-xs font-medium uppercase tracking-wider text-gray-400">
             Featured AI tools
@@ -375,7 +365,7 @@ export const HeroSection = ({
             </span>
           ))}
           <span className="text-sm text-gray-400">· 5,000+ more</span>
-        </motion.div>
+        </div>
       </div>
     </section>
   );
