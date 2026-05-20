@@ -11,6 +11,7 @@ import type { MetadataRoute } from 'next';
  */
 export default function robots(): MetadataRoute.Robots {
   const baseUrl =
+    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ||
     process.env.FRONTEND_URL?.replace(/\/$/, '') ||
     'https://internetkeeda.com';
 
