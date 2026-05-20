@@ -17,6 +17,7 @@ import { IframeDetectionBanner } from '../components/IframeDetectionBanner';
 import { ConditionalClerkProvider } from '../components/ConditionalClerkProvider';
 import { NextRouterAdapter } from './NextRouterAdapter';
 import { PageTransition } from '../components/PageTransition';
+import { ScrollProgress } from '@/themes/theme-one/components/ScrollProgress';
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { initializeVoteCounts } from '../utils/voteUtils';
@@ -107,6 +108,7 @@ export default function RootLayout({
                         <TooltipProvider>
                           <AppInitializer />
                           <ScrollBehaviorFix />
+                          <ScrollProgress />
                           <NextRouterAdapter>
                             <PageTransition>{children}</PageTransition>
                           </NextRouterAdapter>

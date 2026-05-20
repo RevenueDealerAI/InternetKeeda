@@ -14,6 +14,10 @@ import { useTools } from "@/lib/api/tools";
 import { Tool } from "@/types/tool";
 import { HeroSection } from "../components/HeroSection";
 import { Categories as ExploreCategories } from "../components/home/Categories";
+import { HowItWorks } from "../components/home/HowItWorks";
+import { FeaturedToolsCarousel } from "../components/home/FeaturedToolsCarousel";
+import { TrendingThisWeek } from "../components/home/TrendingThisWeek";
+import { Testimonials } from "../components/home/Testimonials";
 import { FilterBar } from "../components/FilterBar";
 import { ToolCardSkeleton, ToolCardSkeletonGrid } from "../components/ToolCardSkeleton";
 import { getToolLogo } from "@/utils/toolHelpers";
@@ -486,6 +490,10 @@ export default function Index() {
 
       <ExploreCategories />
 
+      <HowItWorks />
+
+      <FeaturedToolsCarousel />
+
       <AdSlot position="content-top" maxAds={4} showTitle={true} />
 
       <div id="tool-grid" data-tool-grid className="container mx-auto px-4 py-8 scroll-mt-20">
@@ -826,6 +834,10 @@ export default function Index() {
           </motion.div>
         )}
       </div>
+
+      <TrendingThisWeek />
+
+      <Testimonials />
 
     </div>
   );

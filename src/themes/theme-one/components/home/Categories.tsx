@@ -1,3 +1,5 @@
+"use client";
+
 import { Card } from "@/components/ui/card";
 import Link from "next/link";
 import {
@@ -26,13 +28,11 @@ import {
   Share2,
   Headphones,
   Hash,
-  Sparkles,
   type LucideIcon,
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { useCategories } from "@/hooks/useCategories";
 
-// Lucide icon for each canonical category. Falls back to Hash for niche ones.
 const ICON_MAP: Record<string, LucideIcon> = {
   "Image Generation": ImageIcon,
   "Code & Developer Tools": Code,
@@ -60,94 +60,136 @@ const ICON_MAP: Record<string, LucideIcon> = {
   "Note-Taking & Knowledge": Database,
 };
 
-// Subtle background tints — rotate through these per slot for visual rhythm.
-const TINT_RING = [
-  "from-orange-50 to-amber-50 text-orange-600",
-  "from-blue-50 to-sky-50 text-blue-600",
-  "from-violet-50 to-orange-50 text-violet-600",
-  "from-rose-50 to-pink-50 text-rose-600",
-  "from-emerald-50 to-teal-50 text-emerald-600",
-  "from-amber-50 to-yellow-50 text-amber-600",
-];
+type TintKey = "orange" | "violet" | "indigo" | "rose" | "emerald" | "amber";
 
-const container = {
+const TINTS: Record<TintKey, { from: string; to: string; ring: string; text: string; halo: string }> = {
+  orange:  { from: "from-orange-50",  to: "to-amber-50",   ring: "ring-orange-200/60",  text: "text-orange-600",  halo: "bg-orange-200/40" },
+  violet:  { from: "from-violet-50",  to: "to-fuchsia-50", ring: "ring-violet-200/60",  text: "text-violet-600",  halo: "bg-violet-200/40" },
+  indigo:  { from: "from-indigo-50",  to: "to-sky-50",     ring: "ring-indigo-200/60",  text: "text-indigo-600",  halo: "bg-indigo-200/40" },
+  rose:    { from: "from-rose-50",    to: "to-pink-50",    ring: "ring-rose-200/60",    text: "text-rose-600",    halo: "bg-rose-200/40"   },
+  emerald: { from: "from-emerald-50", to: "to-teal-50",    ring: "ring-emerald-200/60", text: "text-emerald-600", halo: "bg-emerald-200/40"},
+  amber:   { from: "from-amber-50",   to: "to-orange-50",  ring: "ring-amber-200/60",   text: "text-amber-600",   halo: "bg-amber-200/40"  },
+};
+
+const TINT_ORDER: TintKey[] = ["orange", "violet", "indigo", "rose", "emerald", "amber"];
+
+const containerVariants = {
   hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { staggerChildren: 0.06 } },
+  show: { opacity: 1, transition: { staggerChildren: 0.07, delayChildren: 0.05 } },
 };
-const item = {
-  hidden: { opacity: 0, y: 16 },
-  show: { opacity: 1, y: 0 },
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  show:   { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] as const } },
 };
 
+/** Phase D Tier 3 — bento category section. Top-6 by tool count laid out
+ * in an asymmetric grid (1 large feature + 5 smaller tiles) on desktop,
+ * stacked on mobile. Each tile has a soft category-tinted gradient bg,
+ * an icon, a tool count, and a hover lift. */
 export const Categories = () => {
   const { data, isLoading } = useCategories(true);
+  const reduceMotion = useReducedMotion();
 
-  // Sort by toolCount desc, take top 12.
   const top = (data?.data ?? [])
     .filter((c) => (c.toolCount ?? 0) > 0)
     .sort((a, b) => (b.toolCount ?? 0) - (a.toolCount ?? 0))
-    .slice(0, 12);
+    .slice(0, 6);
 
   return (
-    <section className="py-16 relative bg-gradient-to-b from-white via-gray-50/50 to-white">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,90,31,0.04),transparent_25%)]" />
+    <section className="relative py-20 sm:py-24 bg-white">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(900px 400px at 50% 0%, rgba(249,115,22,0.04), transparent 60%)",
+        }}
+      />
+
       <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
-          <motion.h2
-            initial={{ opacity: 0, y: -16 }}
+        <div className="max-w-2xl mx-auto text-center mb-12">
+          <motion.span
+            initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="text-3xl font-bold tracking-tight text-gray-900 inline-block"
+            viewport={{ once: true, margin: "-80px" }}
+            className="inline-block text-xs font-semibold uppercase tracking-[0.18em] text-orange-600 mb-3"
           >
-            Explore by category
+            Browse the catalog
+          </motion.span>
+          <motion.h2
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.5 }}
+            className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-gray-900"
+          >
+            Explore by <span className="gradient-text">category</span>
           </motion.h2>
           <motion.p
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.15 }}
-            className="text-gray-600 mt-2"
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ delay: 0.1 }}
+            className="text-gray-600 mt-3"
           >
-            The 12 most-stocked corners of the catalog.
+            Six of the most-stocked corners of InternetKeeda. Click any tile to drill in.
           </motion.p>
         </div>
 
         {isLoading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {Array.from({ length: 12 }).map((_, i) => (
-              <div
-                key={i}
-                className="h-32 rounded-xl bg-gray-100/60 animate-pulse"
-              />
-            ))}
-          </div>
+          <BentoSkeleton />
         ) : (
           <motion.div
-            variants={container}
+            variants={containerVariants}
             initial="hidden"
             whileInView="show"
             viewport={{ once: true, margin: "-80px" }}
-            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4"
+            className="grid grid-cols-2 md:grid-cols-4 grid-rows-[repeat(4,minmax(0,1fr))] md:grid-rows-2 gap-4 sm:gap-5"
           >
             {top.map((cat, idx) => {
               const Icon = ICON_MAP[cat.name] ?? Hash;
-              const tint = TINT_RING[idx % TINT_RING.length];
+              const tint = TINTS[TINT_ORDER[idx % TINT_ORDER.length]];
+              const isFeature = idx === 0; // first tile is the big one
+
               return (
-                <motion.div key={cat.slug ?? cat.name} variants={item}>
-                  <Link href={`/category/${cat.slug ?? encodeURIComponent(cat.name.toLowerCase())}`} className="block group">
-                    <Card className="relative overflow-hidden border border-gray-100 hover:border-gray-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 h-full">
-                      <div className={`absolute inset-0 bg-gradient-to-br ${tint.split(" ").slice(0, 2).join(" ")} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
-                      <div className="relative p-4 flex flex-col items-center gap-3">
-                        <div className={`p-2.5 rounded-xl bg-gradient-to-br ${tint.split(" ").slice(0, 2).join(" ")} ring-1 ring-gray-200/60 group-hover:scale-105 transition-transform duration-200`}>
-                          <Icon className={`w-5 h-5 ${tint.split(" ").slice(2).join(" ")}`} />
+                <motion.div
+                  key={cat.slug ?? cat.name}
+                  variants={itemVariants}
+                  className={isFeature ? "col-span-2 row-span-2" : "col-span-1 row-span-1"}
+                >
+                  <Link
+                    href={`/category/${cat.slug ?? encodeURIComponent(cat.name.toLowerCase())}`}
+                    className="block group h-full"
+                  >
+                    <Card
+                      className={[
+                        "relative h-full overflow-hidden border border-gray-100",
+                        "shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:shadow-[0_18px_40px_-20px_rgba(99,102,241,0.25)]",
+                        "transition-all duration-300",
+                        reduceMotion ? "" : "hover:-translate-y-1",
+                        "bg-gradient-to-br",
+                        tint.from,
+                        tint.to,
+                      ].join(" ")}
+                    >
+                      {/* Soft inner halo on hover */}
+                      <div className={`absolute -inset-4 ${tint.halo} blur-3xl opacity-0 group-hover:opacity-70 transition-opacity duration-500`} aria-hidden />
+
+                      <div className={`relative h-full flex flex-col ${isFeature ? "p-6 sm:p-8" : "p-5"}`}>
+                        <div className="flex items-start justify-between">
+                          <div className={`${isFeature ? "w-14 h-14" : "w-11 h-11"} rounded-2xl bg-white/80 ring-1 ${tint.ring} flex items-center justify-center backdrop-blur-sm group-hover:scale-105 transition-transform`}>
+                            <Icon className={`${isFeature ? "w-7 h-7" : "w-5 h-5"} ${tint.text}`} />
+                          </div>
+                          <ArrowRight className={`w-4 h-4 text-gray-400 group-hover:text-gray-700 group-hover:translate-x-0.5 transition-all`} />
                         </div>
-                        <div className="text-center space-y-0.5 min-h-[3rem]">
-                          <h3 className="text-sm font-semibold text-gray-900 leading-tight line-clamp-2">
+
+                        <div className="mt-auto pt-6">
+                          <h3 className={`font-bold text-gray-900 leading-tight tracking-tight ${isFeature ? "text-2xl sm:text-3xl" : "text-base"} line-clamp-2`}>
                             {cat.name}
                           </h3>
-                          <p className="text-xs text-gray-500">
-                            {cat.toolCount} tools
+                          <p className={`mt-2 ${isFeature ? "text-sm" : "text-xs"} text-gray-600`}>
+                            <span className="font-semibold text-gray-700">{cat.toolCount}</span>{" "}
+                            {cat.toolCount === 1 ? "tool" : "tools"}
                           </p>
                         </div>
                       </div>
@@ -162,7 +204,7 @@ export const Categories = () => {
         <div className="text-center mt-10">
           <Link
             href="/categories"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-[#FF5A1F] hover:text-[#E64A0E] transition-colors"
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-orange-600 hover:text-orange-700 transition-colors"
           >
             Browse all categories <ArrowRight className="w-4 h-4" />
           </Link>
@@ -171,3 +213,14 @@ export const Categories = () => {
     </section>
   );
 };
+
+function BentoSkeleton() {
+  return (
+    <div className="grid grid-cols-2 md:grid-cols-4 grid-rows-[repeat(4,minmax(0,1fr))] md:grid-rows-2 gap-4 sm:gap-5">
+      <div className="col-span-2 row-span-2 h-44 md:h-auto rounded-xl bg-gray-100/60 animate-pulse" />
+      {Array.from({ length: 5 }).map((_, i) => (
+        <div key={i} className="h-36 rounded-xl bg-gray-100/60 animate-pulse" />
+      ))}
+    </div>
+  );
+}

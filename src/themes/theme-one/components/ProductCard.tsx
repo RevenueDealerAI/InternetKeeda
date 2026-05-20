@@ -1,11 +1,10 @@
-import { Card } from "@/components/ui/card";
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import Image from 'next/image';
-import { Star, ArrowUpCircle, ExternalLink } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Star, ArrowUp, ExternalLink, Sparkles } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+
 type PricingType = 'Free' | 'Freemium' | 'Paid';
 
 interface ProductCardProps {
@@ -24,8 +23,22 @@ interface ProductCardProps {
   index?: number;
 }
 
+const PRICING_STYLES: Record<PricingType, string> = {
+  Free:     "bg-emerald-50 text-emerald-700 ring-emerald-200/60",
+  Freemium: "bg-indigo-50 text-indigo-700 ring-indigo-200/60",
+  Paid:     "bg-orange-50 text-orange-700 ring-orange-200/60",
+};
+
+const formatNumber = (num: number) => {
+  if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(1)}M`;
+  if (num >= 1_000)     return `${(num / 1_000).toFixed(1)}K`;
+  return String(num);
+};
+
+/** Phase D Tier 3 — white card with gray-200 border, animated gradient
+ * border (orange → violet → indigo) that fades in on hover, -4px lift,
+ * shadow grow. Category and pricing chips have tinted backgrounds. */
 export const ProductCard = ({
-  id,
   slug,
   name,
   description,
@@ -37,124 +50,114 @@ export const ProductCard = ({
   onFavorite,
   pricing = 'Free',
   isNew = false,
-  index = 0,
 }: ProductCardProps) => {
   const router = useRouter();
-
-  const formatNumber = (num: number) => {
-    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
-    if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
-    return num;
-  };
-
-  const getPricingColor = (type: string) => {
-    switch (type) {
-      case 'Free': return 'bg-green-100 text-green-700 border-green-200';
-      case 'Freemium': return 'bg-green-100 text-green-700 border-green-200';
-      case 'Paid': return 'bg-green-100 text-green-700 border-green-200';
-      default: return '';
-    }
-  };
+  const reduceMotion = useReducedMotion();
 
   const handleCardClick = (e: React.MouseEvent) => {
-    // Don't navigate if clicking on buttons
-    if ((e.target as HTMLElement).closest('button')) {
-      return;
-    }
+    if ((e.target as HTMLElement).closest('button')) return;
     router.push(`/ai-tools/${slug}`);
   };
 
   return (
-    <Card 
-      className="group h-full overflow-hidden bg-white border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 rounded-lg cursor-pointer"
+    <motion.article
       onClick={handleCardClick}
+      whileHover={reduceMotion ? undefined : { y: -4 }}
+      transition={{ type: "spring", stiffness: 320, damping: 24 }}
+      className="gradient-border group relative h-full bg-white rounded-2xl border border-gray-200 shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:shadow-[0_18px_40px_-20px_rgba(99,102,241,0.25)] transition-shadow duration-200 cursor-pointer overflow-hidden"
     >
       <div className="p-5">
-        <div className="flex items-start space-x-4">
-          {/* Logo */}
+        <div className="flex items-start gap-4">
+          {/* Logo in a soft gradient halo */}
           <div className="relative flex-shrink-0">
-            <div className="w-12 h-12 rounded-md overflow-hidden bg-gray-100 border border-gray-200 relative">
+            <div className="absolute -inset-1 rounded-2xl bg-gradient-to-br from-orange-100 via-violet-100 to-indigo-100 opacity-0 group-hover:opacity-100 blur-md transition-opacity duration-300" aria-hidden />
+            <div className="relative w-14 h-14 rounded-2xl overflow-hidden bg-gradient-to-br from-orange-50 to-violet-50 ring-1 ring-gray-200/80 group-hover:ring-orange-200 transition-all duration-200">
               <Image
                 src={imageUrl}
                 alt={name}
                 fill
+                sizes="56px"
                 className="object-cover"
                 unoptimized
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.onerror = null;
-                  target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=6366f1&color=fff&bold=true&format=svg`;
+                  target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=F97316&color=fff&bold=true&format=svg`;
                 }}
               />
             </div>
             {isNew && (
-              <div className="absolute -top-1 -right-1">
-                <Badge className="bg-green-500 text-white border-0 text-[10px] px-1.5 py-0.5">
-                  New
-                </Badge>
-              </div>
+              <span className="absolute -top-1.5 -right-1.5 inline-flex items-center gap-0.5 text-[9px] font-semibold uppercase tracking-wide bg-gradient-to-r from-orange-500 to-orange-600 text-white px-1.5 py-0.5 rounded-full shadow-sm">
+                <Sparkles className="w-2.5 h-2.5" />
+                New
+              </span>
             )}
           </div>
-          
+
           {/* Info */}
           <div className="flex-1 min-w-0">
-            <h3 className="text-base font-medium text-gray-900 truncate mb-1">
+            <h3 className="text-base font-semibold text-gray-900 truncate group-hover:text-orange-600 transition-colors">
               {name}
             </h3>
-            <div className="flex flex-wrap gap-1.5 mb-3">
-              <Badge variant="outline" className="bg-gray-50 text-gray-700 text-xs font-normal">
+
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              <span className="inline-flex items-center text-[11px] font-medium bg-gray-50 text-gray-600 ring-1 ring-gray-200/60 px-2 py-0.5 rounded-full">
                 {category}
-              </Badge>
-              <Badge className={cn("text-xs font-normal border", getPricingColor(pricing))}>
+              </span>
+              <span className={cn(
+                "inline-flex items-center text-[11px] font-medium ring-1 px-2 py-0.5 rounded-full",
+                PRICING_STYLES[pricing] ?? PRICING_STYLES.Paid
+              )}>
                 {pricing}
-              </Badge>
+              </span>
             </div>
-            <p className="text-sm text-gray-600 line-clamp-2 mb-4">
+
+            <p className="text-sm text-gray-600 line-clamp-2 mt-3 leading-relaxed">
               {description}
             </p>
-            
-            {/* Actions */}
-            <div className="flex items-center gap-2">
+
+            <div className="flex items-center gap-2 mt-4">
               <Button
                 size="sm"
                 variant="outline"
-                className="flex-1 border-gray-200 hover:bg-gray-50 text-gray-700"
+                className="h-9 flex-1 border-gray-200 text-gray-700 hover:bg-orange-50 hover:border-orange-200 hover:text-orange-700 transition-colors"
                 onClick={onVote}
               >
-                <ArrowUpCircle className="w-4 h-4 mr-1.5" />
+                <ArrowUp className="w-3.5 h-3.5 mr-1.5" />
                 {formatNumber(votes)}
               </Button>
-              
+
               <Button
                 size="sm"
                 variant="outline"
-                className="flex items-center border-gray-200 hover:bg-gray-50 text-gray-700"
+                className="h-9 border-gray-200 text-gray-700 hover:bg-violet-50 hover:border-violet-200 hover:text-violet-700 transition-colors"
                 onClick={(e) => {
                   e.stopPropagation();
-                  window.open(`/ai-tools/${slug}`, '_blank');
+                  router.push(`/ai-tools/${slug}`);
                 }}
               >
-                <ExternalLink className="w-4 h-4 mr-1.5" />
+                <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
                 View
               </Button>
-              
+
               {onFavorite && (
                 <Button
                   size="sm"
                   variant="ghost"
                   onClick={onFavorite}
                   className={cn(
-                    "p-2 h-9 w-9",
-                    isFavorite ? "text-pink-500" : "text-gray-400 hover:text-pink-500"
+                    "h-9 w-9 p-0",
+                    isFavorite ? "text-amber-500" : "text-gray-400 hover:text-amber-500"
                   )}
+                  aria-label={isFavorite ? "Remove from saved" : "Save tool"}
                 >
-                  <Star className={cn("w-5 h-5", isFavorite && "fill-pink-500")} />
+                  <Star className={cn("w-4 h-4", isFavorite && "fill-amber-500")} />
                 </Button>
               )}
             </div>
           </div>
         </div>
       </div>
-    </Card>
+    </motion.article>
   );
 };

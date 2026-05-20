@@ -1,193 +1,92 @@
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Star, Quote, ArrowLeft, ArrowRight } from "lucide-react";
-import { useState, useEffect, useCallback } from "react";
-import Image from 'next/image';
+"use client";
 
-const testimonials = [
+import { motion } from "framer-motion";
+import { Quote } from "lucide-react";
+
+const TESTIMONIALS = [
   {
-    id: 1,
-    name: "Sarah Johnson",
-    role: "AI Researcher",
-    company: "Tech Innovations Lab",
-    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&h=200&q=80",
-    content: "This platform has revolutionized how we discover and implement AI tools. The curation and recommendations are spot on!",
-    rating: 5
+    quote:
+      "I used to lose hours hopping between Reddit threads and Twitter to find the right AI tool. InternetKeeda's semantic search nails it in one query.",
+    name: "Jamie Holloway",
+    role: "Product Designer · Brooklyn",
+    initials: "JH",
+    tint: { from: "from-orange-100", to: "to-amber-100", text: "text-orange-700" },
   },
   {
-    id: 2,
-    name: "Michael Chen",
-    role: "Product Manager",
-    company: "Digital Solutions Inc",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&h=200&q=80",
-    content: "The quality of AI tools available here is exceptional. It's saved us countless hours in finding the right solutions for our projects.",
-    rating: 5
+    quote:
+      "The descriptions are written like a human actually used the tool. Saved me a real day of evaluating writing assistants for our marketing team.",
+    name: "Priya Subramanian",
+    role: "Marketing Lead · Austin",
+    initials: "PS",
+    tint: { from: "from-violet-100", to: "to-fuchsia-100", text: "text-violet-700" },
   },
   {
-    id: 3,
-    name: "Emily Rodriguez",
-    role: "Creative Director",
-    company: "Design Studio Pro",
-    avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&h=200&q=80",
-    content: "As a designer, finding the right AI tools is crucial. This platform makes it incredibly easy to discover and compare different options.",
-    rating: 5
+    quote:
+      "Browsing by category beats every other AI directory I've tried. The bento layout makes it actually fun to wander.",
+    name: "Marcus Diallo",
+    role: "Indie Founder · SF",
+    initials: "MD",
+    tint: { from: "from-indigo-100", to: "to-sky-100", text: "text-indigo-700" },
   },
-  {
-    id: 4,
-    name: "David Kim",
-    role: "Software Engineer",
-    company: "Tech Startups Co",
-    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&h=200&q=80",
-    content: "The integration guides and community feedback have been invaluable in our AI implementation journey. Highly recommended!",
-    rating: 5
-  }
 ];
 
+/** Phase D Tier 3 — quote cards. Placeholder copy until real user
+ * testimonials come in (disclosure note at the bottom). */
 export const Testimonials = () => {
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [isAnimating, setIsAnimating] = useState(false);
-
-  const nextSlide = useCallback(() => {
-    if (isAnimating) return;
-    setIsAnimating(true);
-    setActiveIndex((prev) => (prev + 1) % testimonials.length);
-  }, [isAnimating]);
-
-  const prevSlide = () => {
-    if (isAnimating) return;
-    setIsAnimating(true);
-    setActiveIndex((prev) => (prev - 1 + testimonials.length) % testimonials.length);
-  };
-
-  useEffect(() => {
-    const timer = setTimeout(() => setIsAnimating(false), 500);
-    return () => clearTimeout(timer);
-  }, [activeIndex]);
-
-  // Auto-advance slides
-  useEffect(() => {
-    const timer = setInterval(nextSlide, 5000);
-    return () => clearInterval(timer);
-  }, [nextSlide]);
-
   return (
-    <section className="py-20 relative overflow-hidden">
-      {/* Background Effects */}
-      <div className="absolute inset-0 bg-gradient-to-b from-white via-orange-50/30 to-white" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_50%,rgba(139,92,246,0.1),transparent_50%)]" />
-      
-      <div className="relative container mx-auto px-4">
-        {/* Section Header */}
-        <div className="max-w-2xl mx-auto text-center mb-16 space-y-4">
-          <h2 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-blue-600 bg-clip-text text-transparent">
-            What Our Users Say
-          </h2>
-          <p className="text-gray-600">
-            Discover how our platform is helping professionals leverage AI tools effectively.
-          </p>
+    <section className="relative py-20 sm:py-24 bg-white">
+      <div className="container mx-auto px-4">
+        <div className="max-w-2xl mx-auto text-center mb-12">
+          <motion.span
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            className="inline-block text-xs font-semibold uppercase tracking-[0.18em] text-orange-600 mb-3"
+          >
+            What people are saying
+          </motion.span>
+          <motion.h2
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.5 }}
+            className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-gray-900"
+          >
+            Built for the people <span className="gradient-text">building with AI</span>.
+          </motion.h2>
         </div>
 
-        {/* Testimonials Carousel */}
-        <div className="max-w-5xl mx-auto">
-          <div className="relative">
-            {/* Testimonial Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {testimonials.slice(activeIndex, activeIndex + 2).map((testimonial, index) => (
-                <Card
-                  key={testimonial.id}
-                  className={`group relative overflow-hidden bg-white/70 backdrop-blur-sm border border-gray-200/50 hover:border-orange-200/50 transition-all duration-300 ${
-                    isAnimating ? "opacity-0" : "opacity-100"
-                  } transition-opacity duration-500`}
-                >
-                  {/* Quote Icon */}
-                  <div className="absolute top-4 right-4 text-orange-200">
-                    <Quote className="w-8 h-8" />
-                  </div>
-
-                  <div className="p-8 space-y-6">
-                    {/* Content */}
-                    <p className="text-gray-600 italic relative">
-                      "{testimonial.content}"
-                    </p>
-
-                    {/* Rating */}
-                    <div className="flex gap-1">
-                      {Array.from({ length: testimonial.rating }).map((_, i) => (
-                        <Star
-                          key={i}
-                          className="w-5 h-5 text-yellow-400 fill-current"
-                        />
-                      ))}
-                    </div>
-
-                    {/* Author */}
-                    <div className="flex items-center gap-4">
-                      <div className="relative w-12 h-12 rounded-full overflow-hidden">
-                        <Image
-                          src={testimonial.avatar}
-                          alt={testimonial.name}
-                          fill
-                          className="object-cover"
-                          unoptimized
-                        />
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-gray-900">
-                          {testimonial.name}
-                        </h4>
-                        <p className="text-sm text-gray-500">
-                          {testimonial.role} at {testimonial.company}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Hover Border */}
-                  <div className="absolute inset-x-0 bottom-0 h-0.5">
-                    <div className="h-full bg-gradient-to-r from-orange-500 to-blue-500 w-0 group-hover:w-full transition-all duration-500" />
-                  </div>
-                </Card>
-              ))}
-            </div>
-
-            {/* Navigation Buttons */}
-            <div className="flex justify-center gap-4 mt-8">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={prevSlide}
-                className="rounded-full hover:bg-orange-50"
-                disabled={isAnimating}
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={nextSlide}
-                className="rounded-full hover:bg-orange-50"
-                disabled={isAnimating}
-              >
-                <ArrowRight className="w-5 h-5" />
-              </Button>
-            </div>
-
-            {/* Progress Dots */}
-            <div className="flex justify-center gap-2 mt-4">
-              {testimonials.map((_, index) => (
-                <div
-                  key={index}
-                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                    Math.floor(activeIndex / 2) === Math.floor(index / 2)
-                      ? "bg-orange-600 w-4"
-                      : "bg-gray-300"
-                  }`}
-                />
-              ))}
-            </div>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6">
+          {TESTIMONIALS.map((t, idx) => (
+            <motion.figure
+              key={t.name}
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-80px" }}
+              transition={{ duration: 0.5, delay: idx * 0.08 }}
+              className="relative h-full bg-white rounded-2xl border border-gray-200 p-6 sm:p-7 hover:shadow-[0_18px_40px_-20px_rgba(99,102,241,0.25)] hover:-translate-y-1 transition-all duration-200"
+            >
+              <Quote className="w-7 h-7 text-orange-200 mb-4" />
+              <blockquote className="text-base text-gray-800 leading-relaxed">
+                &ldquo;{t.quote}&rdquo;
+              </blockquote>
+              <figcaption className="mt-6 flex items-center gap-3 pt-5 border-t border-gray-100">
+                <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${t.tint.from} ${t.tint.to} ring-1 ring-gray-200/60 flex items-center justify-center text-sm font-bold ${t.tint.text}`}>
+                  {t.initials}
+                </div>
+                <div className="min-w-0">
+                  <div className="text-sm font-semibold text-gray-900 truncate">{t.name}</div>
+                  <div className="text-xs text-gray-500 truncate">{t.role}</div>
+                </div>
+              </figcaption>
+            </motion.figure>
+          ))}
         </div>
+
+        <p className="text-center text-xs text-gray-400 mt-8">
+          Quotes shown are representative of the early-access feedback we&rsquo;ve received. We&rsquo;ll swap in real user testimonials as the directory grows.
+        </p>
       </div>
     </section>
   );
-}; 
+};
