@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { toast } from "sonner";
+import { SiteLogo } from "./SiteLogo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -86,16 +86,7 @@ export const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-12 gap-10">
           {/* Brand + newsletter — wider column */}
           <div className="md:col-span-5 space-y-5">
-            <Link href="/" className="inline-flex items-center gap-2 group" aria-label="InternetKeeda — home">
-              <Image
-                src="/brand/internetkeeda-logo-red.png"
-                width={180}
-                height={44}
-                alt="InternetKeeda"
-                className="h-11 w-auto object-contain group-hover:scale-[1.03] transition-transform"
-                unoptimized
-              />
-            </Link>
+            <SiteLogo variant="light" height={44} className="group-hover:scale-[1.03] transition-transform" />
             <p className="text-sm text-gray-600 leading-relaxed max-w-md">
               {siteDescription}
             </p>

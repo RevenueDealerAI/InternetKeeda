@@ -18,6 +18,7 @@ import { ConditionalClerkProvider } from '../components/ConditionalClerkProvider
 import { NextRouterAdapter } from './NextRouterAdapter';
 import { PageTransition } from '../components/PageTransition';
 import { ScrollProgress } from '@/themes/theme-one/components/ScrollProgress';
+import { HeadFavicons } from '../components/HeadFavicons';
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { initializeVoteCounts } from '../utils/voteUtils';
@@ -95,6 +96,7 @@ export default function RootLayout({
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body className="font-sans antialiased">
         <HelmetProvider>
+          <HeadFavicons />
           <ConditionalClerkProvider
             publishableKey={clerkPublishableKey}
           >

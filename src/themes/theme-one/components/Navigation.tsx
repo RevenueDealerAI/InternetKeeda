@@ -62,6 +62,7 @@ import { SubmitToolModal } from "./modals/SubmitToolModal";
 import { useSiteConfig } from '@/contexts/SiteConfigContext';
 import { getUserDisplayName } from '@/lib/utils';
 import { useCategories } from '@/hooks/useCategories';
+import { SiteLogo } from './SiteLogo';
 
 export const Navigation = () => {
   const { user } = useUser();
@@ -131,12 +132,12 @@ export const Navigation = () => {
           <div className="flex items-center justify-between h-16">
               {/* Logo and main navigation */}
               <div className="flex items-center gap-8">
-                <Link
-                  href="/"
-                  className={`flex items-center gap-2 text-xl font-semibold ${textPrimary} group`}
-                  aria-label="InternetKeeda — home"
-                >
-                  {config?.logo ? (
+                {config?.logo ? (
+                  <Link
+                    href="/"
+                    className={`flex items-center gap-2 text-xl font-semibold ${textPrimary} group`}
+                    aria-label="InternetKeeda — home"
+                  >
                     <Image
                       src={config.logo}
                       width={180}
@@ -145,18 +146,15 @@ export const Navigation = () => {
                       className="h-10 w-auto object-contain"
                       unoptimized
                     />
-                  ) : (
-                    <Image
-                      src="/brand/internetkeeda-logo-red.png"
-                      width={160}
-                      height={40}
-                      alt="InternetKeeda"
-                      priority
-                      className="h-10 w-auto object-contain group-hover:scale-[1.03] transition-transform"
-                      unoptimized
-                    />
-                  )}
-                </Link>
+                  </Link>
+                ) : (
+                  <SiteLogo
+                    variant="auto"
+                    height={36}
+                    priority
+                    className="group-hover:scale-[1.03] transition-transform"
+                  />
+                )}
 
                 <NavigationMenu className="hidden md:flex">
                   <NavigationMenuList className="space-x-1">

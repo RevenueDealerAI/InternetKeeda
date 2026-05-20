@@ -233,28 +233,6 @@ export const HeroSection = ({
         />
       </div>
 
-      {/* Spider mascot — moving GIF of the KEEDA logo dangling from the top
-       * right of the hero. The "Keeda" theme is a spider in a web, so we
-       * give it pride of place on the home hero. Only loaded on this page
-       * (the GIF is ~2.7 MB), pointer-events-none so it doesn't intercept
-       * clicks. Hidden on small screens to save bandwidth. */}
-      {!reduceMotion && (
-        <div
-          aria-hidden
-          className="pointer-events-none hidden md:block absolute top-16 right-6 lg:right-10 w-40 lg:w-56 xl:w-64 z-[5] opacity-90 mix-blend-multiply"
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/brand/internetkeeda-spider-moving.gif"
-            alt=""
-            width={256}
-            height={256}
-            loading="lazy"
-            decoding="async"
-            className="w-full h-auto drop-shadow-[0_8px_18px_rgba(220,38,38,0.18)]"
-          />
-        </div>
-      )}
 
       {/* Faint dot grid for texture — kept light so it's atmosphere, not pattern */}
       <div
