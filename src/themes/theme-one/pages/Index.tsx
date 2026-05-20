@@ -112,38 +112,20 @@ const saveLogoToCache = (toolId: string, url: string) => {
   }
 };
 
+// Static number formatter. The previous AnimatedCounter ran a
+// setInterval for 1 s on every card mount — at 60 cards × 2
+// counters that's 2,400 React updates per page load on the home
+// grid. Same final visual after the count-up finished anyway.
 const AnimatedCounter = ({ value, className }: { value: string | number; className?: string }) => {
-  const numericValue = typeof value === 'string' 
+  const n = typeof value === 'string'
     ? parseInt(value.replace(/[^0-9]/g, ''), 10)
     : value;
-  const [count, setCount] = useState(0);
-
-  useEffect(() => {
-    const duration = 1000; // 1 second
-    const steps = 20;
-    const stepValue = numericValue / steps;
-    let current = 0;
-
-    const timer = setInterval(() => {
-      current += stepValue;
-      if (current >= numericValue) {
-        setCount(numericValue);
-        clearInterval(timer);
-      } else {
-        setCount(Math.floor(current));
-      }
-    }, duration / steps);
-
-    return () => clearInterval(timer);
-  }, [numericValue]);
-
-  return (
-    <span className={className}>
-      {typeof value === 'string' && value.includes('K') 
-        ? `${(count / 1000).toFixed(1)}K` 
-        : count}
-    </span>
-  );
+  const display = n >= 1_000_000
+    ? `${(n / 1_000_000).toFixed(1)}M`
+    : n >= 1_000
+      ? `${(n / 1_000).toFixed(1)}K`
+      : String(n);
+  return <span className={className}>{display}</span>;
 };
 
 export default function Index() {
