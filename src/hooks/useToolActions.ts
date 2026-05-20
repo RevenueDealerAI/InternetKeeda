@@ -1,72 +1,90 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useAuth, useUser } from "@clerk/clerk-react";
+"use client";
+
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import mongoose from "mongoose"; // ObjectId.isValid (client-side guard)
+import { useClerkSession } from "./useClerkSession";
 import { API_BASE_URL } from "../config/constants";
-import mongoose from 'mongoose'; // For ObjectId.isValid (frontend check)
 
-// DEFAULT_VOTE_COUNT can be imported if needed for display fallbacks elsewhere
-// import { DEFAULT_VOTE_COUNT } from '@/utils/voteUtils';
-
-interface UserMetadata {
-  upvotedTools?: string[];
-  savedTools?: string[];
-}
+/**
+ * Tool action hook (upvote + save) — Clerk-free at the client level.
+ * Previously this hook called useAuth + useUser from @clerk/clerk-react
+ * and persisted the user's voted/saved lists into Clerk's `unsafeMetadata`
+ * field. That pulled the Clerk SDK into every tool-listing page (home,
+ * category, trending, etc.) on initial paint.
+ *
+ * The new model:
+ *   - useClerkSession (cookie-based) tells us whether the visitor is
+ *     signed in. No Clerk SDK required.
+ *   - The per-device upvoted/saved lists live in localStorage. They
+ *     follow the device, not the user. For a directory site this is
+ *     acceptable trade — the cross-device "remember my votes" feature
+ *     was nice-to-have, not load-bearing.
+ *   - The global vote count is still incremented via the existing
+ *     /api/tools/:id/vote endpoint. The server doesn't track per-user
+ *     votes anyway (it only increments `tool.votes` on the doc).
+ *   - Signed-out users CAN still upvote/save (locally). The previous
+ *     behavior was to block them, but blocking just frustrates anon
+ *     visitors and doesn't actually protect anything.
+ */
 
 interface ToolActions {
   upvotedTools: string[];
   savedTools: string[];
   isUpvoted: (dbToolId: string) => boolean;
   isSaved: (dbToolId: string) => boolean;
-  toggleUpvote: (actualDbId: string, currentVoteCount: number) => Promise<void>; // Pass current votes for immediate UI update
+  toggleUpvote: (actualDbId: string, currentVoteCount: number) => Promise<void>;
   toggleSave: (dbToolId: string) => Promise<void>;
   isLoading: boolean;
-  // getVoteCount is removed, vote counts come from the tool object directly.
+}
+
+const LS_UPVOTED = "ik_upvoted_tools";
+const LS_SAVED = "ik_saved_tools";
+
+function readLocal(key: string): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(key);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.filter((s) => typeof s === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeLocal(key: string, list: string[]) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(key, JSON.stringify(list));
+  } catch {
+    // quota exceeded or localStorage disabled — silently no-op
+  }
 }
 
 export function useToolActions(): ToolActions {
-  const { isSignedIn } = useAuth();
-  const { user } = useUser();
+  // Visibility-only signal. We don't gate any behavior on it currently,
+  // but it's there in case we want to nudge anon users toward signing in.
+  void useClerkSession();
+
   const [upvotedTools, setUpvotedTools] = useState<string[]>([]);
   const [savedTools, setSavedTools] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const loadUserPreferences = useCallback(async () => {
-    if (isSignedIn && user) {
-      try {
-        const metadata = user.unsafeMetadata as UserMetadata;
-        setUpvotedTools(metadata.upvotedTools || []);
-        setSavedTools(metadata.savedTools || []);
-      } catch (error) {
-        console.error('Error loading user preferences:', error);
-      }
-    } else {
-      setUpvotedTools([]);
-      setSavedTools([]);
-    }
-  }, [isSignedIn, user]);
-
   useEffect(() => {
-    loadUserPreferences();
-  }, [loadUserPreferences]);
+    setUpvotedTools(readLocal(LS_UPVOTED));
+    setSavedTools(readLocal(LS_SAVED));
+  }, []);
 
-  const isUpvoted = (dbToolId: string): boolean => {
-    if (!isSignedIn || !dbToolId) return false;
-    return upvotedTools.includes(dbToolId);
-  };
+  const isUpvoted = (dbToolId: string): boolean =>
+    !!dbToolId && upvotedTools.includes(dbToolId);
 
-  const isSaved = (dbToolId: string): boolean => {
-    if (!isSignedIn || !dbToolId) return false;
-    return savedTools.includes(dbToolId);
-  };
+  const isSaved = (dbToolId: string): boolean =>
+    !!dbToolId && savedTools.includes(dbToolId);
 
-  const toggleUpvote = async (actualDbId: string, currentVoteCount: number) => {
-    if (!isSignedIn) {
-      toast.error("Please sign in to upvote tools.");
-      return;
-    }
-    if (!actualDbId || actualDbId.startsWith('temp-') || !mongoose.Types.ObjectId.isValid(actualDbId)) {
-      toast.error("This tool cannot be upvoted (invalid or temporary ID).");
-      console.warn("toggleUpvote called with invalid or temporary ID:", actualDbId);
+  const toggleUpvote = async (actualDbId: string, _currentVoteCount: number) => {
+    if (!actualDbId || actualDbId.startsWith("temp-") || !mongoose.Types.ObjectId.isValid(actualDbId)) {
+      toast.error("This tool cannot be upvoted (invalid ID).");
       return;
     }
 
@@ -75,70 +93,47 @@ export function useToolActions(): ToolActions {
     const action = alreadyUpvoted ? "downvote" : "upvote";
 
     try {
-      console.log(`Attempting to ${action} tool with DB ID: ${actualDbId}`);
       const response = await fetch(`${API_BASE_URL}/api/tools/${actualDbId}/vote`, {
-        method: 'POST', // Backend tools.ts supports POST for /:id/vote
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ action }),
       });
-
       const result = await response.json();
-
-      if (!response.ok || !result.success || typeof result.votes !== 'number') {
+      if (!response.ok || !result.success || typeof result.votes !== "number") {
         throw new Error(result.error || "Failed to update vote on server.");
       }
 
-      // Update Clerk user metadata
-      const newUpvotedTools = alreadyUpvoted
-        ? upvotedTools.filter(id => id !== actualDbId)
+      const next = alreadyUpvoted
+        ? upvotedTools.filter((id) => id !== actualDbId)
         : [...upvotedTools, actualDbId];
-      
-      await user?.update({ unsafeMetadata: { ...user.unsafeMetadata, upvotedTools: newUpvotedTools } });
-      setUpvotedTools(newUpvotedTools); // Update local hook state
+      writeLocal(LS_UPVOTED, next);
+      setUpvotedTools(next);
 
-      // Dispatch event for UI updates elsewhere (e.g., AIToolDetail page)
-      window.dispatchEvent(new CustomEvent('toolVotesUpdated', {
-        detail: { toolId: actualDbId, votes: result.votes, isUpvoted: !alreadyUpvoted }
+      window.dispatchEvent(new CustomEvent("toolVotesUpdated", {
+        detail: { toolId: actualDbId, votes: result.votes, isUpvoted: !alreadyUpvoted },
       }));
-      
-      toast.success(action === "upvote" ? "Tool upvoted!" : "Upvote removed.");
-
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
-      console.error(`Error during toggleUpvote for ${actualDbId}:`, errorMessage, error);
-      toast.error(errorMessage || "Failed to update vote. Please try again.");
-      // Optionally, could try to re-sync preferences if update failed
-      await loadUserPreferences(); 
+      toast.success(action === "upvote" ? "Tool upvoted." : "Upvote removed.");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      toast.error(msg);
     } finally {
       setIsLoading(false);
     }
   };
 
   const toggleSave = async (dbToolId: string) => {
-    if (!isSignedIn) {
-      toast.error("Please sign in to save tools.");
+    if (!dbToolId || !mongoose.Types.ObjectId.isValid(dbToolId)) {
+      toast.error("Invalid tool ID for saving.");
       return;
     }
-    if (!dbToolId || !mongoose.Types.ObjectId.isValid(dbToolId)) {
-        toast.error("Invalid tool ID for saving.");
-        return;
-    }
-    setIsLoading(true);
     const alreadySaved = savedTools.includes(dbToolId);
-    const newSavedTools = alreadySaved
-        ? savedTools.filter(id => id !== dbToolId)
-        : [...savedTools, dbToolId];
-    try {
-        await user?.update({ unsafeMetadata: { ...user.unsafeMetadata, savedTools: newSavedTools } });
-        setSavedTools(newSavedTools);
-        toast.success(alreadySaved ? "Removed from saved." : "Tool saved!");
-    } catch (error) {
-        console.error('Error toggling save:', error);
-        toast.error("Failed to update saved tools.");
-        await loadUserPreferences(); // Re-sync on error
-    } finally {
-        setIsLoading(false);
-    }
+    const next = alreadySaved
+      ? savedTools.filter((id) => id !== dbToolId)
+      : [...savedTools, dbToolId];
+    writeLocal(LS_SAVED, next);
+    setSavedTools(next);
+    toast.success(alreadySaved ? "Removed from saved." : "Tool saved.");
   };
 
   return {

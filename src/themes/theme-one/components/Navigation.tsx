@@ -49,7 +49,7 @@ import {
   Shield
 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { useUser, useClerk, SignInButton, SignUpButton } from "@clerk/clerk-react";
+import { useClerkSession } from "@/hooks/useClerkSession";
 import { AuthModals } from "@/components/AuthModals";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -64,8 +64,12 @@ import { useCategories } from '@/hooks/useCategories';
 import { SiteLogo } from './SiteLogo';
 
 export const Navigation = () => {
-  const { user } = useUser();
-  const { signOut, openUserProfile } = useClerk();
+  // Cookie-only session detection — does NOT load @clerk/clerk-react.
+  // Public routes (home, category, tool detail) no longer ship Clerk
+  // because of this. Users who want to see their email/name/avatar
+  // or sign out land on /dashboard, which has its own ClerkProvider
+  // in /app/dashboard/layout.tsx and the full Clerk SDK.
+  const { isSignedIn } = useClerkSession();
   const router = useRouter();
   const hasNotifications = true;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -131,16 +135,19 @@ export const Navigation = () => {
     (c) => (c.toolCount ?? 0) > 0
   ).length;
 
-  // Check if user is admin
-  const isAdmin = user?.publicMetadata?.role === 'admin';
-  const userEmail = user?.emailAddresses[0]?.emailAddress;
+  // Cookie-detection mode: we don't know admin/email/name without
+  // loading the Clerk SDK. Header just shows "signed in" generically;
+  // full account UI (sign out, email display, admin link) lives on
+  // /dashboard which loads Clerk in its own per-route ClerkProvider.
+  const isAdmin = false;
+  const userEmail: string | undefined = undefined;
 
-
-
-  const handleSignOut = async () => {
-    await signOut();
-    router.push("/");
+  // Sign-out can't happen here without the Clerk SDK. The
+  // Navigation just points the user at /dashboard, which can
+  // sign them out cleanly.
+  const handleSignOut = () => {
     setIsMobileMenuOpen(false);
+    router.push("/dashboard");
   };
 
   return (
@@ -287,8 +294,12 @@ export const Navigation = () => {
                   Submit Your Tool
                 </Button>
 
-                {/* Auth buttons or user menu */}
-                {!user ? (
+                {/* Auth chrome. Anonymous: Sign in / Sign up routes
+                  * (each has its own ClerkProvider per-route layout).
+                  * Signed in: avatar that links to /dashboard, where
+                  * the full Clerk SDK is loaded and account actions
+                  * (profile, sign-out, admin) live. */}
+                {!isSignedIn ? (
                   <div className="hidden md:flex space-x-2">
                     <Button
                       variant="outline"
@@ -305,52 +316,18 @@ export const Navigation = () => {
                     </Button>
                   </div>
                 ) : (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button 
-                        variant="ghost" 
-                        className="relative rounded-full h-10 w-10 p-0 overflow-hidden"
-                      >
-                        <Avatar className="h-10 w-10 rounded-full">
-                          <AvatarImage src={user.imageUrl} alt={getUserDisplayName(user) || "User"} />
-                          <AvatarFallback className="bg-orange-100 text-orange-700">
-                            {((user.unsafeMetadata?.displayName as string | undefined)?.charAt(0)) || user.firstName?.charAt(0) || user.emailAddresses[0]?.emailAddress?.charAt(0)?.toUpperCase() || "U"}
-                          </AvatarFallback>
-                        </Avatar>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-56 mt-1">
-                      <DropdownMenuLabel>
-                        <div className="font-normal">
-                          <div className="font-medium text-sm">{getUserDisplayName(user) || "User"}</div>
-                          <div className="text-xs text-gray-500 truncate">{user.emailAddresses[0]?.emailAddress}</div>
-                        </div>
-                      </DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => router.push("/dashboard")}>
-                        <User className="mr-2 h-4 w-4" />
-                        <span>Dashboard</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => openUserProfile()}>
-                        <Settings className="mr-2 h-4 w-4" />
-                        <span>Account settings</span>
-                      </DropdownMenuItem>
-                      {isAdmin && (
-                        <>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={() => router.push("/admin")}>
-                            <Settings className="mr-2 h-4 w-4" />
-                            <span>Admin Dashboard</span>
-                          </DropdownMenuItem>
-                        </>
-                      )}
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={handleSignOut}>
-                        <LogOut className="mr-2 h-4 w-4" />
-                        <span>Sign out</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <Button
+                    variant="ghost"
+                    onClick={() => router.push("/dashboard")}
+                    aria-label="Account"
+                    className="relative rounded-full h-10 w-10 p-0 overflow-hidden"
+                  >
+                    <Avatar className="h-10 w-10 rounded-full">
+                      <AvatarFallback className="bg-orange-100 text-orange-700">
+                        <User className="h-5 w-5" />
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
                 )}
 
                 {/* Mobile search shortcut — opens the existing search
@@ -421,18 +398,21 @@ export const Navigation = () => {
             </div>
 
             <div className="h-full overflow-y-auto pb-32 px-4 pt-2 mobile-scroll-area">
-              {/* User profile section at the top if logged in */}
-              {user && (
+              {/* User profile section — anonymous in the public-route
+                * shell. Tapping "Account" routes to /dashboard, which
+                * loads Clerk and shows the real account details. */}
+              {isSignedIn && (
                 <div className="flex items-center space-x-3 py-4 mb-4 border-b">
                   <Avatar className="h-12 w-12">
-                    <AvatarImage src={user.imageUrl} />
                     <AvatarFallback className="bg-orange-100 text-orange-700">
-                      {((user.unsafeMetadata?.displayName as string | undefined)?.charAt(0)) || user.firstName?.charAt(0) || user.emailAddresses[0]?.emailAddress?.charAt(0)?.toUpperCase() || "U"}
+                      <User className="h-5 w-5" />
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <div className="font-medium">{getUserDisplayName(user) || "User"}</div>
-                    <div className="text-xs text-gray-500 truncate">{user.emailAddresses[0]?.emailAddress}</div>
+                    <Link href="/dashboard" className="font-medium text-gray-900">
+                      Account
+                    </Link>
+                    <div className="text-xs text-gray-500">View dashboard</div>
                   </div>
                 </div>
               )}
@@ -579,7 +559,7 @@ export const Navigation = () => {
               */}
 
               <div className="mt-6 pt-2 space-y-4 border-t border-gray-100">
-                {!user ? (
+                {!isSignedIn ? (
                   <div className="grid grid-cols-2 gap-2 px-3">
                     <Button
                       variant="outline"
@@ -614,38 +594,9 @@ export const Navigation = () => {
                       <User className="mr-3 h-4 w-4 text-gray-500" />
                       Dashboard
                     </Button>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start text-gray-900 font-normal p-3 h-auto"
-                      onClick={() => {
-                        openUserProfile();
-                        setIsMobileMenuOpen(false);
-                      }}
-                    >
-                      <Settings className="mr-3 h-4 w-4 text-gray-500" />
-                      Account settings
-                    </Button>
-                    {isAdmin && (
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start text-gray-900 font-normal p-3 h-auto"
-                        onClick={() => {
-                          router.push("/admin");
-                          setIsMobileMenuOpen(false);
-                        }}
-                      >
-                        <Shield className="mr-3 h-4 w-4 text-gray-500" />
-                        Admin Dashboard
-                      </Button>
-                    )}
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start text-gray-900 font-normal p-3 h-auto"
-                      onClick={handleSignOut}
-                    >
-                      <LogOut className="mr-3 h-4 w-4 text-gray-500" />
-                      Sign out
-                    </Button>
+                    {/* Account settings + Sign Out + Admin live on
+                      * /dashboard where Clerk is loaded. The public
+                      * Navigation no longer ships Clerk at all. */}
                   </div>
                 )}
               </div>
@@ -678,9 +629,9 @@ export const Navigation = () => {
             <TrendingUp className="h-5 w-5 mb-1" />
             <span>Trending</span>
           </Link>
-          <Link href={user ? "/dashboard" : "/sign-in"} className="flex flex-col items-center justify-center text-xs font-medium text-gray-600 active-scale">
+          <Link href={isSignedIn ? "/dashboard" : "/sign-in"} className="flex flex-col items-center justify-center text-xs font-medium text-gray-600 active-scale">
             <User className="h-5 w-5 mb-1" />
-            <span>{user ? "Account" : "Sign In"}</span>
+            <span>{isSignedIn ? "Account" : "Sign In"}</span>
           </Link>
         </div>
       </div>

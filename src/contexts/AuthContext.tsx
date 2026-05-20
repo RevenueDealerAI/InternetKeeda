@@ -1,11 +1,13 @@
+'use client';
+
 import React, { createContext, useContext, useState } from 'react';
-import { useClerk, useUser } from '@clerk/clerk-react';
+import { useClerkSession } from '@/hooks/useClerkSession';
 
 type ModalType = 'login' | 'signup' | 'verify-email' | 'forgot-password' | 'reset-password' | 'otp' | null;
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  user: { id: string; emailAddresses?: Array<{ emailAddress: string }>; firstName?: string | null; lastName?: string | null; imageUrl?: string; publicMetadata?: Record<string, unknown> } | null;
+  user: null;
   currentModal: ModalType;
   userEmail: string;
   openModal: (type: ModalType, email?: string) => void;
@@ -15,33 +17,41 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// When no Clerk publishable key is configured (local dev / preview),
-// render a no-op AuthProvider so the site still loads. Auth features
-// will be disabled but the rest of the UI remains usable.
-const hasClerkKey =
-  typeof process !== 'undefined' &&
-  !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
-
-function NoAuthProvider({ children }: { children: React.ReactNode }) {
+/**
+ * AuthProvider — Clerk-free at the layout level. Provides only the
+ * "is the visitor signed in" boolean (via cookie detection) and a
+ * modal-state manager. Components that need the full Clerk user
+ * object (name, avatar, email, signOut) should be on a route that
+ * mounts ClerkRouteWrapper and import directly from @clerk/clerk-react.
+ */
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [currentModal, setCurrentModal] = useState<ModalType>(null);
   const [userEmail, setUserEmail] = useState('');
+  const { isSignedIn } = useClerkSession();
 
   const openModal = (type: ModalType, email?: string) => {
     setCurrentModal(type);
     if (email) setUserEmail(email);
   };
+
   const closeModal = () => {
     setCurrentModal(null);
     setUserEmail('');
   };
+
+  // Layout-level signOut just closes any open modal. Real sign-out
+  // happens on /dashboard where Clerk is loaded.
   const signOut = async () => {
     closeModal();
+    if (typeof window !== 'undefined') {
+      window.location.href = '/dashboard';
+    }
   };
 
   return (
     <AuthContext.Provider
       value={{
-        isAuthenticated: false,
+        isAuthenticated: isSignedIn,
         user: null,
         currentModal,
         userEmail,
@@ -52,54 +62,6 @@ function NoAuthProvider({ children }: { children: React.ReactNode }) {
     >
       {children}
     </AuthContext.Provider>
-  );
-}
-
-function ClerkAuthProvider({ children }: { children: React.ReactNode }) {
-  const [currentModal, setCurrentModal] = useState<ModalType>(null);
-  const [userEmail, setUserEmail] = useState('');
-  const { isSignedIn, user } = useUser();
-  const { signOut: clerkSignOut } = useClerk();
-
-  const openModal = (type: ModalType, email?: string) => {
-    setCurrentModal(type);
-    if (email) {
-      setUserEmail(email);
-    }
-  };
-
-  const closeModal = () => {
-    setCurrentModal(null);
-    setUserEmail('');
-  };
-
-  const signOut = async () => {
-    await clerkSignOut();
-    closeModal();
-  };
-
-  return (
-    <AuthContext.Provider
-      value={{
-        isAuthenticated: isSignedIn || false,
-        user,
-        currentModal,
-        userEmail,
-        openModal,
-        closeModal,
-        signOut,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
-}
-
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  return hasClerkKey ? (
-    <ClerkAuthProvider>{children}</ClerkAuthProvider>
-  ) : (
-    <NoAuthProvider>{children}</NoAuthProvider>
   );
 }
 

@@ -14,7 +14,6 @@ import { ThemeProvider } from '../themes/ThemeContext';
 import { AuthModalManager } from "../components/AuthModalManager";
 import { AffiliateTracker } from '../components/AffiliateTracker';
 import { IframeDetectionBanner } from '../components/IframeDetectionBanner';
-import { ConditionalClerkProvider } from '../components/ConditionalClerkProvider';
 import { NextRouterAdapter } from './NextRouterAdapter';
 import { PageTransition } from '../components/PageTransition';
 import { ScrollProgress } from '@/themes/theme-one/components/ScrollProgress';
@@ -91,43 +90,44 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const clerkPublishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || '';
-
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body className="font-sans antialiased">
         <HelmetProvider>
           <HeadFavicons />
-          <ConditionalClerkProvider
-            publishableKey={clerkPublishableKey}
-          >
-            <SiteConfigProvider>
-              <AuthProvider>
-                <AffiliateTracker />
-                <SponsoredListingsProvider>
-                  <SoftwarePagesProvider>
-                    <ThemeProvider>
-                      <QueryClientProvider client={queryClient}>
-                        <TooltipProvider>
-                          <AppInitializer />
-                          <ScrollBehaviorFix />
-                          <ScrollProgress />
-                          <NextRouterAdapter>
-                            <PageTransition>{children}</PageTransition>
-                          </NextRouterAdapter>
-                          <MobileSearchFab />
-                          <Toaster />
-                          <Sonner position="top-right" />
-                          <AuthModalManager />
-                          <IframeDetectionBanner />
-                        </TooltipProvider>
-                      </QueryClientProvider>
-                    </ThemeProvider>
-                  </SoftwarePagesProvider>
-                </SponsoredListingsProvider>
-              </AuthProvider>
-            </SiteConfigProvider>
-          </ConditionalClerkProvider>
+          {/* ClerkProvider is NOT mounted at the root anymore.
+            * Public routes (home, category, trending, tool list, etc.)
+            * use cookie-based useClerkSession() instead and never load
+            * the Clerk SDK. Routes that genuinely need Clerk
+            * (/sign-in, /sign-up, /dashboard, /admin, /verify-email,
+            * /advertise, /ai-tools/[slug], /news/[slug]) each have a
+            * per-route layout.tsx that wraps in ClerkRouteWrapper. */}
+          <SiteConfigProvider>
+            <AuthProvider>
+              <AffiliateTracker />
+              <SponsoredListingsProvider>
+                <SoftwarePagesProvider>
+                  <ThemeProvider>
+                    <QueryClientProvider client={queryClient}>
+                      <TooltipProvider>
+                        <AppInitializer />
+                        <ScrollBehaviorFix />
+                        <ScrollProgress />
+                        <NextRouterAdapter>
+                          <PageTransition>{children}</PageTransition>
+                        </NextRouterAdapter>
+                        <MobileSearchFab />
+                        <Toaster />
+                        <Sonner position="top-right" />
+                        <AuthModalManager />
+                        <IframeDetectionBanner />
+                      </TooltipProvider>
+                    </QueryClientProvider>
+                  </ThemeProvider>
+                </SoftwarePagesProvider>
+              </SponsoredListingsProvider>
+            </AuthProvider>
+          </SiteConfigProvider>
         </HelmetProvider>
       </body>
     </html>
