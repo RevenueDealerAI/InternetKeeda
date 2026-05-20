@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import {
   NavigationMenu,
@@ -83,6 +84,27 @@ export const Navigation = () => {
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  const reduceMotion = useReducedMotion();
+
+  // Lock body scroll while the mobile menu is open so the page underneath
+  // doesn't move when the user touch-scrolls inside the panel.
+  useEffect(() => {
+    if (!isMobileMenuOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, [isMobileMenuOpen]);
+
+  // ESC closes the menu.
+  useEffect(() => {
+    if (!isMobileMenuOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsMobileMenuOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [isMobileMenuOpen]);
 
   // Solid white on mobile (so the hamburger always reads), translucent
   // backdrop-blur on md and up where the gradient mesh leaking through
@@ -373,24 +395,40 @@ export const Navigation = () => {
             </div>
           </div>
 
-        {/* Mobile nav panel — z-[70] sits ABOVE the sticky header (z-[60])
-         * so the panel covers the whole viewport including the header
-         * strip. Solid white bg (no /60 opacity) so the gradient mesh
-         * doesn't leak through. */}
+        {/* Mobile nav panel — z-[80] sits ABOVE the sticky header
+         * (z-[60]) AND above the bottom nav (z-[998] but that's outside
+         * this fixed inset so layer separately). Solid white bg with
+         * NO opacity animation — previously `animate-in slide-in-from-
+         * top-5` from tailwindcss-animate carried an implicit opacity
+         * 0→1, which let the page content bleed through mid-transition.
+         * Now opacity stays at 1 throughout and only translateY runs. */}
+        <AnimatePresence>
         {isMobileMenuOpen && (
-          <div id="mobile-nav-panel" className="md:hidden fixed inset-0 bg-white z-[70] pt-20 pb-20 animate-in slide-in-from-top-5 duration-300">
-            <div className="absolute top-4 right-4 z-50">
+          <motion.div
+            id="mobile-nav-panel"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Site menu"
+            initial={reduceMotion ? false : { y: -16 }}
+            animate={{ y: 0 }}
+            exit={reduceMotion ? { opacity: 0 } : { y: -16, transition: { duration: 0.18, ease: [0.4, 0, 1, 1] } }}
+            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+            className="md:hidden fixed inset-0 bg-white z-[80] pt-16"
+            style={{ height: "100dvh" }}
+          >
+            <div className="absolute top-4 right-4 z-10">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="active-scale"
+                className="active-scale h-10 w-10 rounded-full hover:bg-gray-100"
+                aria-label="Close menu"
               >
                 <X className="h-6 w-6" />
               </Button>
             </div>
-            
-            <div className="h-full overflow-y-auto pb-24 px-4 mobile-scroll-area">
+
+            <div className="h-full overflow-y-auto pb-32 px-4 pt-2 mobile-scroll-area">
               {/* User profile section at the top if logged in */}
               {user && (
                 <div className="flex items-center space-x-3 py-4 mb-4 border-b">
@@ -620,8 +658,9 @@ export const Navigation = () => {
                 )}
               </div>
             </div>
-          </div>
+          </motion.div>
         )}
+        </AnimatePresence>
       </div>
 
       {/* Mobile Bottom Navigation Bar */}

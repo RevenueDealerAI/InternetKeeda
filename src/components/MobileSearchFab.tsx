@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { Search, X, ArrowRight } from "lucide-react";
+import { Search, Sparkles, X, ArrowRight } from "lucide-react";
 
 const TRY_QUERIES = [
   "Image generation",
@@ -39,7 +39,9 @@ export const MobileSearchFab = () => {
   const [scrolledPast, setScrolledPast] = useState(false);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [showHint, setShowHint] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const hintShownRef = useRef(false);
   const router = useRouter();
   const pathname = usePathname();
   const reduceMotion = useReducedMotion();
@@ -50,7 +52,28 @@ export const MobileSearchFab = () => {
     const update = () => {
       raf = 0;
       const threshold = window.innerHeight * 0.8;
-      setScrolledPast(window.scrollY > threshold);
+      const past = window.scrollY > threshold;
+      setScrolledPast((prev) => {
+        // First time the FAB appears in this session — pop a hint pill
+        // for 3s so users know what it does and don't confuse it with
+        // the bottom-nav Submit (+) button.
+        if (!prev && past && !hintShownRef.current) {
+          hintShownRef.current = true;
+          try {
+            const seen = sessionStorage.getItem("ik_fab_hint_seen");
+            if (!seen) {
+              setShowHint(true);
+              sessionStorage.setItem("ik_fab_hint_seen", "1");
+              window.setTimeout(() => setShowHint(false), 3200);
+            }
+          } catch {
+            // sessionStorage unavailable — still show once per page load.
+            setShowHint(true);
+            window.setTimeout(() => setShowHint(false), 3200);
+          }
+        }
+        return past;
+      });
     };
     update();
     const onScroll = () => {
@@ -115,25 +138,53 @@ export const MobileSearchFab = () => {
 
   return (
     <>
-      {/* FAB */}
+      {/* FAB — Sparkles icon (AI-search vibe) + a one-shot hint pill
+        * so users don't confuse it with the bottom-nav Submit (+) FAB.
+        * Outer ring + gradient red distinguishes the shape further. */}
       <AnimatePresence>
         {scrolledPast && (
-          <motion.button
-            key="ik-search-fab"
-            type="button"
+          <motion.div
+            key="ik-search-fab-wrap"
             initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 24, scale: 0.85 }}
             animate={reduceMotion ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
             exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 24, scale: 0.85 }}
             transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-            onClick={() => setOpen(true)}
-            aria-label="Open search"
-            aria-expanded={open}
-            aria-controls="ik-mobile-search-panel"
-            className="md:hidden fixed right-5 z-[65] inline-flex items-center justify-center w-14 h-14 rounded-full bg-red-600 hover:bg-red-700 active:scale-95 text-white shadow-[0_12px_30px_-8px_rgba(220,38,38,0.55)] transition-colors"
+            className="md:hidden fixed right-5 z-[65] flex items-center gap-2"
             style={{ bottom: `calc(env(safe-area-inset-bottom, 0px) + 80px)` }}
           >
-            <Search className="w-6 h-6" />
-          </motion.button>
+            <AnimatePresence>
+              {showHint && (
+                <motion.span
+                  key="ik-search-fab-hint"
+                  initial={{ opacity: 0, x: 8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 8 }}
+                  transition={{ duration: 0.2 }}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-900 text-white text-xs font-medium shadow-lg whitespace-nowrap"
+                  aria-hidden
+                >
+                  Search AI tools
+                  <span aria-hidden className="block w-0 h-0 border-t-[5px] border-t-transparent border-l-[6px] border-l-gray-900 border-b-[5px] border-b-transparent absolute -right-1.5 top-1/2 -translate-y-1/2" />
+                </motion.span>
+              )}
+            </AnimatePresence>
+
+            <button
+              type="button"
+              onClick={() => { setOpen(true); setShowHint(false); }}
+              aria-label="Search AI tools"
+              aria-expanded={open}
+              aria-controls="ik-mobile-search-panel"
+              className="relative inline-flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 ring-4 ring-white active:scale-95 text-white shadow-[0_12px_30px_-8px_rgba(220,38,38,0.6)] transition-colors"
+            >
+              <Sparkles className="w-6 h-6" />
+              {/* Tiny search affordance bottom-right so it's clearly a
+                * search-y AI tool, not "submit a tool" (+). */}
+              <span className="absolute -bottom-0.5 -right-0.5 inline-flex items-center justify-center w-5 h-5 rounded-full bg-white text-red-600 ring-2 ring-white">
+                <Search className="w-3 h-3" />
+              </span>
+            </button>
+          </motion.div>
         )}
       </AnimatePresence>
 
