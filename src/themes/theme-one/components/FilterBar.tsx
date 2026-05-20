@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useRouter } from 'next/navigation'
-import { motion } from "framer-motion";
 import {
   Command,
   CommandEmpty,
@@ -295,12 +294,8 @@ export function FilterBar({
 
         {/* Advanced Filters Section */}
         {showAdvancedFilters && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="w-full bg-white/50 backdrop-blur-sm rounded-xl border border-gray-200 p-4"
+          <div
+            className="w-full bg-white/50 backdrop-blur-sm rounded-xl border border-gray-200 p-4 animate-in fade-in slide-in-from-top-2 duration-200"
           >
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Pricing Filter */}
@@ -392,7 +387,7 @@ export function FilterBar({
                 </div>
               </div>
             </div>
-          </motion.div>
+          </div>
         )}
       </div>
 

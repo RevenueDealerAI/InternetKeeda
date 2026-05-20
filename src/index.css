@@ -205,6 +205,34 @@
     animation: border-sweep 4s ease infinite;
   }
 
+  /* Mobile menu panel — slides down from the top when opened. The
+   * panel itself only renders when isMobileMenuOpen so we don't need
+   * an exit animation; the enter runs on mount via this keyframe. */
+  .mobile-menu-panel {
+    animation: mobile-menu-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  @keyframes mobile-menu-in {
+    from { transform: translateY(-16px); }
+    to   { transform: translateY(0); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .mobile-menu-panel { animation: none; }
+  }
+
+  /* Page-level entrance — runs on every route change because
+   * PageTransition keys the wrapper on pathname. Pure CSS so the
+   * route shell doesn't ship framer-motion. */
+  .page-transition {
+    animation: page-transition-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  @keyframes page-transition-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .page-transition { animation: none; }
+  }
+
   /* Hero entrance — CSS-driven so the headline paints immediately
    * without waiting for framer-motion to hydrate. The keyframe runs
    * once on the initial load; @media (prefers-reduced-motion) kills

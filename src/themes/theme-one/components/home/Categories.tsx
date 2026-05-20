@@ -30,7 +30,10 @@ import {
   Hash,
   type LucideIcon,
 } from "lucide-react";
-import { motion, useReducedMotion } from "framer-motion";
+// Categories renders eagerly on the home page (synchronous import).
+// To keep framer-motion out of the home shared chunk, all entrance
+// animations here are pure CSS — `.fade-in-up` keyframe with a per-
+// tile animation-delay applied inline.
 import { useCategories } from "@/hooks/useCategories";
 
 const ICON_MAP: Record<string, LucideIcon> = {
@@ -73,14 +76,6 @@ const TINTS: Record<TintKey, { from: string; to: string; ring: string; text: str
 
 const TINT_ORDER: TintKey[] = ["orange", "violet", "indigo", "rose", "emerald", "amber"];
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { staggerChildren: 0.07, delayChildren: 0.05 } },
-};
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  show:   { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] as const } },
-};
 
 /** Phase D Tier 3 — bento category section. Top-6 by tool count laid out
  * in an asymmetric grid (1 large feature + 5 smaller tiles) on desktop,
@@ -90,7 +85,6 @@ export const Categories = () => {
   // Bento only renders 6 tiles — fetch the top 30 to leave headroom and
   // keep the payload light.
   const { data, isLoading } = useCategories(true, 30);
-  const reduceMotion = useReducedMotion();
 
   const top = (data?.data ?? []).filter((c) => (c.toolCount ?? 0) > 0).slice(0, 6);
 
@@ -107,53 +101,29 @@ export const Categories = () => {
 
       <div className="container mx-auto px-4">
         <div className="max-w-2xl mx-auto text-center mb-12">
-          <motion.span
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-80px" }}
-            className="inline-block text-xs font-semibold uppercase tracking-[0.18em] text-orange-600 mb-3"
-          >
+          <span className="inline-block text-xs font-semibold uppercase tracking-[0.18em] text-orange-600 mb-3">
             Browse the catalog
-          </motion.span>
-          <motion.h2
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-80px" }}
-            transition={{ duration: 0.5 }}
-            className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-gray-900"
-          >
+          </span>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-gray-900">
             Explore by <span className="gradient-text">category</span>
-          </motion.h2>
-          <motion.p
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true, margin: "-80px" }}
-            transition={{ delay: 0.1 }}
-            className="text-gray-600 mt-3"
-          >
+          </h2>
+          <p className="text-gray-600 mt-3">
             Six of the most-stocked corners of InternetKeeda. Click any tile to drill in.
-          </motion.p>
+          </p>
         </div>
 
         {isLoading ? (
           <BentoSkeleton />
         ) : (
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, margin: "-80px" }}
-            className="grid grid-cols-2 md:grid-cols-4 grid-rows-[repeat(4,minmax(0,1fr))] md:grid-rows-2 gap-4 sm:gap-5"
-          >
+          <div className="grid grid-cols-2 md:grid-cols-4 grid-rows-[repeat(4,minmax(0,1fr))] md:grid-rows-2 gap-4 sm:gap-5">
             {top.map((cat, idx) => {
               const Icon = ICON_MAP[cat.name] ?? Hash;
               const tint = TINTS[TINT_ORDER[idx % TINT_ORDER.length]];
-              const isFeature = idx === 0; // first tile is the big one
+              const isFeature = idx === 0;
 
               return (
-                <motion.div
+                <div
                   key={cat.slug ?? cat.name}
-                  variants={itemVariants}
                   className={isFeature ? "col-span-2 row-span-2" : "col-span-1 row-span-1"}
                 >
                   <Link
@@ -163,9 +133,8 @@ export const Categories = () => {
                     <Card
                       className={[
                         "relative h-full overflow-hidden border border-gray-100",
-                        "shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:shadow-[0_18px_40px_-20px_rgba(99,102,241,0.25)]",
-                        "transition-all duration-300",
-                        reduceMotion ? "" : "hover:-translate-y-1",
+                        "shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:shadow-[0_18px_40px_-20px_rgba(220,38,38,0.25)]",
+                        "transition-all duration-300 hover:-translate-y-1 motion-reduce:transform-none",
                         "bg-gradient-to-br",
                         tint.from,
                         tint.to,
@@ -194,10 +163,10 @@ export const Categories = () => {
                       </div>
                     </Card>
                   </Link>
-                </motion.div>
+                </div>
               );
             })}
-          </motion.div>
+          </div>
         )}
 
         <div className="text-center mt-10">

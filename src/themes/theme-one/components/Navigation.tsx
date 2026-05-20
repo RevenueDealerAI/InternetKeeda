@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import {
   NavigationMenu,
@@ -84,8 +83,6 @@ export const Navigation = () => {
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
-
-  const reduceMotion = useReducedMotion();
 
   // Lock body scroll while the mobile menu is open so the page underneath
   // doesn't move when the user touch-scrolls inside the panel.
@@ -402,18 +399,13 @@ export const Navigation = () => {
          * top-5` from tailwindcss-animate carried an implicit opacity
          * 0→1, which let the page content bleed through mid-transition.
          * Now opacity stays at 1 throughout and only translateY runs. */}
-        <AnimatePresence>
         {isMobileMenuOpen && (
-          <motion.div
+          <div
             id="mobile-nav-panel"
             role="dialog"
             aria-modal="true"
             aria-label="Site menu"
-            initial={reduceMotion ? false : { y: -16 }}
-            animate={{ y: 0 }}
-            exit={reduceMotion ? { opacity: 0 } : { y: -16, transition: { duration: 0.18, ease: [0.4, 0, 1, 1] } }}
-            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-            className="md:hidden fixed inset-0 bg-white z-[80] pt-20"
+            className="md:hidden fixed inset-0 bg-white z-[80] pt-20 mobile-menu-panel"
             style={{ height: "100dvh" }}
           >
             <div className="absolute top-4 right-4 z-10">
@@ -658,9 +650,8 @@ export const Navigation = () => {
                 )}
               </div>
             </div>
-          </motion.div>
+          </div>
         )}
-        </AnimatePresence>
       </div>
 
       {/* Mobile Bottom Navigation Bar */}

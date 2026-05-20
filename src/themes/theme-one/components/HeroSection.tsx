@@ -4,7 +4,20 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { Search, ArrowRight, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useReducedMotion } from "framer-motion";
+// Vanilla matchMedia hook — removes framer-motion from the home
+// critical path. Returns true when the user has opted into reduced
+// motion. Defaults to false on SSR.
+function useReducedMotion(): boolean {
+  const [reduced, setReduced] = React.useState(false);
+  React.useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setReduced(mq.matches);
+    const onChange = () => setReduced(mq.matches);
+    mq.addEventListener?.("change", onChange);
+    return () => mq.removeEventListener?.("change", onChange);
+  }, []);
+  return reduced;
+}
 
 // Vanilla-WebGL hero backdrop. Lazy-loaded so its ~4 KB only ships
 // when we actually mount it (desktop, motion-allowed). SSR off — it
