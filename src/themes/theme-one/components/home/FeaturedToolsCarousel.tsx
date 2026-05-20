@@ -12,7 +12,9 @@ import { Tool } from "@/types/tool";
 /** Horizontal snap carousel — top 8-10 tools by rating × log(votes + 1).
  * Each card is one snap target. Arrows scroll one card width. */
 export const FeaturedToolsCarousel = () => {
-  const { data, isLoading } = useTools({ limit: 200, sortBy: "rating", sortOrder: "desc" });
+  // Carousel only shows 10 — fetch 30 to give the Wilson-score
+  // re-ranking some headroom. Was 200 = ~120 KB wasted.
+  const { data, isLoading } = useTools({ limit: 30, sortBy: "rating", sortOrder: "desc" });
   const reduceMotion = useReducedMotion();
   const scrollRef = useRef<HTMLDivElement | null>(null);
 

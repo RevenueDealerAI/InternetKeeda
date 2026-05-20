@@ -72,9 +72,33 @@ const clerkHandler = clerkMiddleware(async (auth, req) => {
   return res;
 });
 
+// Routes that actually need Clerk to do its handshake / session cookie
+// dance. Everything else (home, category, tool detail, etc.) skips
+// Clerk in middleware entirely — avoiding the ~1s Clerk-handshake
+// redirect on every cold mobile load that Lighthouse flagged.
+// Client-side, ClerkProvider still hydrates user state on mount; the
+// Navigation avatar/dropdown still works for signed-in users, just
+// without the server-side roundtrip on anonymous visits.
+const CLERK_PROTECTED_PATHS = [
+  '/admin',
+  '/dashboard',
+  '/sign-in',
+  '/sign-up',
+  '/verify-email',
+  '/sso-callback',
+];
+
+function needsClerk(pathname: string): boolean {
+  // Auth-touching API routes — anything that does requireAuth() needs
+  // the Clerk session cookie validated by middleware.
+  if (pathname.startsWith('/api/users') || pathname.startsWith('/api/admin')) {
+    return true;
+  }
+  return CLERK_PROTECTED_PATHS.some((p) => pathname === p || pathname.startsWith(p + '/'));
+}
+
 export default async function middleware(req: NextRequest, event: NextFetchEvent) {
   if (!hasClerkConfig()) {
-    // Pass-through: site renders, no auth. Logs once per cold start.
     if (typeof console !== 'undefined') {
       console.warn(
         '[middleware] Clerk env vars missing — falling back to pass-through. ' +
@@ -84,6 +108,12 @@ export default async function middleware(req: NextRequest, event: NextFetchEvent
     }
     return applyCommonResponse(req);
   }
+
+  // Public route — skip Clerk entirely. Saves ~1s LCP on cold loads.
+  if (!needsClerk(req.nextUrl.pathname)) {
+    return applyCommonResponse(req);
+  }
+
   return clerkHandler(req, event);
 }
 

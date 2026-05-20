@@ -75,6 +75,12 @@ export async function GET(req: NextRequest) {
       data: allCategories,
       static: staticCategories,
       custom: categories.filter(cat => !TOOL_CATEGORIES.includes(cat.name as typeof TOOL_CATEGORIES[number])).map(cat => cat.toObject())
+    }, {
+      // Category list + tool counts change slowly. 5 minutes of CDN
+      // freshness is fine; SWR for an hour lets the cache absorb spikes.
+      headers: {
+        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=3600',
+      },
     });
   } catch (error: unknown) {
     console.error('Error fetching categories:', error);

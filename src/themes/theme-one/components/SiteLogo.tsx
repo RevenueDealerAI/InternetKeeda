@@ -47,15 +47,16 @@ export const SiteLogo = ({
 
   useEffect(() => {
     if (variant !== "auto") return;
+    // Mobile-first perf: the animated GIF is 2.7 MB and would dominate
+    // LCP on a cold 4G connection. Skip it entirely on small viewports;
+    // desktop + tablet still get the first-load animation.
+    const isMobile = typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches;
+    if (isMobile) return;
     try {
       const played = sessionStorage.getItem(SESSION_KEY);
       if (!played) {
         setSrc(ASSET.animated);
         sessionStorage.setItem(SESSION_KEY, "1");
-        // The GIF loops by default. We don't have per-loop callbacks, so
-        // swap back to the static PNG after one play (~2s based on the
-        // file). That keeps the mark visually quiet on every other render
-        // in the session.
         const t = setTimeout(() => setSrc(ASSET.light), 2400);
         return () => clearTimeout(t);
       }

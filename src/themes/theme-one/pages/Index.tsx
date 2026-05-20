@@ -227,8 +227,13 @@ export default function Index() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCategory, selectedPricing, selectedRating, selectedSpecialFilter, sortBy]);
 
-  const { data, isLoading: isToolsLoading, error: toolsError } = useTools({ 
-    limit: selectedCategory !== "all" ? 10000 : 1000, 
+  // Home tool grid: load 60 initially (≈4 rows of 4-col 2xl + scroll
+  // headroom). Was 1000+ which dumped ~728 KB on every cold load and
+  // dominated TBT on mobile. Category filter goes through the API
+  // (server-side) instead of client-side, so we don't need the whole
+  // catalog client-side either.
+  const { data, isLoading: isToolsLoading, error: toolsError } = useTools({
+    limit: selectedCategory !== "all" ? 60 : 60,
     category: selectedCategory !== "all" ? selectedCategory : undefined,
     status: 'published'
   });

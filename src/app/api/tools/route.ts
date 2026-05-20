@@ -151,7 +151,7 @@ export async function GET(req: NextRequest) {
                     hasNextPage: pageNum < Math.ceil(totalCount / limitNum),
                     hasPrevPage: pageNum > 1
                 }
-            });
+            }, { headers: TOOLS_CACHE_HEADERS });
         }
 
         const [tools, totalCount] = await Promise.all([
@@ -175,12 +175,19 @@ export async function GET(req: NextRequest) {
                 hasNextPage: pageNum < Math.ceil(totalCount / limitNum),
                 hasPrevPage: pageNum > 1
             }
-        });
+        }, { headers: TOOLS_CACHE_HEADERS });
     } catch (error: unknown) {
         console.error('Error fetching tools:', error);
         return errorResponse('Failed to fetch tools', 500);
     }
 }
+
+// Vercel CDN caches the response for 60s, then serves stale while
+// revalidating in the background for up to 10 min. Tool lists change
+// editorially (new submissions, edits) — 60s of staleness is fine.
+const TOOLS_CACHE_HEADERS = {
+    'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=600',
+} as const;
 
 export async function POST(req: NextRequest) {
     try {

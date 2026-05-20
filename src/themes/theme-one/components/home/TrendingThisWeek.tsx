@@ -19,7 +19,9 @@ const GRADIENT_RING = [
  * views (no per-day tracking on the schema yet); admins can pin via
  * isTrending — pinned tools always come first. */
 export const TrendingThisWeek = () => {
-  const { data, isLoading } = useTools({ limit: 500, sortBy: "views", sortOrder: "desc" });
+  // Section only shows 3 tools — fetch 12 to give the editorial-pin
+  // ranking some headroom but no more. Was 500 = ~278 KB wasted.
+  const { data, isLoading } = useTools({ limit: 12, sortBy: "views", sortOrder: "desc" });
 
   const tools = useMemo(() => {
     const all = (data?.data ?? []) as Tool[];
