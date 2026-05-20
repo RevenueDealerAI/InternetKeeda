@@ -28,7 +28,11 @@ import {
 import { BlogPost } from "@/types/blog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useEffect } from "react";
-import { RichTextEditor } from "@/components/editor/RichTextEditor";
+import dynamic from "next/dynamic";
+const RichTextEditor = dynamic(
+  () => import("@/components/editor/RichTextEditor").then((m) => ({ default: m.RichTextEditor })),
+  { ssr: false, loading: () => <div className="h-64 bg-gray-100 animate-pulse rounded" /> }
+);
 import { User } from "lucide-react";
 
 const blogFormSchema = z.object({

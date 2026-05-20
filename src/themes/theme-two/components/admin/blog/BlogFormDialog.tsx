@@ -9,7 +9,11 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { RichTextEditor } from "@/components/editor/RichTextEditor";
+import dynamic from "next/dynamic";
+const RichTextEditor = dynamic(
+  () => import("@/components/editor/RichTextEditor").then((m) => ({ default: m.RichTextEditor })),
+  { ssr: false, loading: () => <div className="h-64 bg-gray-100 animate-pulse rounded" /> }
+);
 import { BlogPost } from "@/types/blog";
 import { User } from "lucide-react";
 

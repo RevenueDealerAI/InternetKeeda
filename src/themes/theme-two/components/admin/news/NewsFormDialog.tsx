@@ -10,7 +10,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from 'sonner';
 import { useAuth } from '@clerk/clerk-react';
-import TipTapEditor from '@/themes/theme-one/components/TipTapEditor';
+import dynamic from 'next/dynamic';
+const TipTapEditor = dynamic(
+  () => import('@/themes/theme-one/components/TipTapEditor'),
+  { ssr: false, loading: () => <div className="h-64 bg-gray-100 animate-pulse rounded" /> }
+);
 import { Loader2 } from 'lucide-react';
 
 const API_BASE_URL = "";

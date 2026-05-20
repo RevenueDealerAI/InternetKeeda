@@ -11,7 +11,25 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { useAuth } from '@clerk/clerk-react';
-import TipTapViewer from '@/themes/theme-one/components/TipTapViewer';
+import dynamic from 'next/dynamic';
+
+// TipTap is ~150 KB gzipped. Dynamic-import so it only ships to
+// readers of /news/[slug] and doesn't get co-bundled into the
+// shared chunk that loads on / and other tool routes.
+const TipTapViewer = dynamic(
+  () => import('@/themes/theme-one/components/TipTapViewer'),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="space-y-3">
+        <div className="h-4 w-full bg-gray-100 animate-pulse rounded" />
+        <div className="h-4 w-5/6 bg-gray-100 animate-pulse rounded" />
+        <div className="h-4 w-4/5 bg-gray-100 animate-pulse rounded" />
+        <div className="h-4 w-full bg-gray-100 animate-pulse rounded" />
+      </div>
+    ),
+  }
+);
 
 const API_BASE_URL = '';
 

@@ -11,8 +11,22 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { useAuth } from '@clerk/clerk-react';
-import TipTapViewer from '@/themes/theme-two/components/TipTapViewer';
+import dynamic from 'next/dynamic';
 import { motion } from 'framer-motion';
+
+const TipTapViewer = dynamic(
+  () => import('@/themes/theme-two/components/TipTapViewer'),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="space-y-3">
+        <div className="h-4 w-full bg-gray-100 animate-pulse rounded" />
+        <div className="h-4 w-5/6 bg-gray-100 animate-pulse rounded" />
+        <div className="h-4 w-4/5 bg-gray-100 animate-pulse rounded" />
+      </div>
+    ),
+  }
+);
 
 const API_BASE_URL = '';
 
