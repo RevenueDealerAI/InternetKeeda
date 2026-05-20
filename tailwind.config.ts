@@ -87,6 +87,30 @@ export default {
           800: "#AF0000",
           900: "#8B0000"
         },
+        // Phase D Tier 3 — bright SaaS rebuild. Violet/indigo as secondary
+        // accent for the gradient mesh hero, gradient-border CTAs, and
+        // category-tinted bento tiles. Kept distinct from `purple` so the
+        // existing purple uses don't accidentally shift.
+        accentViolet: {
+          50:  "#F5F3FF",
+          100: "#EDE9FE",
+          200: "#DDD6FE",
+          300: "#C4B5FD",
+          400: "#A78BFA",
+          500: "#8B5CF6",
+          600: "#7C3AED",
+          700: "#6D28D9",
+        },
+        accentIndigo: {
+          50:  "#EEF2FF",
+          100: "#E0E7FF",
+          200: "#C7D2FE",
+          300: "#A5B4FC",
+          400: "#818CF8",
+          500: "#6366F1",
+          600: "#4F46E5",
+          700: "#4338CA",
+        },
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
@@ -150,6 +174,28 @@ export default {
           "0%":   { "background-position": "0px 0px, 0px 0px" },
           "100%": { "background-position": "40px 40px, 40px 40px" },
         },
+        // Gradient-mesh blob drift. Three blobs offset on different axes
+        // create a slow, organic mesh effect. Pair with mix-blend-mode
+        // and heavy blur on the elements themselves.
+        "blob-a": {
+          "0%, 100%": { transform: "translate(0%, 0%) scale(1)" },
+          "33%":      { transform: "translate(8%, -6%) scale(1.08)" },
+          "66%":      { transform: "translate(-6%, 4%) scale(0.95)" },
+        },
+        "blob-b": {
+          "0%, 100%": { transform: "translate(0%, 0%) scale(1)" },
+          "50%":      { transform: "translate(-10%, 8%) scale(1.12)" },
+        },
+        "blob-c": {
+          "0%, 100%": { transform: "translate(0%, 0%) scale(0.95)" },
+          "40%":      { transform: "translate(6%, 6%) scale(1.05)" },
+          "80%":      { transform: "translate(-4%, -8%) scale(1.1)" },
+        },
+        // Gradient border sweep — for the gradient-glow card hover.
+        "border-sweep": {
+          "0%, 100%": { "background-position": "0% 50%" },
+          "50%":      { "background-position": "100% 50%" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -159,6 +205,10 @@ export default {
         "gradient-shift": "gradient-shift 8s ease infinite",
         "shimmer": "shimmer 1.5s linear infinite",
         "dot-drift": "dot-drift 30s linear infinite",
+        "blob-a": "blob-a 24s ease-in-out infinite",
+        "blob-b": "blob-b 28s ease-in-out infinite",
+        "blob-c": "blob-c 32s ease-in-out infinite",
+        "border-sweep": "border-sweep 4s ease infinite",
       },
     },
   },

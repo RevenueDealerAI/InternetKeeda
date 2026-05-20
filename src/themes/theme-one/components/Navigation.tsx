@@ -73,11 +73,9 @@ export const Navigation = () => {
   const { config } = useSiteConfig();
   const pathname = usePathname();
 
-  // The home page now has the dark-bleed hero, so the header runs dark
-  // (transparent → blurred-dark on scroll). Every other route keeps a
-  // light header (white → blurred-white on scroll). Driven by pathname
-  // rather than scroll-into-section detection — simpler and stable.
-  const isHomePage = pathname === '/';
+  // Phase D Tier 3 — light SaaS theme everywhere. Header is transparent
+  // over the hero, switches to white + blur on scroll. No more dark
+  // pathname-based variants; the hero is light too.
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -86,34 +84,22 @@ export const Navigation = () => {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const headerSurface = isHomePage
-    ? (scrolled
-        ? 'bg-[#0A0A0F]/80 backdrop-blur-md border-b border-white/5'
-        : 'bg-transparent border-b border-transparent')
-    : (scrolled
-        ? 'bg-white/85 backdrop-blur-md border-b border-gray-100 shadow-[0_1px_0_0_rgba(0,0,0,0.02)]'
-        : 'bg-white border-b border-transparent');
-  const textPrimary = isHomePage ? 'text-white' : 'text-gray-900';
-  const textNav = isHomePage
-    ? 'text-gray-300 hover:text-white data-[state=open]:text-white'
-    : 'text-gray-600 hover:text-gray-900';
-  const signInBtn = isHomePage
-    ? 'bg-transparent border border-white/10 text-white hover:bg-white/5 hover:border-white/20 h-10'
-    : 'border-gray-200 hover:border-gray-300 text-gray-700 h-10';
-  const mobileBtnColor = isHomePage ? 'text-white' : 'text-gray-900';
-
-  // Dropdown popover surface theming — dark on home (over the hero),
-  // light everywhere else. Avoids white-card-over-dark-page contrast.
-  const ddSurface = isHomePage
-    ? 'bg-[#0A0A0F]/95 backdrop-blur-md border border-white/10 rounded-lg'
-    : 'bg-white border border-gray-100 rounded-lg';
-  const ddTextPrimary = isHomePage ? 'text-white' : 'text-gray-900';
-  const ddTextMuted = isHomePage ? 'text-gray-400' : 'text-gray-500';
-  const ddHover = isHomePage ? 'hover:bg-white/5' : 'hover:bg-gray-50';
-  const ddSkeleton = isHomePage ? 'bg-white/5' : 'bg-gray-100';
-  const ddCatHover = isHomePage ? 'hover:bg-white/5' : 'hover:bg-orange-50/60';
-  const ddCatText = isHomePage ? 'text-gray-200' : 'text-gray-800';
-  const ddCatCount = isHomePage ? 'text-gray-500' : 'text-gray-400';
+  const headerSurface = scrolled
+    ? 'bg-white/85 backdrop-blur-md border-b border-gray-100 shadow-[0_1px_0_0_rgba(0,0,0,0.02)]'
+    : 'bg-white/60 backdrop-blur-sm border-b border-transparent';
+  const textPrimary = 'text-gray-900';
+  const textNav = 'text-gray-600 hover:text-gray-900';
+  const signInBtn = 'border-gray-200 hover:border-gray-300 text-gray-700 h-10';
+  const mobileBtnColor = 'text-gray-900';
+  const ddSurface = 'bg-white border border-gray-100 rounded-lg shadow-lg';
+  const ddTextPrimary = 'text-gray-900';
+  const ddTextMuted = 'text-gray-500';
+  const ddHover = 'hover:bg-orange-50/50';
+  const ddSkeleton = 'bg-gray-100';
+  const ddCatHover = 'hover:bg-orange-50/60';
+  const ddCatText = 'text-gray-800';
+  const ddCatCount = 'text-gray-400';
+  void pathname; // pathname retained for future use; no longer needed for theme switching
 
   const { data: categoriesData } = useCategories(true);
   const topCategories = (categoriesData?.data ?? [])
@@ -323,7 +309,7 @@ export const Navigation = () => {
                       >
                         <Avatar className="h-10 w-10 rounded-full">
                           <AvatarImage src={user.imageUrl} alt={getUserDisplayName(user) || "User"} />
-                          <AvatarFallback className="bg-green-100 text-green-800">
+                          <AvatarFallback className="bg-orange-100 text-orange-700">
                             {((user.unsafeMetadata?.displayName as string | undefined)?.charAt(0)) || user.firstName?.charAt(0) || user.emailAddresses[0]?.emailAddress?.charAt(0)?.toUpperCase() || "U"}
                           </AvatarFallback>
                         </Avatar>
@@ -367,7 +353,7 @@ export const Navigation = () => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className={`md:hidden ${mobileBtnColor} ${isHomePage ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}
+                  className={`md:hidden ${mobileBtnColor} hover:bg-gray-100`}
                   onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 >
                   {isMobileMenuOpen ? (
@@ -400,7 +386,7 @@ export const Navigation = () => {
                 <div className="flex items-center space-x-3 py-4 mb-4 border-b">
                   <Avatar className="h-12 w-12">
                     <AvatarImage src={user.imageUrl} />
-                    <AvatarFallback className="bg-green-100 text-green-800">
+                    <AvatarFallback className="bg-orange-100 text-orange-700">
                       {((user.unsafeMetadata?.displayName as string | undefined)?.charAt(0)) || user.firstName?.charAt(0) || user.emailAddresses[0]?.emailAddress?.charAt(0)?.toUpperCase() || "U"}
                     </AvatarFallback>
                   </Avatar>
@@ -570,7 +556,7 @@ export const Navigation = () => {
                         router.push("/sign-up");
                         setIsMobileMenuOpen(false);
                       }}
-                      className="bg-green-500 hover:bg-green-600 text-white w-full"
+                      className="bg-orange-500 hover:bg-orange-600 text-white w-full"
                     >
                       Sign up
                     </Button>
@@ -639,11 +625,11 @@ export const Navigation = () => {
             <ListTodo className="h-5 w-5 mb-1" />
             <span>Categories</span>
           </Link>
-          <button 
+          <button
             onClick={() => setIsSubmitModalOpen(true)}
-            className="flex flex-col items-center justify-center text-xs font-medium text-green-600 active-scale"
+            className="flex flex-col items-center justify-center text-xs font-medium text-orange-600 active-scale"
           >
-            <div className="bg-green-500 rounded-full h-12 w-12 flex items-center justify-center -mt-5 shadow-md">
+            <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-full h-12 w-12 flex items-center justify-center -mt-5 shadow-lg shadow-orange-500/30">
               <Plus className="h-6 w-6 text-white" />
             </div>
             <span className="mt-1">Submit</span>

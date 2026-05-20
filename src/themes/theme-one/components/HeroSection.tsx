@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Search, ArrowRight } from "lucide-react";
+import { Search, ArrowRight, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useReducedMotion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 
 interface HeroSectionProps {
   searchQuery?: string;
@@ -26,8 +26,24 @@ const TRY_QUERIES = [
   "Writing tools",
 ];
 
-/** Tier 2 hero — dark, near-black, animated orange-tinted dot grid behind a
- * centered headline + search bar. Spec confirmed by user 2026-05-18. */
+const SOCIAL_PROOF_LOGOS = [
+  "ChatGPT",
+  "Midjourney",
+  "Claude",
+  "Stable Diffusion",
+  "Runway",
+];
+
+const TRUST_BULLETS = [
+  "Free to browse",
+  "Updated daily",
+  "No signup required",
+];
+
+/** Phase D Tier 3 — bright SaaS hero. Light canvas, animated gradient mesh
+ * (three blurred orange+violet+indigo blobs drifting on different cycles),
+ * a massive gradient-accented headline, a tall rounded-full search bar,
+ * try-chips, social-proof logo row, and a trust strip. */
 export const HeroSection = ({
   searchQuery: externalQuery,
   setSearchQuery: externalSetQuery,
@@ -146,26 +162,28 @@ export const HeroSection = ({
     return () => document.removeEventListener("keydown", handler);
   }, [setIsSearchOpen]);
 
+  const fadeUp = reduceMotion
+    ? { initial: false, animate: { opacity: 1, y: 0 } }
+    : {
+        initial: { opacity: 0, y: 18 },
+        animate: { opacity: 1, y: 0 },
+        transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] as const },
+      };
+
   return (
     <section
       ref={heroRef}
-      className="relative isolate overflow-hidden bg-[#0A0A0F] min-h-screen flex items-center pt-16"
+      className="relative isolate overflow-hidden bg-white min-h-[100svh] flex items-center pt-20 pb-24 sm:pb-28"
     >
-      {/* Backdrop layer 1 — subtle upper-right radial glow */}
+      {/* Soft off-white wash so the mesh blobs read as paint on canvas */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background:
-            "radial-gradient(800px 500px at 85% 0%, rgba(249,115,22,0.07), transparent 60%)",
-        }}
+        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#FAFAFA] via-white to-white"
       />
 
-      {/* Backdrop layer 2 — animated dot grid + radial mask fade.
-       * Two stacked radial-gradient backgrounds at the same size give the
-       * grid a stronger inner dot + softer outer halo, and `animate-dot-drift`
-       * walks the position from 0 → 40px (one cell) on a 30s loop. The
-       * outer wrapper provides the mouse-parallax transform (set inline). */}
+      {/* Gradient mesh — three blurred blobs drift independently behind the
+       * content. mix-blend-multiply keeps colors readable on white. Parallax
+       * wrapper translates the whole mesh a few px with the mouse. */}
       <div
         aria-hidden
         ref={parallaxRef}
@@ -174,62 +192,106 @@ export const HeroSection = ({
       >
         <div
           className={
-            "absolute inset-[-40px] " +
-            (reduceMotion ? "" : "motion-safe:animate-dot-drift")
+            "mesh-blob bg-orange-400 " +
+            (reduceMotion ? "" : "motion-safe:animate-blob-a")
           }
           style={{
-            backgroundImage: [
-              "radial-gradient(rgba(249,115,22,0.18) 1.2px, transparent 1.6px)",
-              "radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1.4px)",
-            ].join(", "),
-            backgroundSize: "40px 40px, 40px 40px",
-            backgroundPosition: "0 0, 20px 20px",
-            maskImage:
-              "radial-gradient(ellipse 70% 55% at 50% 50%, black 30%, transparent 80%)",
-            WebkitMaskImage:
-              "radial-gradient(ellipse 70% 55% at 50% 50%, black 30%, transparent 80%)",
+            width: "560px",
+            height: "560px",
+            top: "-10%",
+            left: "-8%",
+            background:
+              "radial-gradient(closest-side, rgba(249,115,22,0.55), rgba(249,115,22,0))",
+          }}
+        />
+        <div
+          className={
+            "mesh-blob " + (reduceMotion ? "" : "motion-safe:animate-blob-b")
+          }
+          style={{
+            width: "620px",
+            height: "620px",
+            top: "12%",
+            right: "-10%",
+            background:
+              "radial-gradient(closest-side, rgba(139,92,246,0.5), rgba(139,92,246,0))",
+          }}
+        />
+        <div
+          className={
+            "mesh-blob " + (reduceMotion ? "" : "motion-safe:animate-blob-c")
+          }
+          style={{
+            width: "520px",
+            height: "520px",
+            bottom: "-12%",
+            left: "30%",
+            background:
+              "radial-gradient(closest-side, rgba(99,102,241,0.45), rgba(99,102,241,0))",
           }}
         />
       </div>
 
-      {/* Bottom-edge fade so the hero blends into the white section below */}
+      {/* Faint dot grid for texture — kept light so it's atmosphere, not pattern */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-b from-transparent to-[#0A0A0F]"
+        className="pointer-events-none absolute inset-0"
+        style={{
+          backgroundImage:
+            "radial-gradient(rgba(15,23,42,0.05) 1px, transparent 1.4px)",
+          backgroundSize: "28px 28px",
+          maskImage:
+            "radial-gradient(ellipse 70% 60% at 50% 50%, black 30%, transparent 85%)",
+          WebkitMaskImage:
+            "radial-gradient(ellipse 70% 60% at 50% 50%, black 30%, transparent 85%)",
+        }}
       />
 
       {/* Content */}
-      <div className="relative z-10 mx-auto max-w-[960px] w-full px-4 sm:px-6 lg:px-8 py-24 text-center">
-        {/* Eyebrow */}
-        <p className="text-[10px] sm:text-xs font-medium uppercase tracking-[0.16em] sm:tracking-[0.28em] text-orange-500/80 mb-6">
-          5,000+ AI tools, curated and searchable
-        </p>
+      <div className="relative z-10 mx-auto max-w-[1040px] w-full px-4 sm:px-6 lg:px-8 text-center">
+        {/* Eyebrow pill */}
+        <motion.div {...fadeUp} className="flex justify-center">
+          <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/80 backdrop-blur-sm border border-orange-200/60 text-[11px] sm:text-xs font-semibold uppercase tracking-[0.18em] text-orange-700 shadow-sm">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inset-0 rounded-full bg-orange-500/40 animate-ping motion-reduce:hidden" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500" />
+            </span>
+            5,000+ AI tools · updated daily
+          </span>
+        </motion.div>
 
         {/* Headline */}
-        <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-[80px] font-bold tracking-tight text-white leading-[1.05] mb-6">
+        <motion.h1
+          {...fadeUp}
+          transition={{ ...(fadeUp as { transition?: { duration?: number; ease?: [number, number, number, number] } }).transition, delay: 0.05 }}
+          className="mt-7 font-bold tracking-tight text-gray-900 leading-[1.03]"
+          style={{ fontSize: "clamp(40px, 6vw, 80px)" }}
+        >
           Every AI tool,{" "}
-          <span className="inline-block bg-gradient-to-r from-orange-500 via-orange-300 to-white bg-clip-text text-transparent">
-            organized.
-          </span>
-        </h1>
+          <span className="gradient-text inline-block">organized.</span>
+        </motion.h1>
 
-        {/* Subheading */}
-        <p className="text-base sm:text-lg text-gray-400 max-w-[600px] mx-auto leading-relaxed mb-10">
-          Find the right AI for any job — from writing and design to code,
-          research, and beyond. Search semantically, browse by category, or
-          let our AI recommend tools for you.
-        </p>
+        {/* Subhead */}
+        <motion.p
+          {...fadeUp}
+          transition={{ ...(fadeUp as { transition?: { duration?: number; ease?: [number, number, number, number] } }).transition, delay: 0.1 }}
+          className="mt-6 text-base sm:text-lg md:text-xl text-gray-600 max-w-[640px] mx-auto leading-relaxed"
+        >
+          Find the right AI for any job — writing, design, code, research, audio, video.
+          Search semantically, browse by category, or let our AI pick for you.
+        </motion.p>
 
         {/* Search bar */}
-        <form
+        <motion.form
+          {...fadeUp}
+          transition={{ ...(fadeUp as { transition?: { duration?: number; ease?: [number, number, number, number] } }).transition, delay: 0.15 }}
           onSubmit={handleSubmit}
-          className="relative max-w-2xl mx-auto group"
+          className="relative max-w-2xl mx-auto mt-10 group"
         >
-          {/* Subtle outer halo on focus */}
-          <div className="absolute -inset-0.5 rounded-full bg-orange-500/0 group-focus-within:bg-orange-500/20 blur-md transition-colors duration-200" />
+          <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-orange-500/0 via-violet-500/0 to-indigo-500/0 blur-xl transition-all duration-300 group-focus-within:from-orange-500/30 group-focus-within:via-violet-500/20 group-focus-within:to-indigo-500/30" />
           <div className="relative">
             <Search
-              className="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500"
+              className="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
               aria-hidden
             />
             <input
@@ -238,12 +300,12 @@ export const HeroSection = ({
               onChange={(e) => setLocalQuery(e.target.value)}
               placeholder="Try: 'AI tool to write LinkedIn posts'"
               aria-label="Search AI tools"
-              className="w-full h-16 pl-14 pr-32 rounded-full bg-white/[0.04] border border-white/10 text-white placeholder:text-gray-500 text-base backdrop-blur-sm focus:outline-none focus:border-orange-500 focus:bg-white/[0.07] focus:ring-2 focus:ring-orange-500/30 transition-all"
+              className="w-full h-16 pl-14 pr-32 sm:pr-36 rounded-full bg-white border border-gray-200 text-gray-900 placeholder:text-gray-400 text-base shadow-[0_8px_30px_-10px_rgba(15,23,42,0.12)] focus:outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-500/15 transition-all"
             />
             <Button
               type="submit"
               disabled={aiLoading}
-              className="absolute right-2 top-1/2 -translate-y-1/2 h-12 px-5 bg-orange-500 hover:bg-orange-600 disabled:opacity-80 text-white rounded-full font-medium shadow-[0_8px_24px_-8px_rgba(249,115,22,0.6)] active:scale-[0.98] transition-transform"
+              className="absolute right-2 top-1/2 -translate-y-1/2 h-12 px-5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 disabled:opacity-80 text-white rounded-full font-medium shadow-[0_8px_24px_-8px_rgba(249,115,22,0.55)] active:scale-[0.98] transition-transform"
             >
               {aiLoading ? (
                 <>
@@ -258,27 +320,60 @@ export const HeroSection = ({
               )}
             </Button>
           </div>
-        </form>
+        </motion.form>
 
         {/* Try chips */}
-        <div className="flex flex-wrap items-center justify-center gap-2 mt-6">
+        <motion.div
+          {...fadeUp}
+          transition={{ ...(fadeUp as { transition?: { duration?: number; ease?: [number, number, number, number] } }).transition, delay: 0.2 }}
+          className="flex flex-wrap items-center justify-center gap-2 mt-5"
+        >
           <span className="text-xs text-gray-500 mr-1">Try:</span>
           {TRY_QUERIES.map((q) => (
             <button
               key={q}
               type="button"
               onClick={() => handleChipClick(q)}
-              className="px-4 py-1.5 rounded-full text-sm bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10 hover:border-white/20 hover:text-white transition-colors"
+              className="px-4 py-1.5 rounded-full text-sm bg-white border border-gray-200 text-gray-700 hover:bg-orange-50 hover:border-orange-200 hover:text-orange-700 hover:-translate-y-px transition-all shadow-sm"
             >
               {q}
             </button>
           ))}
-        </div>
+        </motion.div>
 
-        {/* Social proof */}
-        <p className="text-xs text-gray-500 mt-10 tracking-wide">
-          Updated daily · 5,000+ tools · Free to browse
-        </p>
+        {/* Trust strip */}
+        <motion.div
+          {...fadeUp}
+          transition={{ ...(fadeUp as { transition?: { duration?: number; ease?: [number, number, number, number] } }).transition, delay: 0.25 }}
+          className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-2"
+        >
+          {TRUST_BULLETS.map((t) => (
+            <span key={t} className="inline-flex items-center gap-1.5 text-sm text-gray-600">
+              <Check className="w-4 h-4 text-orange-500" />
+              {t}
+            </span>
+          ))}
+        </motion.div>
+
+        {/* Social proof — featured AI tools logo row */}
+        <motion.div
+          {...fadeUp}
+          transition={{ ...(fadeUp as { transition?: { duration?: number; ease?: [number, number, number, number] } }).transition, delay: 0.3 }}
+          className="mt-12 flex flex-wrap items-center justify-center gap-x-5 sm:gap-x-8 gap-y-3"
+        >
+          <span className="text-xs font-medium uppercase tracking-wider text-gray-400">
+            Featured AI tools
+          </span>
+          {SOCIAL_PROOF_LOGOS.map((name) => (
+            <span
+              key={name}
+              className="text-sm font-semibold text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              {name}
+            </span>
+          ))}
+          <span className="text-sm text-gray-400">· 5,000+ more</span>
+        </motion.div>
       </div>
     </section>
   );
