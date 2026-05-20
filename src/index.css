@@ -141,7 +141,9 @@
     0%,   100% { background-position: 0% 50%; }
     50%        { background-position: 100% 50%; }
   }
-  @media (prefers-reduced-motion: reduce) {
+  @media (prefers-reduced-motion: reduce), (max-width: 767px) {
+    /* Mobile pauses the sweep so the GPU isn't repainting the
+     * background every frame. The static gradient still reads. */
     .gradient-text-sweep {
       animation: none;
       background-position: 50% 50%;

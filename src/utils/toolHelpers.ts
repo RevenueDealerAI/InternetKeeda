@@ -95,7 +95,6 @@ export const getToolLogo = (tool: ApiTool | MockTool | undefined): string => {
 
   const toolName = tool.name || 'Tool';
 
-  console.log('tool', tool);
   if ('logo' in tool && tool.logo && tool.logo.trim()) {
     const logoUrl = tool.logo.trim();
     

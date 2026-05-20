@@ -11,45 +11,39 @@ interface ConditionalClerkProviderProps {
 /**
  * ConditionalClerkProvider - Wraps ClerkProvider but only activates it
  * when NOT in an iframe. This prevents redirect loops in Envato preview.
+ *
+ * A previous experiment tried skipping ClerkProvider entirely on
+ * "public" routes to defer the Clerk SDK download. Reverted because
+ * every page renders Navigation which calls useUser() unconditionally;
+ * useUser throws outside a ClerkProvider tree. Stubbing useUser
+ * requires either a custom hook everywhere it's called (invasive) or
+ * a React-context shim that mirrors Clerk's internals (fragile).
+ * Easier mobile wins live elsewhere.
  */
 export function ConditionalClerkProvider({ children, publishableKey }: ConditionalClerkProviderProps) {
-    const [isInIframe, setIsInIframe] = useState<boolean | null>(null);
+    // Default to NOT-iframed (the 99% case). On client mount we detect
+    // and re-render without ClerkProvider only if we actually ARE in
+    // an iframe. Previously this state defaulted to `null` and returned
+    // a spinner — which was both an LCP regression and broke static
+    // prerender of admin pages because the children (including
+    // useUser callers) never got a ClerkProvider in the SSR pass.
+    const [isInIframe, setIsInIframe] = useState(false);
 
     useEffect(() => {
-        // Check if we're inside an iframe
         try {
-            const inIframe = window.self !== window.top;
-            setIsInIframe(inIframe);
-        } catch (e) {
-            // If we can't access window.top due to cross-origin restrictions,
-            // we're definitely in an iframe
+            setIsInIframe(window.self !== window.top);
+        } catch {
             setIsInIframe(true);
         }
     }, []);
 
-    // While we're determining if we're in an iframe, show a loading state
-    // to prevent flash of content or premature Clerk initialization
-    if (isInIframe === null) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600" />
-            </div>
-        );
-    }
-
-    // If in iframe, render without ClerkProvider to avoid redirect loops
     if (isInIframe) {
         return <>{children}</>;
     }
 
-    // Fallback placeholder key so the SDK can initialise in local dev when
-    // no .env.local key is provided. It decodes to "clerk.example.com$" — the
-    // SDK won't reach a real backend, but useUser/useClerk return signed-out
-    // defaults instead of throwing "useUser can only be used within ClerkProvider".
     const PLACEHOLDER_KEY = 'pk_test_Y2xlcmsuZXhhbXBsZS5jb20k';
     const keyToUse = publishableKey || PLACEHOLDER_KEY;
 
-    // Normal case: render with ClerkProvider
     return (
         <ClerkProvider publishableKey={keyToUse}>
             {children}

@@ -2,8 +2,10 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { staggerCardProps } from "@/lib/animations";
+// framer-motion completely removed from the home page client bundle —
+// the tool grid + Load More + skeleton transitions are all CSS-driven
+// now. Below-fold sections that DO use motion are next/dynamic chunks
+// loaded on scroll, not on the critical path.
 import { useDebounce } from "use-debounce";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { Badge } from "@/components/ui/badge";
@@ -174,7 +176,6 @@ export default function Index() {
   });
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const { config } = useSiteConfig();
-  const reduceMotion = useReducedMotion();
 
   // Hero AI-search state — lifted up so the grid below can render AI matches.
   const [aiQuery, setAiQuery] = useState<string>('');
@@ -649,20 +650,9 @@ export default function Index() {
                               src={getToolLogo(tool)}
                               alt={tool.name}
                               fill
+                              sizes="32px"
                               className="object-cover"
                               unoptimized
-                              onLoad={() => {
-                                console.log(`[Image] Successfully loaded logo for: ${tool.name}`);
-                              }}
-                              onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                const originalSrc = target.src;
-                                console.error(`[Image] Failed to load logo for: ${tool.name}, URL: ${originalSrc}`);
-                                target.onerror = null;
-                                const fallbackUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(tool.name)}&background=6366f1&color=fff&bold=true&format=svg`;
-                                console.log(`[Image] Using fallback for: ${tool.name}, URL: ${fallbackUrl}`);
-                                target.src = fallbackUrl;
-                              }}
                             />
                           </div>
                           <div className="flex-1 min-w-0">
@@ -718,8 +708,8 @@ export default function Index() {
           </div>
         )}
 
-        {/* Tools Grid with Animation */}
-        <AnimatePresence mode="popLayout">
+        {/* Tools Grid */}
+        <>
           {aiLoading ? (
             <ToolCardSkeletonGrid count={8} />
           ) : (initialLoad || isToolsLoading) ? (
@@ -742,138 +732,105 @@ export default function Index() {
               </Button>
             </div>
           ) : (
-            <motion.div
-              layout
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-8"
-            >
-              <AnimatePresence mode="popLayout">
-                {(aiResults.length > 0 ? aiResults : visibleTools).map((tool, index) => (
-                  <motion.div
-                    key={tool.id}
-                    {...staggerCardProps(index, reduceMotion)}
-                    {...(reduceMotion ? {} : { exit: { opacity: 0, y: 20 } })}
-                    className="h-[320px]"
-                  >
-                    <Link href={`/ai-tools/${tool.slug}`} className="group block h-full">
-                      <article className="relative h-full transform-gpu transition-all duration-200 group overflow-hidden">
-                        {/* Base layer with refined background */}
-                        <div className="absolute inset-0 bg-white/90 backdrop-blur-md rounded-2xl shadow-[0_2px_8px_-2px_rgba(22,23,24,0.05)] group-hover:shadow-lg group-hover:shadow-orange-500/10 transition-all duration-200" />
-                        
-                        {/* Gradient overlay with subtle color */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-orange-50/50 via-white/50 to-blue-50/50 rounded-2xl opacity-40 group-hover:opacity-60 transition-all duration-200" />
-                        
-                        {/* Enhanced border effect */}
-                        <div className="absolute inset-0 ring-1 ring-inset ring-gray-200 group-hover:ring-orange-200 rounded-2xl transition-all duration-200" />
-                        <div className="absolute inset-[1px] ring-1 ring-inset ring-black/[0.025] group-hover:ring-orange-900/[0.05] rounded-[15px] transition-all duration-200" />
-                        
-                        {/* Hover glow effect */}
-                        <div className="absolute -inset-0.5 bg-gradient-to-br from-orange-500/[0.07] via-transparent to-blue-500/[0.07] rounded-[1rem] opacity-0 group-hover:opacity-100 blur transition-all duration-200" />
-                        
-                        {/* Content container */}
-                        <div className="relative p-6 flex flex-col h-full group-hover:translate-y-[-2px] transition-all duration-200">
-                          {/* Header with Image and Title */}
-                          <div className="flex items-start gap-4 mb-3">
-                            <div className="relative shrink-0 group-hover:scale-[1.02] transition-transform duration-200">
-                              <div className="w-16 h-16 rounded-xl overflow-hidden bg-gradient-to-br from-orange-100/80 to-blue-50/80 shadow-sm ring-1 ring-black/[0.08] group-hover:shadow-md group-hover:shadow-orange-500/10 transition-all duration-200 relative">
-                                <Image
-                                  src={getToolLogo(tool)}
-                                  alt={tool.name}
-                                  fill
-                                  className="object-cover transform transition-transform duration-200 group-hover:scale-[1.05]"
-                                  unoptimized
-                                  onLoad={() => {
-                                    console.log(`[Image] Successfully loaded logo for: ${tool.name}`);
-                                  }}
-                                  onError={(e) => {
-                                    const target = e.target as HTMLImageElement;
-                                    const originalSrc = target.src;
-                                    console.error(`[Image] Failed to load logo for: ${tool.name}, URL: ${originalSrc}`);
-                                    target.onerror = null;
-                                    const fallbackUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(tool.name)}&background=6366f1&color=fff&bold=true&format=svg`;
-                                    console.log(`[Image] Using fallback for: ${tool.name}, URL: ${fallbackUrl}`);
-                                    target.src = fallbackUrl;
-                                  }}
-                                />
-                              </div>
-                              {(tool.isTrending || tool.isNew) && (
-                                <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-1 shadow-md transform group-hover:scale-110 group-hover:rotate-3 transition-all duration-200">
-                                  {tool.isTrending ? (
-                                    <div className="bg-gradient-to-r from-orange-500 to-pink-500 rounded-full p-1">
-                                      <TrendingUp className="w-3 h-3 text-white" />
-                                    </div>
-                                  ) : (
-                                    <div className="bg-gradient-to-r from-green-500 to-emerald-500 rounded-full p-1">
-                                      <Sparkles className="w-3 h-3 text-white" />
-                                    </div>
-                                  )}
+            // Plain DOM grid — previously this used <motion.div layout>
+            // wrapping <AnimatePresence> wrapping per-card <motion.div>.
+            // At 60 cards on the home grid that's 60 framer-motion
+            // instances + 2 AnimatePresence trees, each running stagger
+            // animation on initial paint. Lighthouse mobile TBT was
+            // dominated by this. The stagger reveal is nice-to-have, not
+            // load-bearing — replaced with a single CSS hover effect.
+            // Per-image console.log/error handlers also removed; the
+            // getToolLogo helper already provides a safe fallback URL.
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-8">
+              {(aiResults.length > 0 ? aiResults : visibleTools).map((tool) => (
+                <Link
+                  key={tool.id}
+                  href={`/ai-tools/${tool.slug}`}
+                  className="group block h-[320px]"
+                >
+                  <article className="relative h-full transform-gpu transition-all duration-200 group overflow-hidden">
+                    <div className="absolute inset-0 bg-white/90 backdrop-blur-md rounded-2xl shadow-[0_2px_8px_-2px_rgba(22,23,24,0.05)] group-hover:shadow-lg group-hover:shadow-orange-500/10 transition-all duration-200" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-orange-50/50 via-white/50 to-blue-50/50 rounded-2xl opacity-40 group-hover:opacity-60 transition-all duration-200" />
+                    <div className="absolute inset-0 ring-1 ring-inset ring-gray-200 group-hover:ring-orange-200 rounded-2xl transition-all duration-200" />
+                    <div className="absolute inset-[1px] ring-1 ring-inset ring-black/[0.025] group-hover:ring-orange-900/[0.05] rounded-[15px] transition-all duration-200" />
+                    <div className="relative p-6 flex flex-col h-full group-hover:translate-y-[-2px] transition-all duration-200">
+                      <div className="flex items-start gap-4 mb-3">
+                        <div className="relative shrink-0 group-hover:scale-[1.02] transition-transform duration-200">
+                          <div className="w-16 h-16 rounded-xl overflow-hidden bg-gradient-to-br from-orange-100/80 to-blue-50/80 shadow-sm ring-1 ring-black/[0.08] group-hover:shadow-md group-hover:shadow-orange-500/10 transition-all duration-200 relative">
+                            <Image
+                              src={getToolLogo(tool)}
+                              alt={tool.name}
+                              fill
+                              sizes="64px"
+                              className="object-cover transform transition-transform duration-200 group-hover:scale-[1.05]"
+                              unoptimized
+                            />
+                          </div>
+                          {(tool.isTrending || tool.isNew) && (
+                            <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-1 shadow-md">
+                              {tool.isTrending ? (
+                                <div className="bg-gradient-to-r from-orange-500 to-pink-500 rounded-full p-1">
+                                  <TrendingUp className="w-3 h-3 text-white" />
+                                </div>
+                              ) : (
+                                <div className="bg-gradient-to-r from-green-500 to-emerald-500 rounded-full p-1">
+                                  <Sparkles className="w-3 h-3 text-white" />
                                 </div>
                               )}
                             </div>
-                            
-                            <div className="flex-1 min-w-0">
-                              <h3 className="text-lg font-semibold text-gray-900 truncate group-hover:text-orange-600 transition-all duration-200">
-                                {tool.name}
-                              </h3>
-                              <div className="flex items-center gap-2 mt-1.5">
-                                <div className="flex items-center bg-yellow-50 px-2 py-0.5 rounded-full group-hover:bg-yellow-100 group-hover:scale-[1.02] transition-all duration-200">
-                                  <Star className="w-3.5 h-3.5 text-yellow-500" />
-                                  <span className="ml-1 text-sm font-medium text-yellow-700">{tool.rating}</span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Description with improved readability */}
-                          <p className="text-sm text-gray-600 mb-3 line-clamp-2 group-hover:text-gray-700 transition-all duration-200">
-                            {tool.description_ai || tool.description}
-                          </p>
-
-                          {/* Tags Row with enhanced interactivity */}
-                          <div className="flex flex-wrap gap-2 mb-4">
-                            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-medium bg-gray-100/80 text-gray-600 group-hover:bg-gray-200 group-hover:text-gray-700 group-hover:scale-[1.02] transition-all duration-200">
-                              <Tag className="w-3 h-3 text-gray-400 group-hover:text-gray-500 transition-colors duration-200" />
-                              {tool.category}
-                            </span>
-                            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-medium bg-orange-100/80 text-orange-600 group-hover:bg-orange-200 group-hover:text-orange-700 group-hover:scale-[1.02] transition-all duration-200">
-                              <Zap className="w-3 h-3" />
-                              {tool.pricing.type}
-                            </span>
-                          </div>
-
-                          {/* Bottom Stats with subtle animations */}
-                          <div className="flex items-center justify-between pt-4 border-t border-gray-100 mt-auto group-hover:border-gray-200 transition-all duration-200">
-                            <div className="flex items-center gap-1.5 text-gray-500 group-hover:text-gray-600 transition-all duration-200">
-                              <Eye className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" />
-                              <AnimatedCounter value={tool.views} className="text-sm" />
-                            </div>
-                            <div className="flex items-center gap-1.5 text-gray-500 group-hover:text-gray-600 transition-all duration-200">
-                              <ArrowUp className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" />
-                              <AnimatedCounter value={tool.votes} className="text-sm" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-lg font-semibold text-gray-900 truncate group-hover:text-orange-600 transition-all duration-200">
+                            {tool.name}
+                          </h3>
+                          <div className="flex items-center gap-2 mt-1.5">
+                            <div className="flex items-center bg-yellow-50 px-2 py-0.5 rounded-full">
+                              <Star className="w-3.5 h-3.5 text-yellow-500" />
+                              <span className="ml-1 text-sm font-medium text-yellow-700">{tool.rating}</span>
                             </div>
                           </div>
                         </div>
-                      </article>
-                    </Link>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-              {/* Tier 1c — skeleton row appended below existing cards while pagination loads */}
+                      </div>
+                      <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                        {tool.description_ai || tool.description}
+                      </p>
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-medium bg-gray-100/80 text-gray-600">
+                          <Tag className="w-3 h-3 text-gray-400" />
+                          {tool.category}
+                        </span>
+                        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-medium bg-orange-100/80 text-orange-600">
+                          <Zap className="w-3 h-3" />
+                          {tool.pricing.type}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between pt-4 border-t border-gray-100 mt-auto">
+                        <div className="flex items-center gap-1.5 text-gray-500">
+                          <Eye className="w-4 h-4" />
+                          <AnimatedCounter value={tool.views} className="text-sm" />
+                        </div>
+                        <div className="flex items-center gap-1.5 text-gray-500">
+                          <ArrowUp className="w-4 h-4" />
+                          <AnimatedCounter value={tool.votes} className="text-sm" />
+                        </div>
+                      </div>
+                    </div>
+                  </article>
+                </Link>
+              ))}
               {loading && Array.from({ length: 4 }).map((_, i) => (
                 <div key={`page-skel-${i}`} className="h-[320px]">
                   <ToolCardSkeleton />
                 </div>
               ))}
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
+        </>
 
-        {/* Load More Button — hidden when AI mode is showing curated results */}
+        {/* Load More Button */}
         {(hasMore || loading) && aiResults.length === 0 && !aiLoading && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="py-12 text-center relative z-10"
-          >
+          <div className="py-12 text-center relative z-10">
             <Button
               onClick={fetchMoreData}
               variant="ghost"
@@ -881,7 +838,7 @@ export default function Index() {
             >
               Load More Tools <ChevronDown className="h-5 w-5" />
             </Button>
-          </motion.div>
+          </div>
         )}
       </div>
 

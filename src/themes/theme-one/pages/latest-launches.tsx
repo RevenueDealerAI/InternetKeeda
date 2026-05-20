@@ -40,7 +40,6 @@ export const LatestLaunches = () => {
       // For "All Time", prioritize tools marked as new, then show recent tools
       const newTools = allTools.filter(tool => tool.isNew);
       const otherTools = allTools.filter(tool => !tool.isNew);
-      console.log('Debug - New tools:', newTools.length, 'Other tools:', otherTools.length);
       return [...newTools, ...otherTools];
     }
 
@@ -56,14 +55,8 @@ export const LatestLaunches = () => {
 
     const filteredByDate = allTools.filter(tool => {
       const toolDate = new Date(tool.createdAt);
-      const isInRange = toolDate.getTime() >= cutoffTime;
-      if (timeFilter === 'week') {
-        console.log('Debug - Tool:', tool.name, 'Date:', toolDate.toDateString(), 'Days ago:', Math.floor((now.getTime() - toolDate.getTime()) / msPerDay), 'In range:', isInRange);
-      }
-      return isInRange;
+      return toolDate.getTime() >= cutoffTime;
     });
-    
-    console.log('Debug - Tools after date filter:', filteredByDate.length);
     return filteredByDate;
   };
 
