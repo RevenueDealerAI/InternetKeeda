@@ -1,9 +1,42 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import dynamic from "next/dynamic";
 import { Search, ArrowRight, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useReducedMotion } from "framer-motion";
+
+// Vanilla-WebGL hero backdrop. Lazy-loaded so its ~4 KB only ships
+// when we actually mount it (desktop, motion-allowed). SSR off — it
+// needs `document` + a real canvas.
+const HeroShader = dynamic(() => import("./HeroShader"), { ssr: false });
+
+/** Splits a string into letter spans with a staggered CSS animation
+ * delay applied inline. Spaces render as plain spaces (not animated)
+ * so the headline stays selectable. Total reveal ≈ 30ms per char +
+ * the per-letter 450ms fade — so ~ 0.03 * length + 0.45 s overall. */
+const DecodeText = ({ children, startDelayMs = 0 }: { children: string; startDelayMs?: number }) => {
+  const STEP = 28; // ms between letters
+  let i = 0;
+  return (
+    <>
+      {Array.from(children).map((ch) => {
+        if (ch === " ") return <span key={`s${i++}`}>{" "}</span>;
+        const delay = startDelayMs + i * STEP;
+        i += 1;
+        return (
+          <span
+            key={`c${i}`}
+            className="decode-letter"
+            style={{ animationDelay: `${delay}ms` }}
+          >
+            {ch}
+          </span>
+        );
+      })}
+    </>
+  );
+};
 
 interface HeroSectionProps {
   searchQuery?: string;
@@ -162,9 +195,26 @@ export const HeroSection = ({
     return () => document.removeEventListener("keydown", handler);
   }, [setIsSearchOpen]);
 
-  // Hero entrance is now CSS-driven (.hero-fade-up class + per-element
-  // animation-delay). framer-motion was making the LCP headline invisible
-  // until hydration, which blew LCP out to 8s on mobile Lighthouse runs.
+  // Gate the WebGL backdrop: only desktop (md+) and only when the user
+  // hasn't opted into reduced motion. Mobile keeps the CSS mesh blobs
+  // (cheap, already there). State starts false so SSR + mobile + RM
+  // never even import the module.
+  const [enableShader, setEnableShader] = useState(false);
+  useEffect(() => {
+    if (reduceMotion) return;
+    const mqDesktop = window.matchMedia("(min-width: 768px)");
+    const mqTouch = window.matchMedia("(hover: none) and (pointer: coarse)");
+    if (mqDesktop.matches && !mqTouch.matches) {
+      // Defer one frame so the hero's CSS reveal animations start
+      // first — shader paints behind them ~16 ms later.
+      const id = requestAnimationFrame(() => setEnableShader(true));
+      return () => cancelAnimationFrame(id);
+    }
+  }, [reduceMotion]);
+
+  // Hero entrance is CSS-driven (.hero-fade-up + .decode-letter), so
+  // the LCP element paints immediately without waiting for framer
+  // hydration. Headline gets a per-letter decode reveal on top.
   return (
     <section
       ref={heroRef}
@@ -176,15 +226,22 @@ export const HeroSection = ({
         className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#FAFAFA] via-white to-white"
       />
 
-      {/* Gradient mesh — three blurred blobs drift independently behind
-       * the content. Heavy on GPU (mix-blend + 80px blur + keyframes),
-       * so we ONLY render on md and up. Mobile gets the soft off-white
-       * wash instead, which keeps the hero lightweight on the platform
-       * where the perf budget matters most. */}
+      {/* WebGL backdrop — desktop, motion-allowed only. Sits behind the
+       * CSS mesh blobs; when active the CSS mesh is hidden so we don't
+       * double up. Mobile keeps the CSS mesh as the fallback. */}
+      {enableShader && (
+        <div aria-hidden className="pointer-events-none absolute inset-0">
+          <HeroShader />
+        </div>
+      )}
+
+      {/* Gradient mesh — fallback layer. On desktop with motion + WebGL
+       * the shader replaces this; on mobile or reduced-motion we keep
+       * the CSS mesh as the lightweight backdrop. */}
       <div
         aria-hidden
         ref={parallaxRef}
-        className="pointer-events-none absolute inset-0 will-change-transform hidden md:block"
+        className={`pointer-events-none absolute inset-0 will-change-transform hidden md:block ${enableShader ? "md:hidden" : ""}`}
         style={{ transform: "translate3d(0,0,0)" }}
       >
         <div
@@ -257,15 +314,25 @@ export const HeroSection = ({
           </span>
         </div>
 
-        {/* Headline — LCP element. NO opacity:0 initial state so it
-         * paints immediately on first byte; the CSS fade-up runs once
-         * over 0.55s but the text is visible the whole time. */}
+        {/* Headline — LCP element. Letters reveal individually via
+         * .decode-letter staggered animation; the accent word
+         * "organized." gets the animated gradient sweep on top.
+         * Wrapped so the headline paints visible immediately on first
+         * byte even before the per-letter animation kicks in
+         * (decode opacity:0 starts at the per-letter level — the
+         * container is opacity:1 so any non-decoded fallback text
+         * remains visible). */}
         <h1
           className="mt-7 font-bold tracking-tight text-gray-900 leading-[1.03] hero-fade-up"
           style={{ fontSize: "clamp(40px, 6vw, 80px)", animationDelay: "0.05s" }}
         >
-          Every AI tool,{" "}
-          <span className="gradient-text inline-block">organized.</span>
+          <span aria-label="Every AI tool, organized." className="sr-only">Every AI tool, organized.</span>
+          <span aria-hidden>
+            <DecodeText>Every AI tool, </DecodeText>
+            <span className="gradient-text-sweep inline-block">
+              <DecodeText startDelayMs={420}>organized.</DecodeText>
+            </span>
+          </span>
         </h1>
 
         {/* Subhead */}
