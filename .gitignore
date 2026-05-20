@@ -139,3 +139,6 @@ temp/
 
 # Raw archive extraction (canonical sources live in src/ and scripts/seed-data/)
 extracted/
+
+# Raw brand asset drop folder (canonical files live in public/brand/)
+Transparent/
