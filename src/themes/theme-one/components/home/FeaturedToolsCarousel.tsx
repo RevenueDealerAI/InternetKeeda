@@ -112,12 +112,12 @@ export const FeaturedToolsCarousel = () => {
                         className="gradient-border group block h-full bg-white rounded-2xl border border-gray-200 p-5 hover:shadow-[0_18px_40px_-20px_rgba(220,38,38,0.25)] hover:-translate-y-1 transition-all duration-200"
                       >
                         <div className="flex items-center gap-3">
-                          <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-gradient-to-br from-red-50 to-gray-50 ring-1 ring-gray-200/80 shrink-0">
+                          <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-gradient-to-br from-red-50 to-gray-50 ring-1 ring-gray-200/80 shrink-0">
                             <Image
                               src={getToolLogo(tool)}
                               alt={tool.name}
                               fill
-                              sizes="48px"
+                              sizes="56px"
                               className="object-cover"
                               unoptimized
                             />

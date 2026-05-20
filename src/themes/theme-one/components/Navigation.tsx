@@ -152,12 +152,12 @@ export const Navigation = () => {
           (dark on home over the hero, light everywhere else). */}
       <div className={`fixed top-0 left-0 right-0 z-[60] transition-colors duration-200 ${headerSurface}`}>
         <div className="mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex items-center justify-between h-20">
               {/* Logo and main navigation */}
               <div className="flex items-center gap-8">
                 <SiteLogo
                   variant="auto"
-                  height={36}
+                  height={48}
                   priority
                   className="group-hover:scale-[1.03] transition-transform"
                 />
@@ -413,7 +413,7 @@ export const Navigation = () => {
             animate={{ y: 0 }}
             exit={reduceMotion ? { opacity: 0 } : { y: -16, transition: { duration: 0.18, ease: [0.4, 0, 1, 1] } }}
             transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-            className="md:hidden fixed inset-0 bg-white z-[80] pt-16"
+            className="md:hidden fixed inset-0 bg-white z-[80] pt-20"
             style={{ height: "100dvh" }}
           >
             <div className="absolute top-4 right-4 z-10">

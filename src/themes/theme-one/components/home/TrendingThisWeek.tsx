@@ -85,12 +85,12 @@ export const TrendingThisWeek = () => {
                     />
                     <div className="relative h-full bg-white rounded-2xl border border-white p-6 sm:p-7 hover:-translate-y-1 transition-transform duration-200 shadow-[0_1px_2px_rgba(15,23,42,0.05)]">
                       <div className="flex items-start gap-3">
-                        <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-gradient-to-br from-red-50 to-gray-50 ring-1 ring-gray-200/80 shrink-0">
+                        <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-gradient-to-br from-red-50 to-gray-50 ring-1 ring-gray-200/80 shrink-0">
                           <Image
                             src={getToolLogo(tool)}
                             alt={tool.name}
                             fill
-                            sizes="48px"
+                            sizes="56px"
                             className="object-cover"
                             unoptimized
                           />

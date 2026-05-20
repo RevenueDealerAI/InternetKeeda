@@ -70,12 +70,12 @@ export const ProductCard = ({
           {/* Logo in a soft gradient halo */}
           <div className="relative flex-shrink-0">
             <div className="absolute -inset-1 rounded-2xl bg-gradient-to-br from-red-100 via-red-50 to-gray-100 opacity-0 group-hover:opacity-100 blur-md transition-opacity duration-300" aria-hidden />
-            <div className="relative w-14 h-14 rounded-2xl overflow-hidden bg-gradient-to-br from-red-50 to-gray-50 ring-1 ring-gray-200/80 group-hover:ring-orange-200 transition-all duration-200">
+            <div className="relative w-16 h-16 rounded-2xl overflow-hidden bg-gradient-to-br from-red-50 to-gray-50 ring-1 ring-gray-200/80 group-hover:ring-orange-200 transition-all duration-200">
               <Image
                 src={imageUrl}
                 alt={name}
                 fill
-                sizes="56px"
+                sizes="64px"
                 className="object-cover"
                 unoptimized
                 onError={(e) => {

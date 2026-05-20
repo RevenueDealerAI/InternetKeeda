@@ -86,7 +86,7 @@ export const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-12 gap-10">
           {/* Brand + newsletter — wider column */}
           <div className="md:col-span-5 space-y-5">
-            <SiteLogo variant="light" height={44} className="group-hover:scale-[1.03] transition-transform" />
+            <SiteLogo variant="light" height={56} className="group-hover:scale-[1.03] transition-transform" />
             <p className="text-sm text-gray-600 leading-relaxed max-w-md">
               {siteDescription}
             </p>
