@@ -10,7 +10,7 @@ const TESTIMONIALS = [
     name: "Jamie Holloway",
     role: "Product Designer · Brooklyn",
     initials: "JH",
-    tint: { from: "from-orange-100", to: "to-amber-100", text: "text-orange-700" },
+    tint: { from: "from-red-100", to: "to-red-50", text: "text-red-700" },
   },
   {
     quote:
@@ -18,7 +18,7 @@ const TESTIMONIALS = [
     name: "Priya Subramanian",
     role: "Marketing Lead · Austin",
     initials: "PS",
-    tint: { from: "from-violet-100", to: "to-fuchsia-100", text: "text-violet-700" },
+    tint: { from: "from-gray-100", to: "to-red-50", text: "text-gray-900" },
   },
   {
     quote:
@@ -26,7 +26,7 @@ const TESTIMONIALS = [
     name: "Marcus Diallo",
     role: "Indie Founder · SF",
     initials: "MD",
-    tint: { from: "from-indigo-100", to: "to-sky-100", text: "text-indigo-700" },
+    tint: { from: "from-red-200", to: "to-red-100", text: "text-red-800" },
   },
 ];
 

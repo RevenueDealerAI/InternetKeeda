@@ -64,14 +64,14 @@ export const ProductCard = ({
       onClick={handleCardClick}
       whileHover={reduceMotion ? undefined : { y: -4 }}
       transition={{ type: "spring", stiffness: 320, damping: 24 }}
-      className="gradient-border group relative h-full bg-white rounded-2xl border border-gray-200 shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:shadow-[0_18px_40px_-20px_rgba(99,102,241,0.25)] transition-shadow duration-200 cursor-pointer overflow-hidden"
+      className="gradient-border group relative h-full bg-white rounded-2xl border border-gray-200 shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:shadow-[0_18px_40px_-20px_rgba(220,38,38,0.25)] transition-shadow duration-200 cursor-pointer overflow-hidden"
     >
       <div className="p-5">
         <div className="flex items-start gap-4">
           {/* Logo in a soft gradient halo */}
           <div className="relative flex-shrink-0">
-            <div className="absolute -inset-1 rounded-2xl bg-gradient-to-br from-orange-100 via-violet-100 to-indigo-100 opacity-0 group-hover:opacity-100 blur-md transition-opacity duration-300" aria-hidden />
-            <div className="relative w-14 h-14 rounded-2xl overflow-hidden bg-gradient-to-br from-orange-50 to-violet-50 ring-1 ring-gray-200/80 group-hover:ring-orange-200 transition-all duration-200">
+            <div className="absolute -inset-1 rounded-2xl bg-gradient-to-br from-red-100 via-red-50 to-gray-100 opacity-0 group-hover:opacity-100 blur-md transition-opacity duration-300" aria-hidden />
+            <div className="relative w-14 h-14 rounded-2xl overflow-hidden bg-gradient-to-br from-red-50 to-gray-50 ring-1 ring-gray-200/80 group-hover:ring-orange-200 transition-all duration-200">
               <Image
                 src={imageUrl}
                 alt={name}
@@ -130,7 +130,7 @@ export const ProductCard = ({
               <Button
                 size="sm"
                 variant="outline"
-                className="h-9 border-gray-200 text-gray-700 hover:bg-violet-50 hover:border-violet-200 hover:text-violet-700 transition-colors"
+                className="h-9 border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-900 transition-colors"
                 onClick={(e) => {
                   e.stopPropagation();
                   router.push(`/ai-tools/${slug}`);

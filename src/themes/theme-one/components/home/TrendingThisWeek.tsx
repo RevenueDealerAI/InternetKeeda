@@ -10,9 +10,9 @@ import { getToolLogo } from "@/utils/toolHelpers";
 import { Tool } from "@/types/tool";
 
 const GRADIENT_RING = [
-  "from-orange-200/60 via-rose-200/40 to-amber-200/60",
-  "from-violet-200/60 via-fuchsia-200/40 to-indigo-200/60",
-  "from-indigo-200/60 via-sky-200/40 to-cyan-200/60",
+  "from-red-300/60 via-red-200/40 to-red-100/60",
+  "from-red-200/60 via-red-300/40 to-gray-200/60",
+  "from-gray-300/60 via-red-200/40 to-red-300/60",
 ];
 
 /** Three trending tools in a gradient-bordered grid. Derived from total
@@ -83,7 +83,7 @@ export const TrendingThisWeek = () => {
                     />
                     <div className="relative h-full bg-white rounded-2xl border border-white p-6 sm:p-7 hover:-translate-y-1 transition-transform duration-200 shadow-[0_1px_2px_rgba(15,23,42,0.05)]">
                       <div className="flex items-start gap-3">
-                        <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-gradient-to-br from-orange-50 to-violet-50 ring-1 ring-gray-200/80 shrink-0">
+                        <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-gradient-to-br from-red-50 to-gray-50 ring-1 ring-gray-200/80 shrink-0">
                           <Image
                             src={getToolLogo(tool)}
                             alt={tool.name}

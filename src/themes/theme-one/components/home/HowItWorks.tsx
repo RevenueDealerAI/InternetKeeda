@@ -8,19 +8,19 @@ const STEPS = [
     icon: Search,
     title: "Browse",
     body: "Filter 5,000+ AI tools by category, pricing, or rating. Or search semantically for what you actually want to do.",
-    tint: { ring: "ring-orange-200", bg: "bg-orange-50", text: "text-orange-600" },
+    tint: { ring: "ring-red-200", bg: "bg-red-50", text: "text-red-600" },
   },
   {
     icon: Sparkles,
     title: "Discover",
     body: "Our AI matches your prompt to tools — even if your wording doesn't match their name. Read AI-rewritten plain-English descriptions, not marketing fluff.",
-    tint: { ring: "ring-violet-200", bg: "bg-violet-50", text: "text-violet-600" },
+    tint: { ring: "ring-red-300", bg: "bg-red-100", text: "text-red-700" },
   },
   {
     icon: Rocket,
     title: "Try",
     body: "Click through directly to the tool — no signup wall on our end. Save favorites and come back when you need them.",
-    tint: { ring: "ring-indigo-200", bg: "bg-indigo-50", text: "text-indigo-600" },
+    tint: { ring: "ring-gray-300", bg: "bg-gray-100", text: "text-gray-900" },
   },
 ];
 
@@ -63,8 +63,8 @@ export const HowItWorks = () => {
               <defs>
                 <linearGradient id="howline" x1="0%" y1="0%" x2="100%" y2="0%">
                   <stop offset="0%"  stopColor="#DC2626" />
-                  <stop offset="50%" stopColor="#8B5CF6" />
-                  <stop offset="100%" stopColor="#6366F1" />
+                  <stop offset="50%" stopColor="#991B1B" />
+                  <stop offset="100%" stopColor="#0A0A0A" />
                 </linearGradient>
               </defs>
               <motion.path

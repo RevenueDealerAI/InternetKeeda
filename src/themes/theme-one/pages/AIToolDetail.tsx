@@ -325,7 +325,7 @@ export const AIToolDetail = () => {
                       <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 sm:gap-6">
                         {/* Tool Image - Centered on mobile */}
                         <div className="relative">
-                          <div className="w-28 h-28 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-gradient-to-br from-orange-100 via-violet-50 to-indigo-50 ring-1 ring-orange-200/60 shadow-sm flex items-center justify-center relative">
+                          <div className="w-28 h-28 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-gradient-to-br from-red-100 via-red-50 to-gray-50 ring-1 ring-red-200/60 shadow-sm flex items-center justify-center relative">
                             <Image
                               src={getToolLogo(tool)}
                               alt={tool.name}

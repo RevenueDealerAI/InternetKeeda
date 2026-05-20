@@ -215,7 +215,7 @@ export const HeroSection = ({
             top: "12%",
             right: "-10%",
             background:
-              "radial-gradient(closest-side, rgba(139,92,246,0.5), rgba(139,92,246,0))",
+              "radial-gradient(closest-side, rgba(153,27,27,0.45), rgba(153,27,27,0))",
           }}
         />
         <div
@@ -228,7 +228,7 @@ export const HeroSection = ({
             bottom: "-12%",
             left: "30%",
             background:
-              "radial-gradient(closest-side, rgba(99,102,241,0.45), rgba(99,102,241,0))",
+              "radial-gradient(closest-side, rgba(15,15,15,0.18), rgba(15,15,15,0))",
           }}
         />
       </div>
@@ -290,7 +290,7 @@ export const HeroSection = ({
           onSubmit={handleSubmit}
           className="relative max-w-2xl mx-auto mt-10 group"
         >
-          <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-orange-500/0 via-violet-500/0 to-indigo-500/0 blur-xl transition-all duration-300 group-focus-within:from-orange-500/30 group-focus-within:via-violet-500/20 group-focus-within:to-indigo-500/30" />
+          <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-red-500/0 via-red-700/0 to-black/0 blur-xl transition-all duration-300 group-focus-within:from-red-500/30 group-focus-within:via-red-700/20 group-focus-within:to-black/20" />
           <div className="relative">
             <Search
               className="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"

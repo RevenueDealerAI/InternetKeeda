@@ -107,10 +107,10 @@ export const FeaturedToolsCarousel = () => {
                     >
                       <Link
                         href={`/ai-tools/${tool.slug}`}
-                        className="gradient-border group block h-full bg-white rounded-2xl border border-gray-200 p-5 hover:shadow-[0_18px_40px_-20px_rgba(99,102,241,0.25)] hover:-translate-y-1 transition-all duration-200"
+                        className="gradient-border group block h-full bg-white rounded-2xl border border-gray-200 p-5 hover:shadow-[0_18px_40px_-20px_rgba(220,38,38,0.25)] hover:-translate-y-1 transition-all duration-200"
                       >
                         <div className="flex items-center gap-3">
-                          <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-gradient-to-br from-orange-50 to-violet-50 ring-1 ring-gray-200/80 shrink-0">
+                          <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-gradient-to-br from-red-50 to-gray-50 ring-1 ring-gray-200/80 shrink-0">
                             <Image
                               src={getToolLogo(tool)}
                               alt={tool.name}

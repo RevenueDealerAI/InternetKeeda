@@ -79,7 +79,7 @@ export const Footer = () => {
       {/* Thin gradient line at the very top */}
       <div
         aria-hidden
-        className="h-px w-full bg-gradient-to-r from-orange-500 via-violet-500 to-indigo-500"
+        className="h-px w-full bg-gradient-to-r from-red-600 via-red-800 to-black"
       />
 
       <div className="container mx-auto px-4 py-14 sm:py-16">

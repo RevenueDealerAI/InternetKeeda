@@ -63,12 +63,12 @@ const ICON_MAP: Record<string, LucideIcon> = {
 type TintKey = "orange" | "violet" | "indigo" | "rose" | "emerald" | "amber";
 
 const TINTS: Record<TintKey, { from: string; to: string; ring: string; text: string; halo: string }> = {
-  orange:  { from: "from-orange-50",  to: "to-amber-50",   ring: "ring-orange-200/60",  text: "text-orange-600",  halo: "bg-orange-200/40" },
-  violet:  { from: "from-violet-50",  to: "to-fuchsia-50", ring: "ring-violet-200/60",  text: "text-violet-600",  halo: "bg-violet-200/40" },
-  indigo:  { from: "from-indigo-50",  to: "to-sky-50",     ring: "ring-indigo-200/60",  text: "text-indigo-600",  halo: "bg-indigo-200/40" },
-  rose:    { from: "from-rose-50",    to: "to-pink-50",    ring: "ring-rose-200/60",    text: "text-rose-600",    halo: "bg-rose-200/40"   },
-  emerald: { from: "from-emerald-50", to: "to-teal-50",    ring: "ring-emerald-200/60", text: "text-emerald-600", halo: "bg-emerald-200/40"},
-  amber:   { from: "from-amber-50",   to: "to-orange-50",  ring: "ring-amber-200/60",   text: "text-amber-600",   halo: "bg-amber-200/40"  },
+  orange:  { from: "from-red-50",  to: "to-red-100",   ring: "ring-red-200/60",   text: "text-red-600",  halo: "bg-red-200/40"  },
+  violet:  { from: "from-gray-50", to: "to-red-50",    ring: "ring-gray-200/60",  text: "text-gray-800", halo: "bg-gray-200/40" },
+  indigo:  { from: "from-red-100", to: "to-red-50",    ring: "ring-red-300/60",   text: "text-red-700",  halo: "bg-red-300/40"  },
+  rose:    { from: "from-red-50",  to: "to-gray-50",   ring: "ring-red-200/60",   text: "text-red-600",  halo: "bg-red-200/40"  },
+  emerald: { from: "from-gray-100",to: "to-red-50",    ring: "ring-gray-300/60",  text: "text-gray-900", halo: "bg-gray-300/40" },
+  amber:   { from: "from-red-100", to: "to-gray-50",   ring: "ring-red-200/60",   text: "text-red-700",  halo: "bg-red-200/40"  },
 };
 
 const TINT_ORDER: TintKey[] = ["orange", "violet", "indigo", "rose", "emerald", "amber"];

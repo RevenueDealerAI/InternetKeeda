@@ -70,7 +70,7 @@ export const Upcoming = () => {
     <div className="relative">
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-[360px] bg-gradient-to-b from-indigo-50/60 via-white to-white"
+        className="pointer-events-none absolute inset-x-0 top-0 h-[360px] bg-gradient-to-b from-red-50/60 via-white to-white"
       />
       <div className="relative container mx-auto px-4 py-16 mt-20">
         <div className="flex flex-col items-center text-center mb-12">
