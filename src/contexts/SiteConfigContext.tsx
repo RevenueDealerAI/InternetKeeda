@@ -17,9 +17,9 @@ const SiteConfigContext = createContext<SiteConfigContextType | undefined>(undef
 const defaultConfig: SiteConfig = {
   siteName: 'InternetKeeda',
   siteDescription: 'A hand-curated directory of the best AI tools, updated daily.',
-  logo: '/logo.svg',
-  logoLight: '/logo-light.svg',
-  logoDark: '/logo-dark.svg',
+  logo: '',
+  logoLight: '',
+  logoDark: '',
   favicon: '/favicon.ico',
   primaryColor: '#DC2626',
   secondaryColor: '#0F172A',

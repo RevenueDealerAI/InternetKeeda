@@ -56,9 +56,9 @@ const siteConfigSchema = new mongoose.Schema({
     type: String,
     default: 'A hand-curated directory of the best AI tools, updated daily.'
   },
-  logo: { 
+  logo: {
     type: String,
-    default: '/logo.svg'
+    default: ''
   },
   logoDark: {
     type: String,

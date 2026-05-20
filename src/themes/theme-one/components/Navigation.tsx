@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from 'next/image';
 import { useRouter, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -135,29 +134,12 @@ export const Navigation = () => {
           <div className="flex items-center justify-between h-16">
               {/* Logo and main navigation */}
               <div className="flex items-center gap-8">
-                {config?.logo ? (
-                  <Link
-                    href="/"
-                    className={`flex items-center gap-2 text-xl font-semibold ${textPrimary} group`}
-                    aria-label="InternetKeeda — home"
-                  >
-                    <Image
-                      src={config.logo}
-                      width={180}
-                      height={40}
-                      alt={config?.siteName || 'InternetKeeda'}
-                      className="h-10 w-auto object-contain"
-                      unoptimized
-                    />
-                  </Link>
-                ) : (
-                  <SiteLogo
-                    variant="auto"
-                    height={36}
-                    priority
-                    className="group-hover:scale-[1.03] transition-transform"
-                  />
-                )}
+                <SiteLogo
+                  variant="auto"
+                  height={36}
+                  priority
+                  className="group-hover:scale-[1.03] transition-transform"
+                />
 
                 <NavigationMenu className="hidden md:flex">
                   <NavigationMenuList className="space-x-1">
