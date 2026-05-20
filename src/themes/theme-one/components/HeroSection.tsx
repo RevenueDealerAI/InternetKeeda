@@ -24,32 +24,7 @@ function useReducedMotion(): boolean {
 // needs `document` + a real canvas.
 const HeroShader = dynamic(() => import("./HeroShader"), { ssr: false });
 
-/** Splits a string into letter spans with a staggered CSS animation
- * delay applied inline. Spaces render as plain spaces (not animated)
- * so the headline stays selectable. Total reveal ≈ 30ms per char +
- * the per-letter 450ms fade — so ~ 0.03 * length + 0.45 s overall. */
-const DecodeText = ({ children, startDelayMs = 0 }: { children: string; startDelayMs?: number }) => {
-  const STEP = 28; // ms between letters
-  let i = 0;
-  return (
-    <>
-      {Array.from(children).map((ch) => {
-        if (ch === " ") return <span key={`s${i++}`}>{" "}</span>;
-        const delay = startDelayMs + i * STEP;
-        i += 1;
-        return (
-          <span
-            key={`c${i}`}
-            className="decode-letter"
-            style={{ animationDelay: `${delay}ms` }}
-          >
-            {ch}
-          </span>
-        );
-      })}
-    </>
-  );
-};
+// DecodeText removed — see commit message.
 
 interface HeroSectionProps {
   searchQuery?: string;
@@ -327,25 +302,18 @@ export const HeroSection = ({
           </span>
         </div>
 
-        {/* Headline — LCP element. Letters reveal individually via
-         * .decode-letter staggered animation; the accent word
-         * "organized." gets the animated gradient sweep on top.
-         * Wrapped so the headline paints visible immediately on first
-         * byte even before the per-letter animation kicks in
-         * (decode opacity:0 starts at the per-letter level — the
-         * container is opacity:1 so any non-decoded fallback text
-         * remains visible). */}
+        {/* Headline — LCP element. Plain text + a single
+         * gradient-text-sweep span around the accent word. No per-
+         * letter wrapping so background-clip:text works correctly
+         * and "organized." actually renders. The .hero-fade-up
+         * keyframe on the <h1> still fades the whole headline in
+         * on desktop; mobile + reduced-motion paint instantly. */}
         <h1
           className="mt-7 font-bold tracking-tight text-gray-900 leading-[1.03] hero-fade-up"
           style={{ fontSize: "clamp(40px, 6vw, 80px)", animationDelay: "0.05s" }}
         >
-          <span aria-label="Every AI tool, organized." className="sr-only">Every AI tool, organized.</span>
-          <span aria-hidden>
-            <DecodeText>Every AI tool, </DecodeText>
-            <span className="gradient-text-sweep inline-block">
-              <DecodeText startDelayMs={420}>organized.</DecodeText>
-            </span>
-          </span>
+          Every AI tool,{" "}
+          <span className="gradient-text-sweep">organized.</span>
         </h1>
 
         {/* Subhead */}
