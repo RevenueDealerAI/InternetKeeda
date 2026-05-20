@@ -135,83 +135,93 @@ export default function CategoryPage() {
   const getFriendlyCategoryName = () => categoryName;
 
   return (
-    <div className="container mx-auto px-4 py-8 mt-20">
-      <div className="mb-8">
-        <Button 
-          variant="ghost" 
-          className="mb-4"
-          onClick={() => window.history.back()}
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back
-        </Button>
-        <h1 className="text-4xl font-bold mb-4">
-          {getFriendlyCategoryName()} Tools
-        </h1>
-        {categoryIntro ? (
-          <p className="text-gray-700 leading-relaxed max-w-3xl">
-            {categoryIntro}
+    <div className="relative">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-[320px] bg-gradient-to-b from-orange-50/50 via-white to-white"
+      />
+
+      <div className="relative container mx-auto px-4 py-16 mt-20">
+        <div className="mb-10 max-w-3xl">
+          <Button
+            variant="ghost"
+            className="mb-4 -ml-3 text-gray-600 hover:text-gray-900"
+            onClick={() => window.history.back()}
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back
+          </Button>
+          <span className="inline-block text-xs font-semibold uppercase tracking-[0.18em] text-orange-600 mb-3">
+            Category
+          </span>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-gray-900 mb-4">
+            {getFriendlyCategoryName()}
+          </h1>
+          {categoryIntro ? (
+            <p className="text-gray-700 leading-relaxed text-lg max-w-3xl">
+              {categoryIntro}
+            </p>
+          ) : (
+            <p className="text-gray-600 text-lg">
+              Explore the best AI tools for {getFriendlyCategoryName().toLowerCase()}.
+            </p>
+          )}
+          <p className="mt-3 text-sm text-gray-500">
+            {filteredTools.length} {filteredTools.length === 1 ? 'tool' : 'tools'} listed
           </p>
+        </div>
+
+        {filteredTools.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16">
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">No tools found in this category</h2>
+            <p className="text-gray-600 mb-6">We couldn&rsquo;t find any tools in this category at the moment.</p>
+            <Button onClick={() => window.history.back()}>Go Back</Button>
+          </div>
         ) : (
-          <p className="text-gray-600">
-            Explore the best AI tools for {getFriendlyCategoryName().toLowerCase()}.
-          </p>
+          <>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            >
+              {visibleTools.map((tool, idx) => (
+                <motion.div key={tool.id} {...staggerCardProps(idx, reduceMotion)}>
+                  <ProductCard
+                    id={tool.id}
+                    slug={tool.slug}
+                    name={tool.name}
+                    description={tool.description_ai || tool.description}
+                    category={tool.category}
+                    votes={tool.votes}
+                    imageUrl={tool.logo || `https://ui-avatars.com/api/?name=${encodeURIComponent(tool.name)}&background=F97316&color=fff&bold=true&format=svg`}
+                    onVote={(e) => handleVote(e, tool.id, tool.votes)}
+                    isFavorite={isSaved(tool.id)}
+                    onFavorite={(e) => {
+                      e.preventDefault();
+                      handleFavorite(tool.id);
+                    }}
+                    pricing={convertPricingType(tool.pricing.type)}
+                    isNew={tool.isNew}
+                  />
+                </motion.div>
+              ))}
+            </motion.div>
+
+            {visibleTools.length < filteredTools.length && (
+              <div className="flex justify-center mt-12">
+                <Button
+                  variant="outline"
+                  className="rounded-xl hover:bg-orange-50 border-orange-200"
+                  onClick={loadMore}
+                >
+                  Load More
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </div>
-
-      {filteredTools.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-4">No tools found in this category</h2>
-          <p className="text-gray-600 mb-6">We couldn't find any tools in this category at the moment.</p>
-          <Button onClick={() => window.history.back()}>
-            Go Back
-          </Button>
-        </div>
-      ) : (
-        <>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-          >
-            {visibleTools.map((tool, idx) => (
-              <motion.div key={tool.id} {...staggerCardProps(idx, reduceMotion)}>
-                <ProductCard
-                  id={tool.id}
-                  slug={tool.slug}
-                  name={tool.name}
-                  description={tool.description_ai || tool.description}
-                  category={tool.category}
-                  votes={tool.votes}
-                  imageUrl={tool.logo || `https://ui-avatars.com/api/?name=${encodeURIComponent(tool.name)}`}
-                  onVote={(e) => handleVote(e, tool.id, tool.votes)}
-                  isFavorite={isSaved(tool.id)}
-                  onFavorite={(e) => {
-                    e.preventDefault();
-                    handleFavorite(tool.id);
-                  }}
-                  pricing={convertPricingType(tool.pricing.type)}
-                  isNew={tool.isNew}
-                />
-              </motion.div>
-            ))}
-          </motion.div>
-
-          {/* Load More */}
-          {visibleTools.length < filteredTools.length && (
-            <div className="flex justify-center mt-12">
-              <Button 
-                variant="outline"
-                className="rounded-xl hover:bg-orange-50 border-orange-200"
-                onClick={loadMore}
-              >
-                Load More
-              </Button>
-            </div>
-          )}
-        </>
-      )}
     </div>
   );
-} 
+}

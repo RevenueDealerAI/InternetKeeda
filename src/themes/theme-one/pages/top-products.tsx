@@ -127,19 +127,24 @@ export const TopProducts = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 mt-20">
-      {/* Header */}
-      <div className="flex flex-col items-center text-center mb-12">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-orange-100 mb-4">
-          <TrendingUp className="w-8 h-8 text-orange-600" />
+    <div className="relative">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-[360px] bg-gradient-to-b from-violet-50/60 via-white to-white"
+      />
+      <div className="relative container mx-auto px-4 py-16 mt-20">
+        <div className="flex flex-col items-center text-center mb-12">
+          <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-orange-600 mb-3">
+            <TrendingUp className="w-3.5 h-3.5" />
+            Wilson-style ranking
+          </span>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-gray-900 mb-4">
+            The <span className="gradient-text">top</span> AI tools.
+          </h1>
+          <p className="text-gray-600 max-w-2xl text-lg leading-relaxed">
+            Ranked by rating weighted by vote volume — so heavily-loved tools rise to the top without one-vote ratings dominating.
+          </p>
         </div>
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-orange-600 to-blue-600 bg-clip-text text-transparent mb-4">
-          Top AI Tools
-        </h1>
-        <p className="text-gray-600 max-w-2xl">
-          Explore the most popular and highly-rated AI tools, curated based on user reviews and engagement.
-        </p>
-      </div>
 
       {/* Filters and Sort */}
       <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
@@ -259,21 +264,7 @@ export const TopProducts = () => {
         ))}
       </div>
 
-      {/* Load More */}
-      {visibleTools.length < getFilteredAndSortedTools().length && (
-        <div className="flex justify-center mt-12">
-          <Button 
-            variant="outline"
-            className="rounded-xl hover:bg-orange-50 border-orange-200"
-            onClick={() => {
-              // Implement load more functionality
-              console.log('Load more clicked');
-            }}
-          >
-            Load More
-          </Button>
-        </div>
-      )}
+      </div>
     </div>
   );
 }; 

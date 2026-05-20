@@ -325,7 +325,7 @@ export const AIToolDetail = () => {
                       <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 sm:gap-6">
                         {/* Tool Image - Centered on mobile */}
                         <div className="relative">
-                          <div className="w-28 h-28 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-gradient-to-br from-green-100 to-blue-50 shadow-sm flex items-center justify-center relative">
+                          <div className="w-28 h-28 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-gradient-to-br from-orange-100 via-violet-50 to-indigo-50 ring-1 ring-orange-200/60 shadow-sm flex items-center justify-center relative">
                             <Image
                               src={getToolLogo(tool)}
                               alt={tool.name}
@@ -427,8 +427,8 @@ export const AIToolDetail = () => {
                         disabled={!canUpvoteThisTool || isActionLoading}
                         className={`w-full sm:flex-1 sm:max-w-[200px] rounded-xl transition-all duration-300 ${
                           (currentActualDbId && isUpvoted(currentActualDbId))
-                            ? "bg-green-100 text-green-700 hover:bg-green-200"
-                            : "bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700"
+                            ? "bg-orange-100 text-orange-700 hover:bg-orange-200"
+                            : "bg-white border border-gray-200 text-gray-700 hover:bg-orange-50 hover:border-orange-200 hover:text-orange-700"
                         }`}
                       >
                         {isActionLoading ? <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 mr-2 animate-spin" /> : <ArrowUpCircle className={`w-4 h-4 sm:w-5 sm:h-5 mr-2 ${!(currentActualDbId && isUpvoted(currentActualDbId)) ? "animate-bounce" : ""}`} />}
@@ -438,7 +438,7 @@ export const AIToolDetail = () => {
                         variant="outline" 
                         size="default"
                         className={`w-full sm:flex-1 sm:max-w-[200px] rounded-xl ${
-                            (currentActualDbId && isSaved(currentActualDbId)) ? "bg-green-50 border-green-200 text-green-700" : "" 
+                            (currentActualDbId && isSaved(currentActualDbId)) ? "bg-orange-50 border-orange-200 text-orange-700" : ""
                         }`}
                         onClick={() => currentActualDbId && toggleSave(currentActualDbId)}
                         disabled={!currentActualDbId || isActionLoading}
@@ -456,9 +456,8 @@ export const AIToolDetail = () => {
                         Share
                       </Button>
                       <Button
-                        variant="outline"
                         size="default"
-                        className="w-full sm:flex-1 sm:max-w-[200px] rounded-xl"
+                        className="w-full sm:flex-1 sm:max-w-[200px] rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-[0_8px_24px_-8px_rgba(249,115,22,0.55)]"
                         onClick={() => tool.websiteUrl && window.open(tool.websiteUrl, '_blank')}
                       >
                         <ExternalLink className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />

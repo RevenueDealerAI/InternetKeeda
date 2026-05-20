@@ -114,16 +114,16 @@ export const LatestLaunches = () => {
 
   return (
     <div className="container mx-auto px-4 py-8 mt-20 relative">
-      {/* Header */}
       <div className="flex flex-col items-center text-center mb-12">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-orange-100 mb-4">
-          <Zap className="w-8 h-8 text-orange-600" />
-        </div>
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-orange-600 to-blue-600 bg-clip-text text-transparent mb-4">
-          Latest AI Tool Launches
+        <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-orange-600 mb-3">
+          <Zap className="w-3.5 h-3.5" />
+          Just shipped
+        </span>
+        <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-gray-900 mb-4">
+          Latest <span className="gradient-text">launches</span>.
         </h1>
-        <p className="text-gray-600 max-w-2xl">
-          Discover the newest AI tools and innovations. Be among the first to explore and try out these cutting-edge solutions.
+        <p className="text-gray-600 max-w-2xl text-lg leading-relaxed">
+          The newest tools to hit InternetKeeda. Be the first to try what just shipped.
         </p>
       </div>
 
