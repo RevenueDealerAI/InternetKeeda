@@ -83,17 +83,28 @@ const saveLogoToCache = (toolId: string, url: string) => {
   }
 };
 
+// Skeleton dimensions match the live layout so the swap from
+// loading-state -> content is zero-shift. Logo disc is the same
+// w-28 sm:w-24 as the real one (so it shrinks on sm+ identically).
+// A min-h-[1200px] wrapper reserves the full content height so the
+// page-below doesn't reflow when the real tool data lands.
 const ToolDetailSkeleton = () => (
-  <div className="animate-pulse">
-    <div className="flex flex-col items-center sm:items-start sm:flex-row gap-4 sm:gap-6">
-      <div className="w-24 h-24 bg-gray-200 rounded-xl" />
-      <div className="flex-1 text-center sm:text-left">
+  <div className="animate-pulse min-h-[1200px]">
+    <div className="flex flex-col items-center sm:items-start sm:flex-row gap-6 sm:gap-6">
+      <div className="w-28 h-28 sm:w-24 sm:h-24 bg-gray-200 rounded-2xl shrink-0" />
+      <div className="flex-1 w-full text-center sm:text-left">
         <div className="flex flex-wrap justify-center sm:justify-start gap-2 mb-3">
           <div className="h-6 w-32 bg-gray-200 rounded-full" />
           <div className="h-6 w-24 bg-gray-200 rounded-full" />
         </div>
-        <div className="h-8 w-full sm:w-3/4 bg-gray-200 rounded-lg mb-3 mx-auto sm:mx-0" />
-        <div className="h-20 bg-gray-200 rounded-lg" />
+        <div className="h-10 w-3/4 bg-gray-200 rounded-lg mb-3 mx-auto sm:mx-0" />
+        <div className="h-20 bg-gray-200 rounded-lg mb-6" />
+        <div className="flex flex-wrap gap-2 sm:gap-3 mb-6">
+          <div className="h-11 sm:h-10 w-32 bg-gray-200 rounded-xl" />
+          <div className="h-11 sm:h-10 w-32 bg-gray-200 rounded-xl" />
+          <div className="h-11 sm:h-10 w-32 bg-gray-200 rounded-xl" />
+          <div className="h-11 sm:h-10 w-32 bg-gray-200 rounded-xl" />
+        </div>
       </div>
     </div>
 
@@ -104,6 +115,20 @@ const ToolDetailSkeleton = () => (
           <div className="h-8 w-16 bg-gray-200 rounded" />
         </div>
       ))}
+    </div>
+
+    {/* Reserve tabs + content area so the lower half of the layout
+      * doesn't reflow when real content lands. */}
+    <div className="mt-10">
+      <div className="h-12 w-full bg-gray-200 rounded-xl mb-6" />
+      <div className="space-y-3">
+        <div className="h-4 w-full bg-gray-200 rounded" />
+        <div className="h-4 w-full bg-gray-200 rounded" />
+        <div className="h-4 w-5/6 bg-gray-200 rounded" />
+        <div className="h-4 w-4/5 bg-gray-200 rounded" />
+        <div className="h-4 w-full bg-gray-200 rounded" />
+        <div className="h-4 w-3/4 bg-gray-200 rounded" />
+      </div>
     </div>
   </div>
 );
@@ -295,11 +320,12 @@ export const AIToolDetail = () => {
           <div className="max-w-7xl mx-auto px-4 py-6 sm:py-8">
             <>
               {isLoading ? (
-                <div className="animate-in fade-in duration-300">
-                  <ToolDetailSkeleton />
-                </div>
+                <ToolDetailSkeleton />
               ) : tool && (
-                <div className="flex flex-col lg:flex-row gap-6 sm:gap-12 animate-in fade-in slide-in-from-bottom-5 duration-300">
+                // Removed slide-in-from-bottom-5 — transforms don't
+                // count toward CLS but the visual jolt felt like one.
+                // Plain fade-in keeps the transition.
+                <div className="flex flex-col lg:flex-row gap-6 sm:gap-12 animate-in fade-in duration-200">
                   {/* Left Column - Tool Info */}
                   <div className="flex-1">
                     <div className="flex flex-col gap-6">
