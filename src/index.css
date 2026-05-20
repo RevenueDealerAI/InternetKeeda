@@ -161,7 +161,10 @@
   @keyframes decode-in {
     to { opacity: 1; transform: translateY(0); }
   }
-  @media (prefers-reduced-motion: reduce) {
+  @media (prefers-reduced-motion: reduce), (max-width: 767px) {
+    /* Mobile keeps the LCP element painted instantly. The desktop
+     * cinematic decode would otherwise hold the headline at opacity:0
+     * for ~0.5 s and push FCP back. */
     .decode-letter {
       animation: none;
       opacity: 1;
@@ -212,7 +215,10 @@
   @keyframes hero-fade-up-anim {
     to { opacity: 1; transform: translateY(0); }
   }
-  @media (prefers-reduced-motion: reduce) {
+  @media (prefers-reduced-motion: reduce), (max-width: 767px) {
+    /* Mobile FCP-critical — paint hero content immediately rather than
+     * waiting on the 0.55 s fade. Desktop still gets the cinematic
+     * entrance. */
     .hero-fade-up { opacity: 1; transform: none; animation: none; }
   }
 
