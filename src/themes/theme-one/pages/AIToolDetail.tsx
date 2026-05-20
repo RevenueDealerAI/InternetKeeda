@@ -10,7 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { motion, AnimatePresence } from "framer-motion";
+// framer-motion removed from tool detail's critical path. The
+// section fades + the quick-actions FAB slide are CSS-driven below.
 import { 
   ArrowUpCircle, 
   Share2, 
@@ -292,23 +293,13 @@ export const AIToolDetail = () => {
       <main className="pt-16 sm:pt-20 pb-16">
         <div className="bg-white">
           <div className="max-w-7xl mx-auto px-4 py-6 sm:py-8">
-            <AnimatePresence mode="wait">
+            <>
               {isLoading ? (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.3 }}
-                >
+                <div className="animate-in fade-in duration-300">
                   <ToolDetailSkeleton />
-                </motion.div>
+                </div>
               ) : tool && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4 }}
-                  className="flex flex-col lg:flex-row gap-6 sm:gap-12"
-                >
+                <div className="flex flex-col lg:flex-row gap-6 sm:gap-12 animate-in fade-in slide-in-from-bottom-5 duration-300">
                   {/* Left Column - Tool Info */}
                   <div className="flex-1">
                     <div className="flex flex-col gap-6">
@@ -648,33 +639,29 @@ export const AIToolDetail = () => {
                       </div>
                     </div>
                   </div>
-                </motion.div>
+                </div>
               )}
-            </AnimatePresence>
+            </>
           </div>
         </div>
       </main>
 
-      {/* Quick Actions */}
-      <AnimatePresence>
-        {showQuickActions && (
-          <motion.div
-            initial={{ y: 100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 100, opacity: 0 }}
-            className="fixed bottom-6 right-6 flex items-center gap-3 z-50"
-          >
-            <Button
-              size="icon"
-              variant="outline"
-              className="h-12 w-12 rounded-xl bg-white shadow-lg"
-              onClick={scrollToTop}
-            >
-              <ChevronUp className="h-6 w-6" />
-            </Button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Quick Actions — pure CSS transition. Mounts unconditionally
+        * for smooth fade; visibility gated by `showQuickActions`. */}
+      <div
+        className={`fixed bottom-6 right-6 flex items-center gap-3 z-50 transition-all duration-300 ${
+          showQuickActions ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 translate-y-12 pointer-events-none"
+        }`}
+      >
+        <Button
+          size="icon"
+          variant="outline"
+          className="h-12 w-12 rounded-xl bg-white shadow-lg"
+          onClick={scrollToTop}
+        >
+          <ChevronUp className="h-6 w-6" />
+        </Button>
+      </div>
     </div>
   );
 };

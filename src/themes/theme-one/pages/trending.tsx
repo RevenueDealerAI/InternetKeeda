@@ -1,8 +1,6 @@
 import { useState, useMemo } from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TrendingUp } from "lucide-react";
-import { motion, useReducedMotion } from "framer-motion";
-import { staggerCardProps } from "@/lib/animations";
 import { ToolCardSkeletonGrid } from "../components/ToolCardSkeleton";
 import { ProductCard } from "../components/ProductCard";
 import { useTools } from "@/lib/api/tools";
@@ -14,7 +12,6 @@ const TrendingPage = () => {
   const { data, isLoading, error } = useTools({ limit: 500 });
   const tools = data?.data || [];
   const { toggleUpvote, toggleSave, isSaved } = useToolActions();
-  const reduceMotion = useReducedMotion();
 
   // Trending derivation: top by total views, with the time filter narrowing
   // to tools added in that window. Editorial `isTrending=true` tools pin
@@ -114,31 +111,16 @@ const TrendingPage = () => {
 
       <div className="relative container mx-auto px-4 py-16 mt-20">
         <div className="max-w-3xl mb-10">
-          <motion.span
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45 }}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-orange-600 mb-3"
-          >
+          <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-orange-600 mb-3">
             <TrendingUp className="w-3.5 h-3.5" />
             Live ranking
-          </motion.span>
-          <motion.h1
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.05 }}
-            className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-gray-900"
-          >
+          </span>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-gray-900">
             What everyone's <span className="gradient-text">trying</span>.
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.1 }}
-            className="text-gray-600 mt-4 text-lg leading-relaxed max-w-2xl"
-          >
+          </h1>
+          <p className="text-gray-600 mt-4 text-lg leading-relaxed max-w-2xl">
             Top tools ranked by total views, narrowed by the time window you pick. Admin-pinned picks always float at the top.
-          </motion.p>
+          </p>
         </div>
 
         <Tabs value={timeFilter} onValueChange={(value) => setTimeFilter(value as 'today' | 'week' | 'month')} className="mb-10">
@@ -156,26 +138,25 @@ const TrendingPage = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {trendingTools.map((tool, idx) => (
-              <motion.div key={tool.id} {...staggerCardProps(idx, reduceMotion)}>
-                <ProductCard
-                  id={tool.id}
-                  slug={tool.slug}
-                  name={tool.name}
-                  description={tool.description_ai || tool.description}
-                  category={tool.category}
-                  votes={tool.votes}
-                  imageUrl={tool.logo || `https://ui-avatars.com/api/?name=${encodeURIComponent(tool.name)}&background=DC2626&color=fff&bold=true&format=svg`}
-                  onVote={(e) => handleVote(e, tool.id, tool.votes)}
-                  isFavorite={isSaved(tool.id)}
-                  onFavorite={(e) => {
-                    e.preventDefault();
-                    handleFavorite(tool.id);
-                  }}
-                  pricing={convertPricingType(tool.pricing.type)}
-                  isNew={tool.isNew}
-                />
-              </motion.div>
+            {trendingTools.map((tool) => (
+              <ProductCard
+                key={tool.id}
+                id={tool.id}
+                slug={tool.slug}
+                name={tool.name}
+                description={tool.description_ai || tool.description}
+                category={tool.category}
+                votes={tool.votes}
+                imageUrl={tool.logo || `https://ui-avatars.com/api/?name=${encodeURIComponent(tool.name)}&background=DC2626&color=fff&bold=true&format=svg`}
+                onVote={(e) => handleVote(e, tool.id, tool.votes)}
+                isFavorite={isSaved(tool.id)}
+                onFavorite={(e) => {
+                  e.preventDefault();
+                  handleFavorite(tool.id);
+                }}
+                pricing={convertPricingType(tool.pricing.type)}
+                isNew={tool.isNew}
+              />
             ))}
           </div>
         )}

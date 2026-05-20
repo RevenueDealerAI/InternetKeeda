@@ -7,9 +7,7 @@ import { ProductCard } from "../../components/ProductCard";
 import { useTools } from "@/lib/api/tools";
 import { useToolActions } from "@/hooks/useToolActions";
 import { Button } from "@/components/ui/button";
-import { motion, useReducedMotion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
-import { staggerCardProps } from "@/lib/animations";
 import { ToolCardSkeletonGrid } from "../../components/ToolCardSkeleton";
 
 export default function CategoryPage() {
@@ -24,7 +22,6 @@ export default function CategoryPage() {
   const tools = data?.data || [];
   const { toggleUpvote, isUpvoted, toggleSave, isSaved } = useToolActions();
   const [pageSize, setPageSize] = useState(9);
-  const reduceMotion = useReducedMotion();
 
   // Get category name from state or from ID
   const categoryFromState = location.state?.category;
@@ -179,34 +176,28 @@ export default function CategoryPage() {
           </div>
         ) : (
           <>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-            >
-              {visibleTools.map((tool, idx) => (
-                <motion.div key={tool.id} {...staggerCardProps(idx, reduceMotion)}>
-                  <ProductCard
-                    id={tool.id}
-                    slug={tool.slug}
-                    name={tool.name}
-                    description={tool.description_ai || tool.description}
-                    category={tool.category}
-                    votes={tool.votes}
-                    imageUrl={tool.logo || `https://ui-avatars.com/api/?name=${encodeURIComponent(tool.name)}&background=DC2626&color=fff&bold=true&format=svg`}
-                    onVote={(e) => handleVote(e, tool.id, tool.votes)}
-                    isFavorite={isSaved(tool.id)}
-                    onFavorite={(e) => {
-                      e.preventDefault();
-                      handleFavorite(tool.id);
-                    }}
-                    pricing={convertPricingType(tool.pricing.type)}
-                    isNew={tool.isNew}
-                  />
-                </motion.div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {visibleTools.map((tool) => (
+                <ProductCard
+                  key={tool.id}
+                  id={tool.id}
+                  slug={tool.slug}
+                  name={tool.name}
+                  description={tool.description_ai || tool.description}
+                  category={tool.category}
+                  votes={tool.votes}
+                  imageUrl={tool.logo || `https://ui-avatars.com/api/?name=${encodeURIComponent(tool.name)}&background=DC2626&color=fff&bold=true&format=svg`}
+                  onVote={(e) => handleVote(e, tool.id, tool.votes)}
+                  isFavorite={isSaved(tool.id)}
+                  onFavorite={(e) => {
+                    e.preventDefault();
+                    handleFavorite(tool.id);
+                  }}
+                  pricing={convertPricingType(tool.pricing.type)}
+                  isNew={tool.isNew}
+                />
               ))}
-            </motion.div>
+            </div>
 
             {visibleTools.length < filteredTools.length && (
               <div className="flex justify-center mt-12">

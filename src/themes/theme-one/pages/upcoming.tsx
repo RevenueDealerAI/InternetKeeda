@@ -4,15 +4,12 @@ import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useTools } from "@/lib/api/tools";
 import { useToolActions } from "@/hooks/useToolActions";
-import { motion, useReducedMotion } from "framer-motion";
-import { staggerCardProps } from "@/lib/animations";
 
 export const Upcoming = () => {
   const { data, isLoading, error } = useTools({ limit: 500, sortBy: 'createdAt', sortOrder: 'desc' });
   const tools = data?.data || [];
   const { toggleSave, isSaved } = useToolActions();
   const [pageSize, setPageSize] = useState(12);
-  const reduceMotion = useReducedMotion();
 
   // Recently Added derivation: tools sorted by createdAt desc, with
   // future-dated tools (createdAt > now) pinned to the top and flagged
@@ -95,13 +92,12 @@ export const Upcoming = () => {
             <p className="text-gray-500">New tools are added regularly — check back soon.</p>
           </div>
         ) : (
-          visibleTools.map((tool, idx) => {
+          visibleTools.map((tool) => {
             const future = isFutureTool(tool.createdAt);
             const saved = isSaved(tool.id);
             return (
-              <motion.div
+              <div
                 key={tool.id}
-                {...staggerCardProps(idx, reduceMotion)}
                 className="relative bg-white rounded-2xl p-6 mb-8 border border-gray-100 hover:border-orange-200 transition-all duration-300 hover:shadow-lg group"
               >
                 {future && (
@@ -155,7 +151,7 @@ export const Upcoming = () => {
                     {saved ? "Saved" : "Save"}
                   </Button>
                 </div>
-              </motion.div>
+              </div>
             );
           })
         )}

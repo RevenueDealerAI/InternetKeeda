@@ -7,8 +7,6 @@ import { ProductCard } from "../components/ProductCard";
 import { useState } from "react";
 import { useTools } from "@/lib/api/tools";
 import { useToolActions } from "@/hooks/useToolActions";
-import { motion, useReducedMotion } from "framer-motion";
-import { staggerCardProps } from "@/lib/animations";
 import { ToolCardSkeletonGrid } from "../components/ToolCardSkeleton";
 
 const getPricingColor = (type: string) => {
@@ -26,7 +24,6 @@ export const TopProducts = () => {
   const [timeFilter, setTimeFilter] = useState<'all' | 'month' | 'week'>('all');
   const [sortBy, setSortBy] = useState<'votes' | 'trending' | 'recent'>('trending');
   const { data, isLoading, error } = useTools({ limit: 500 });
-  const reduceMotion = useReducedMotion();
   const tools = data?.data || [];
   const { toggleUpvote, isUpvoted, toggleSave, isSaved } = useToolActions();
 
@@ -241,26 +238,25 @@ export const TopProducts = () => {
 
       {/* Products Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {visibleTools.slice(1).map((tool, idx) => (
-          <motion.div key={tool.id} {...staggerCardProps(idx, reduceMotion)}>
-            <ProductCard
-              id={tool.id}
-              slug={tool.slug}
-              name={tool.name}
-              description={tool.description_ai || tool.description}
-              category={tool.category}
-              votes={tool.votes}
-              imageUrl={tool.logo || `https://ui-avatars.com/api/?name=${encodeURIComponent(tool.name)}`}
-              onVote={(e) => handleVote(e, tool.id, tool.votes)}
-              isFavorite={isSaved(tool.id)}
-              onFavorite={(e) => {
-                e.preventDefault();
-                handleFavorite(tool.id);
-              }}
-              pricing={convertPricingType(tool.pricing.type)}
-              isNew={tool.isNew}
-            />
-          </motion.div>
+        {visibleTools.slice(1).map((tool) => (
+          <ProductCard
+            key={tool.id}
+            id={tool.id}
+            slug={tool.slug}
+            name={tool.name}
+            description={tool.description_ai || tool.description}
+            category={tool.category}
+            votes={tool.votes}
+            imageUrl={tool.logo || `https://ui-avatars.com/api/?name=${encodeURIComponent(tool.name)}`}
+            onVote={(e) => handleVote(e, tool.id, tool.votes)}
+            isFavorite={isSaved(tool.id)}
+            onFavorite={(e) => {
+              e.preventDefault();
+              handleFavorite(tool.id);
+            }}
+            pricing={convertPricingType(tool.pricing.type)}
+            isNew={tool.isNew}
+          />
         ))}
       </div>
 
