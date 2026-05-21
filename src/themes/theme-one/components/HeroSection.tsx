@@ -1,30 +1,9 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import dynamic from "next/dynamic";
+import type React from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Search, ArrowRight, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
-// Vanilla matchMedia hook — removes framer-motion from the home
-// critical path. Returns true when the user has opted into reduced
-// motion. Defaults to false on SSR.
-function useReducedMotion(): boolean {
-  const [reduced, setReduced] = React.useState(false);
-  React.useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReduced(mq.matches);
-    const onChange = () => setReduced(mq.matches);
-    mq.addEventListener?.("change", onChange);
-    return () => mq.removeEventListener?.("change", onChange);
-  }, []);
-  return reduced;
-}
-
-// Vanilla-WebGL hero backdrop. Lazy-loaded so its ~4 KB only ships
-// when we actually mount it (desktop, motion-allowed). SSR off — it
-// needs `document` + a real canvas.
-const HeroShader = dynamic(() => import("./HeroShader"), { ssr: false });
-
-// DecodeText removed — see commit message.
 
 interface HeroSectionProps {
   searchQuery?: string;
@@ -79,58 +58,6 @@ export const HeroSection = ({
     if (externalQuery !== undefined) setLocalQuery(externalQuery);
   }, [externalQuery]);
 
-  const reduceMotion = useReducedMotion();
-
-  // Parallax target — translates the dot-grid backdrop a few px based on
-  // cursor position. Disabled on touch devices and when reduced motion is on.
-  const parallaxRef = useRef<HTMLDivElement>(null);
-  const heroRef = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    if (reduceMotion) return;
-    const isTouch =
-      typeof window !== "undefined" &&
-      window.matchMedia("(hover: none) and (pointer: coarse)").matches;
-    if (isTouch) return;
-
-    const hero = heroRef.current;
-    const target = parallaxRef.current;
-    if (!hero || !target) return;
-
-    let raf = 0;
-    let nextX = 0;
-    let nextY = 0;
-    let curX = 0;
-    let curY = 0;
-
-    const onMove = (e: MouseEvent) => {
-      const rect = hero.getBoundingClientRect();
-      const cx = rect.left + rect.width / 2;
-      const cy = rect.top + rect.height / 2;
-      // ±10px max translation, eased on actual write
-      nextX = ((e.clientX - cx) / rect.width) * -10;
-      nextY = ((e.clientY - cy) / rect.height) * -10;
-      if (!raf) raf = requestAnimationFrame(tick);
-    };
-
-    const tick = () => {
-      curX += (nextX - curX) * 0.08;
-      curY += (nextY - curY) * 0.08;
-      target.style.transform = `translate3d(${curX.toFixed(2)}px, ${curY.toFixed(2)}px, 0)`;
-      if (Math.abs(nextX - curX) > 0.05 || Math.abs(nextY - curY) > 0.05) {
-        raf = requestAnimationFrame(tick);
-      } else {
-        raf = 0;
-      }
-    };
-
-    hero.addEventListener("mousemove", onMove);
-    return () => {
-      hero.removeEventListener("mousemove", onMove);
-      if (raf) cancelAnimationFrame(raf);
-    };
-  }, [reduceMotion]);
-
   const scrollToGrid = useCallback(() => {
     if (typeof window === "undefined") return;
     const grid =
@@ -183,110 +110,18 @@ export const HeroSection = ({
     return () => document.removeEventListener("keydown", handler);
   }, [setIsSearchOpen]);
 
-  // Gate the WebGL backdrop: only desktop (md+) and only when the user
-  // hasn't opted into reduced motion. Mobile keeps the CSS mesh blobs
-  // (cheap, already there). State starts false so SSR + mobile + RM
-  // never even import the module.
-  const [enableShader, setEnableShader] = useState(false);
-  useEffect(() => {
-    if (reduceMotion) return;
-    const mqDesktop = window.matchMedia("(min-width: 768px)");
-    const mqTouch = window.matchMedia("(hover: none) and (pointer: coarse)");
-    if (mqDesktop.matches && !mqTouch.matches) {
-      // Defer one frame so the hero's CSS reveal animations start
-      // first — shader paints behind them ~16 ms later.
-      const id = requestAnimationFrame(() => setEnableShader(true));
-      return () => cancelAnimationFrame(id);
-    }
-  }, [reduceMotion]);
-
-  // Hero entrance is CSS-driven (.hero-fade-up + .decode-letter), so
-  // the LCP element paints immediately without waiting for framer
-  // hydration. Headline gets a per-letter decode reveal on top.
+  // Hero entrance is CSS-driven (.hero-fade-up), so the LCP element
+  // paints immediately without waiting for framer hydration.
   return (
     <section
-      ref={heroRef}
       className="relative isolate overflow-hidden bg-white min-h-[100svh] flex items-center pt-20 pb-24 sm:pb-28"
     >
-      {/* Soft off-white wash so the mesh blobs read as paint on canvas */}
+      {/* Clean hero — no mesh blobs, no WebGL shader, no dot grid.
+       * Just a subtle off-white→white wash so the hero doesn't read
+       * as a hard rectangle against the page below. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#FAFAFA] via-white to-white"
-      />
-
-      {/* WebGL backdrop — desktop, motion-allowed only. Sits behind the
-       * CSS mesh blobs; when active the CSS mesh is hidden so we don't
-       * double up. Mobile keeps the CSS mesh as the fallback. */}
-      {enableShader && (
-        <div aria-hidden className="pointer-events-none absolute inset-0">
-          <HeroShader />
-        </div>
-      )}
-
-      {/* Gradient mesh — fallback layer. On desktop with motion + WebGL
-       * the shader replaces this; on mobile or reduced-motion we keep
-       * the CSS mesh as the lightweight backdrop. */}
-      <div
-        aria-hidden
-        ref={parallaxRef}
-        className={`pointer-events-none absolute inset-0 will-change-transform hidden md:block ${enableShader ? "md:hidden" : ""}`}
-        style={{ transform: "translate3d(0,0,0)" }}
-      >
-        <div
-          className={
-            "mesh-blob " + (reduceMotion ? "" : "motion-safe:animate-blob-a")
-          }
-          style={{
-            width: "560px",
-            height: "560px",
-            top: "-10%",
-            left: "-8%",
-            background:
-              "radial-gradient(closest-side, rgba(220,38,38,0.55), rgba(220,38,38,0))",
-          }}
-        />
-        <div
-          className={
-            "mesh-blob " + (reduceMotion ? "" : "motion-safe:animate-blob-b")
-          }
-          style={{
-            width: "620px",
-            height: "620px",
-            top: "12%",
-            right: "-10%",
-            background:
-              "radial-gradient(closest-side, rgba(153,27,27,0.45), rgba(153,27,27,0))",
-          }}
-        />
-        <div
-          className={
-            "mesh-blob " + (reduceMotion ? "" : "motion-safe:animate-blob-c")
-          }
-          style={{
-            width: "520px",
-            height: "520px",
-            bottom: "-12%",
-            left: "30%",
-            background:
-              "radial-gradient(closest-side, rgba(15,15,15,0.18), rgba(15,15,15,0))",
-          }}
-        />
-      </div>
-
-
-      {/* Faint dot grid for texture — kept light so it's atmosphere, not pattern */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0"
-        style={{
-          backgroundImage:
-            "radial-gradient(rgba(15,23,42,0.05) 1px, transparent 1.4px)",
-          backgroundSize: "28px 28px",
-          maskImage:
-            "radial-gradient(ellipse 70% 60% at 50% 50%, black 30%, transparent 85%)",
-          WebkitMaskImage:
-            "radial-gradient(ellipse 70% 60% at 50% 50%, black 30%, transparent 85%)",
-        }}
+        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#FAFAFA] to-white"
       />
 
       {/* Content */}

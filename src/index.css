@@ -252,19 +252,6 @@
     .hero-fade-up { opacity: 1; transform: none; animation: none; }
   }
 
-  /* Hero gradient mesh blob. Apply size + position + color via inline
-   * style or extra utility classes. Heavy blur + mix-blend-multiply
-   * makes the three blobs paint a soft mesh on a white canvas. */
-  .mesh-blob {
-    position: absolute;
-    border-radius: 9999px;
-    filter: blur(80px);
-    mix-blend-mode: multiply;
-    opacity: 0.55;
-    will-change: transform;
-    pointer-events: none;
-  }
-
   .ad-container,
   .ad-slot {
     position: relative;

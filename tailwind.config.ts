@@ -158,23 +158,6 @@ export default {
           "0%":   { "background-position": "0px 0px, 0px 0px" },
           "100%": { "background-position": "40px 40px, 40px 40px" },
         },
-        // Gradient-mesh blob drift. Three blobs offset on different axes
-        // create a slow, organic mesh effect. Pair with mix-blend-mode
-        // and heavy blur on the elements themselves.
-        "blob-a": {
-          "0%, 100%": { transform: "translate(0%, 0%) scale(1)" },
-          "33%":      { transform: "translate(8%, -6%) scale(1.08)" },
-          "66%":      { transform: "translate(-6%, 4%) scale(0.95)" },
-        },
-        "blob-b": {
-          "0%, 100%": { transform: "translate(0%, 0%) scale(1)" },
-          "50%":      { transform: "translate(-10%, 8%) scale(1.12)" },
-        },
-        "blob-c": {
-          "0%, 100%": { transform: "translate(0%, 0%) scale(0.95)" },
-          "40%":      { transform: "translate(6%, 6%) scale(1.05)" },
-          "80%":      { transform: "translate(-4%, -8%) scale(1.1)" },
-        },
         // Gradient border sweep — for the gradient-glow card hover.
         "border-sweep": {
           "0%, 100%": { "background-position": "0% 50%" },
@@ -189,9 +172,6 @@ export default {
         "gradient-shift": "gradient-shift 8s ease infinite",
         "shimmer": "shimmer 1.5s linear infinite",
         "dot-drift": "dot-drift 30s linear infinite",
-        "blob-a": "blob-a 24s ease-in-out infinite",
-        "blob-b": "blob-b 28s ease-in-out infinite",
-        "blob-c": "blob-c 32s ease-in-out infinite",
         "border-sweep": "border-sweep 4s ease infinite",
       },
     },

@@ -156,12 +156,15 @@ export const Navigation = () => {
           (dark on home over the hero, light everywhere else). */}
       <div className={`fixed top-0 left-0 right-0 z-[60] transition-colors duration-200 ${headerSurface}`}>
         <div className="mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20">
-              {/* Logo and main navigation */}
+          <div className="flex items-center justify-between h-20 py-2.5">
+              {/* Logo and main navigation. Logo scales 44 → 52 → 56px
+                  across mobile/tablet/desktop; 80px header leaves
+                  12 px breathing room above and below at desktop. */}
               <div className="flex items-center gap-8">
                 <SiteLogo
                   variant="auto"
-                  height={48}
+                  height={56}
+                  heightClass="h-11 md:h-[52px] lg:h-14"
                   priority
                   className="group-hover:scale-[1.03] transition-transform"
                 />

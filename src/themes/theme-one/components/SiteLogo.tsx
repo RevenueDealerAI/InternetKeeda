@@ -10,8 +10,14 @@ interface SiteLogoProps {
    * falls back to the static light variant. */
   variant?: "auto" | "light" | "dark" | "animated" | "still";
   className?: string;
-  /** Height in px — width scales automatically. */
+  /** Height in px — width scales automatically. Acts as the asset's
+   * intrinsic render height; when heightClass is also provided, this
+   * should be the LARGEST visible height (HiDPI-crisp at every breakpoint). */
   height?: number;
+  /** Optional responsive Tailwind height utility (e.g. "h-11 md:h-[52px] lg:h-14").
+   * When set, overrides the inline px height so the logo can shrink at
+   * smaller breakpoints while still rendering from the larger asset. */
+  heightClass?: string;
   /** Wrap in a <Link href="/">. Default true. */
   asLink?: boolean;
   priority?: boolean;
@@ -35,6 +41,7 @@ export const SiteLogo = ({
   variant = "auto",
   className,
   height = 40,
+  heightClass,
   asLink = true,
   priority = false,
   alt = "InternetKeeda",
@@ -78,8 +85,12 @@ export const SiteLogo = ({
       alt={alt}
       priority={priority}
       unoptimized={src.endsWith(".gif")}
-      className={cn("object-contain transition-opacity", className)}
-      style={{ height, width: "auto" }}
+      className={cn(
+        "object-contain transition-opacity w-auto",
+        heightClass,
+        className,
+      )}
+      style={heightClass ? undefined : { height, width: "auto" }}
     />
   );
 
