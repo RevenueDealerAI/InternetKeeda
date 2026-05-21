@@ -20,6 +20,9 @@ interface ProductCardProps {
   pricing: PricingType;
   isNew?: boolean;
   index?: number;
+  /** Active paid boosts on this listing. Featured-badge shows a red-
+   * gradient pill alongside the existing Trending/New cues. */
+  activeBoosts?: Array<"category-top" | "home-rotation" | "featured-badge">;
 }
 
 const PRICING_STYLES: Record<PricingType, string> = {
@@ -49,6 +52,7 @@ export const ProductCard = ({
   onFavorite,
   pricing = 'Free',
   isNew = false,
+  activeBoosts,
 }: ProductCardProps) => {
   const router = useRouter();
 
@@ -109,6 +113,12 @@ export const ProductCard = ({
               )}>
                 {pricing}
               </span>
+              {activeBoosts?.includes("featured-badge") && (
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold bg-gradient-to-r from-orange-500 to-red-600 text-white ring-1 ring-red-500/30 px-2 py-0.5 rounded-full shadow-[0_2px_8px_-2px_rgba(220,38,38,0.4)]">
+                  <Sparkles className="w-2.5 h-2.5" />
+                  Featured
+                </span>
+              )}
             </div>
 
             <p className="text-sm text-gray-600 line-clamp-2 mt-3 leading-relaxed">

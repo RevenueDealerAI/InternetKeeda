@@ -37,6 +37,9 @@ export interface FormattableTool {
   createdAt?: Date | string;
   updatedAt?: Date | string;
   logo?: string;
+  activeBoosts?: Array<'category-top' | 'home-rotation' | 'featured-badge'>;
+  listingStatus?: string;
+  seededTool?: boolean;
 }
 
 function safeHostname(url: string | undefined): string {
@@ -78,5 +81,8 @@ export function formatTool(tool: FormattableTool) {
     createdAt: tool.createdAt,
     updatedAt: tool.updatedAt,
     logo: tool.logo,
+    activeBoosts: tool.activeBoosts || [],
+    listingStatus: tool.listingStatus,
+    seededTool: tool.seededTool || false,
   };
 }

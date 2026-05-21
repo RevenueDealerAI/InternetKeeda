@@ -205,6 +205,7 @@ export default function CategoryPage() {
                       }}
                       pricing={convertPricingType(tool.pricing.type)}
                       isNew={tool.isNew}
+                      activeBoosts={tool.activeBoosts}
                     />
                   </div>
                 );

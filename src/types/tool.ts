@@ -28,4 +28,12 @@ export interface Tool {
   reviews: number;
   createdAt: string;
   updatedAt: string;
-} 
+  activeBoosts?: Array<'category-top' | 'home-rotation' | 'featured-badge'>;
+  listingStatus?:
+    | 'free-seeded'
+    | 'paid-active'
+    | 'paid-expired'
+    | 'unpaid-pending'
+    | 'unpaid-hidden';
+  seededTool?: boolean;
+}

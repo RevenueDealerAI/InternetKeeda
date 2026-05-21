@@ -169,6 +169,7 @@ export const LatestLaunches = () => {
                 onFavorite={(e) => handleFavorite(e, tool.id)}
                 pricing={convertPricingType(tool.pricing.type)}
                 isNew={tool.isNew}
+                activeBoosts={tool.activeBoosts}
               />
             </div>
           );

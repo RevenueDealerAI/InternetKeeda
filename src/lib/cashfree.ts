@@ -19,6 +19,8 @@ function readMode(): CFEnvironment {
     : CFEnvironment.SANDBOX;
 }
 
+export const CASHFREE_API_VERSION = "2026-01-01";
+
 export function getCashfreeClient(): Cashfree {
   if (cached) return cached;
 
@@ -31,10 +33,13 @@ export function getCashfreeClient(): Cashfree {
   }
 
   cached = new Cashfree(readMode(), appId, secret);
+  // The SDK exposes XApiVersion as a public field; pinning it avoids
+  // the SDK's default drifting underneath us when they ship a new
+  // OpenAPI rev. Update CASHFREE_API_VERSION here when intentionally
+  // upgrading.
+  cached.XApiVersion = CASHFREE_API_VERSION;
   return cached;
 }
-
-export const CASHFREE_API_VERSION = "2026-01-01";
 
 export const CASHFREE_MODE_LABEL = (): "TEST" | "PROD" =>
   readMode() === CFEnvironment.PRODUCTION ? "PROD" : "TEST";

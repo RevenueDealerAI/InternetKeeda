@@ -70,6 +70,7 @@ import { Tool } from '@/types/tool';
 import { useUserPurchases, useUpdatePurchase, type Purchase } from '@/lib/api/payments';
 import { getUserDisplayName } from '@/lib/utils';
 import AffiliatePage from '@/app/dashboard/affiliate/page';
+import { MyToolsTab } from '../components/MyToolsTab';
 
 // PurchasesTab Component
 function PurchasesTab({ userId }: { userId?: string }) {
@@ -1070,6 +1071,15 @@ export default function Dashboard() {
                 </div>
               </TabsTrigger>
               <TabsTrigger
+                value="my-tools"
+                className="data-[state=active]:bg-orange-100 data-[state=active]:text-orange-700 h-24 rounded-xl border border-gray-200 hover:border-orange-200 transition-all"
+              >
+                <div className="flex flex-col items-center gap-2">
+                  <Wrench className="w-6 h-6" />
+                  <span>My Tools</span>
+                </div>
+              </TabsTrigger>
+              <TabsTrigger
                 value="purchases"
                 className="data-[state=active]:bg-green-100 data-[state=active]:text-green-700 h-24 rounded-xl border border-gray-200 hover:border-green-200 transition-all"
               >
@@ -1245,6 +1255,10 @@ export default function Dashboard() {
             </TabsContent>
 
             {/* Purchases Tab */}
+            <TabsContent value="my-tools" className="space-y-6">
+              <MyToolsTab />
+            </TabsContent>
+
             <TabsContent value="purchases" className="space-y-6">
               <PurchasesTab userId={user?.id} />
             </TabsContent>

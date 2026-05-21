@@ -75,12 +75,18 @@ export async function GET(req: NextRequest) {
         } & Record<string, unknown>;
 
         const query: MongoQuery = {};
-        
+
         if (status) {
             query.status = status;
         } else {
             query.status = 'published';
         }
+
+        // Visibility filter: never leak unpaid-pending / unpaid-hidden
+        // tools on public surfaces. Seeded tools (free-seeded), active
+        // paid listings, and tools that haven't been migrated yet
+        // (listingStatus absent) all stay visible.
+        query.listingStatus = { $nin: ['unpaid-pending', 'unpaid-hidden'] } as unknown as string;
 
         if (category) {
             query.category = { $regex: category, $options: 'i' };

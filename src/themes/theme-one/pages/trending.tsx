@@ -163,6 +163,7 @@ const TrendingPage = () => {
                   }}
                   pricing={convertPricingType(tool.pricing.type)}
                   isNew={tool.isNew}
+                  activeBoosts={tool.activeBoosts}
                 />
               </div>
             ))}

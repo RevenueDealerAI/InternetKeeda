@@ -1,0 +1,42 @@
+import { NextRequest, NextResponse } from "next/server";
+import { connectDB } from "@/app/api/lib/db";
+import { requireAuth, errorResponse } from "@/app/api/lib/auth";
+import { Tool } from "@/app/api/models/Tool";
+
+/**
+ * GET /api/tools/mine
+ *
+ * Returns the signed-in user's submitted tools. Used by the dashboard
+ * "My Tools" tab.
+ */
+export async function GET(req: NextRequest) {
+  try {
+    await connectDB();
+    const auth = await requireAuth(req);
+
+    const tools = await Tool.find({ ownerUserId: auth.userId })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    return NextResponse.json({
+      tools: tools.map((t) => ({
+        id: String(t._id),
+        name: t.name,
+        slug: t.slug,
+        logo: t.logo,
+        category: t.category,
+        status: t.status,
+        listingStatus: t.listingStatus,
+        activeBoosts: t.activeBoosts || [],
+        boostExpiresAt: t.boostExpiresAt || {},
+        createdAt: t.createdAt,
+      })),
+    });
+  } catch (err) {
+    if (err instanceof Error && err.message === "Unauthorized") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    console.error("tools/mine error:", err);
+    return errorResponse("Failed to fetch your tools", 500);
+  }
+}
