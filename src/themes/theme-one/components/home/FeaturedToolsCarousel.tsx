@@ -3,7 +3,6 @@
 import { useMemo, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { useTools } from "@/lib/api/tools";
 import { getToolLogo } from "@/utils/toolHelpers";
@@ -15,7 +14,6 @@ export const FeaturedToolsCarousel = () => {
   // Carousel only shows 10 — fetch 30 to give the Wilson-score
   // re-ranking some headroom. Was 200 = ~120 KB wasted.
   const { data, isLoading } = useTools({ limit: 30, sortBy: "rating", sortOrder: "desc" });
-  const reduceMotion = useReducedMotion();
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
   const top = useMemo(() => {
@@ -38,23 +36,12 @@ export const FeaturedToolsCarousel = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-end justify-between gap-4 mb-8">
           <div>
-            <motion.span
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-80px" }}
-              className="inline-block text-xs font-semibold uppercase tracking-[0.18em] text-orange-600 mb-3"
-            >
+            <span className="inline-block text-xs font-semibold uppercase tracking-[0.18em] text-orange-600 mb-3">
               Editor's picks
-            </motion.span>
-            <motion.h2
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-80px" }}
-              transition={{ duration: 0.5 }}
-              className="text-3xl sm:text-4xl font-bold tracking-tight text-gray-900"
-            >
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-gray-900">
               Featured <span className="gradient-text">AI tools</span>
-            </motion.h2>
+            </h2>
             <p className="text-gray-600 mt-2 max-w-lg">
               The highest-rated tools in the catalog right now — ranked by a Wilson-style score that weights ratings by vote volume.
             </p>
@@ -99,13 +86,10 @@ export const FeaturedToolsCarousel = () => {
                     />
                   ))
                 : top.map((tool, idx) => (
-                    <motion.div
+                    <div
                       key={tool.id}
-                      initial={{ opacity: 0, y: 24 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true, margin: "-50px" }}
-                      transition={{ duration: 0.4, delay: idx * 0.04 }}
-                      className="snap-start shrink-0 w-[280px]"
+                      className="card-reveal snap-start shrink-0 w-[280px]"
+                      style={{ animationDelay: `${Math.min(idx * 40, 400)}ms` }}
                     >
                       <Link
                         href={`/ai-tools/${tool.slug}`}
@@ -141,7 +125,7 @@ export const FeaturedToolsCarousel = () => {
                           </span>
                         </div>
                       </Link>
-                    </motion.div>
+                    </div>
                   ))}
             </div>
           </div>

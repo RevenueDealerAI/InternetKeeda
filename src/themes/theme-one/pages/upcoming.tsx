@@ -92,13 +92,16 @@ export const Upcoming = () => {
             <p className="text-gray-500">New tools are added regularly — check back soon.</p>
           </div>
         ) : (
-          visibleTools.map((tool) => {
+          visibleTools.map((tool, index) => {
             const future = isFutureTool(tool.createdAt);
             const saved = isSaved(tool.id);
+            // Load-More chunks 12 cards; restart stagger per chunk.
+            const batchIndex = index % 12;
             return (
               <div
                 key={tool.id}
-                className="relative bg-white rounded-2xl p-6 mb-8 border border-gray-100 hover:border-orange-200 transition-all duration-300 hover:shadow-lg group"
+                className="card-reveal relative bg-white rounded-2xl p-6 mb-8 border border-gray-100 hover:border-orange-200 transition-all duration-300 hover:shadow-lg group"
+                style={{ animationDelay: `${batchIndex * 40}ms` }}
               >
                 {future && (
                   <div className="absolute -top-3 right-6 bg-orange-100 text-orange-600 px-4 py-1 rounded-full text-sm font-medium flex items-center gap-2">

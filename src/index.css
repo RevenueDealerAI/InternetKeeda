@@ -252,6 +252,25 @@
     .hero-fade-up { opacity: 1; transform: none; animation: none; }
   }
 
+  /* Staggered card reveal. Apply .card-reveal to each card and set
+   * inline `style={{ animationDelay: ... }}` per index. Opacity +
+   * transform composite on the GPU so it costs ~0 main-thread time. */
+  @keyframes card-reveal-anim {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .card-reveal {
+    opacity: 0;
+    animation: card-reveal-anim 0.5s ease-out forwards;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .card-reveal {
+      animation: none;
+      opacity: 1;
+      transform: none;
+    }
+  }
+
   .ad-container,
   .ad-slot {
     position: relative;

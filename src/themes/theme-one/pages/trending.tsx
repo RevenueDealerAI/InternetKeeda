@@ -138,25 +138,30 @@ const TrendingPage = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {trendingTools.map((tool) => (
-              <ProductCard
+            {trendingTools.map((tool, index) => (
+              <div
                 key={tool.id}
-                id={tool.id}
-                slug={tool.slug}
-                name={tool.name}
-                description={tool.description_ai || tool.description}
-                category={tool.category}
-                votes={tool.votes}
-                imageUrl={tool.logo || `https://ui-avatars.com/api/?name=${encodeURIComponent(tool.name)}&background=DC2626&color=fff&bold=true&format=svg`}
-                onVote={(e) => handleVote(e, tool.id, tool.votes)}
-                isFavorite={isSaved(tool.id)}
-                onFavorite={(e) => {
-                  e.preventDefault();
-                  handleFavorite(tool.id);
-                }}
-                pricing={convertPricingType(tool.pricing.type)}
-                isNew={tool.isNew}
-              />
+                className="card-reveal"
+                style={{ animationDelay: `${Math.min(index * 40, 400)}ms` }}
+              >
+                <ProductCard
+                  id={tool.id}
+                  slug={tool.slug}
+                  name={tool.name}
+                  description={tool.description_ai || tool.description}
+                  category={tool.category}
+                  votes={tool.votes}
+                  imageUrl={tool.logo || `https://ui-avatars.com/api/?name=${encodeURIComponent(tool.name)}&background=DC2626&color=fff&bold=true&format=svg`}
+                  onVote={(e) => handleVote(e, tool.id, tool.votes)}
+                  isFavorite={isSaved(tool.id)}
+                  onFavorite={(e) => {
+                    e.preventDefault();
+                    handleFavorite(tool.id);
+                  }}
+                  pricing={convertPricingType(tool.pricing.type)}
+                  isNew={tool.isNew}
+                />
+              </div>
             ))}
           </div>
         )}

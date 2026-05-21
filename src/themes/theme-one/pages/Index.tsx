@@ -724,11 +724,12 @@ export default function Index() {
             // Per-image console.log/error handlers also removed; the
             // getToolLogo helper already provides a safe fallback URL.
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-8">
-              {(aiResults.length > 0 ? aiResults : visibleTools).map((tool) => (
+              {(aiResults.length > 0 ? aiResults : visibleTools).map((tool, index) => (
                 <Link
                   key={tool.id}
                   href={`/ai-tools/${tool.slug}`}
-                  className="group block h-[320px]"
+                  className="card-reveal group block h-[320px]"
+                  style={{ animationDelay: `${Math.min(index * 40, 400)}ms` }}
                 >
                   <article className="relative h-full transform-gpu transition-all duration-200 group overflow-hidden">
                     <div className="absolute inset-0 bg-white/90 backdrop-blur-md rounded-2xl shadow-[0_2px_8px_-2px_rgba(22,23,24,0.05)] group-hover:shadow-lg group-hover:shadow-orange-500/10 transition-all duration-200" />

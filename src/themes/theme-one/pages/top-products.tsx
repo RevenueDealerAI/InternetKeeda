@@ -238,26 +238,36 @@ export const TopProducts = () => {
 
       {/* Products Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {visibleTools.slice(1).map((tool) => (
-          <ProductCard
-            key={tool.id}
-            id={tool.id}
-            slug={tool.slug}
-            name={tool.name}
-            description={tool.description_ai || tool.description}
-            category={tool.category}
-            votes={tool.votes}
-            imageUrl={tool.logo || `https://ui-avatars.com/api/?name=${encodeURIComponent(tool.name)}`}
-            onVote={(e) => handleVote(e, tool.id, tool.votes)}
-            isFavorite={isSaved(tool.id)}
-            onFavorite={(e) => {
-              e.preventDefault();
-              handleFavorite(tool.id);
-            }}
-            pricing={convertPricingType(tool.pricing.type)}
-            isNew={tool.isNew}
-          />
-        ))}
+        {visibleTools.slice(1).map((tool, index) => {
+          // Load-More chunks 9 cards at a time; restart the stagger
+          // clock per chunk so card #10 doesn't wait 400 ms behind card #9.
+          const batchIndex = index % 9;
+          return (
+            <div
+              key={tool.id}
+              className="card-reveal"
+              style={{ animationDelay: `${batchIndex * 40}ms` }}
+            >
+              <ProductCard
+                id={tool.id}
+                slug={tool.slug}
+                name={tool.name}
+                description={tool.description_ai || tool.description}
+                category={tool.category}
+                votes={tool.votes}
+                imageUrl={tool.logo || `https://ui-avatars.com/api/?name=${encodeURIComponent(tool.name)}`}
+                onVote={(e) => handleVote(e, tool.id, tool.votes)}
+                isFavorite={isSaved(tool.id)}
+                onFavorite={(e) => {
+                  e.preventDefault();
+                  handleFavorite(tool.id);
+                }}
+                pricing={convertPricingType(tool.pricing.type)}
+                isNew={tool.isNew}
+              />
+            </div>
+          );
+        })}
       </div>
 
       </div>

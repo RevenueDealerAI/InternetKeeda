@@ -3,7 +3,6 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { motion } from "framer-motion";
 import { TrendingUp, ArrowRight } from "lucide-react";
 import { useTools } from "@/lib/api/tools";
 import { getToolLogo } from "@/utils/toolHelpers";
@@ -37,24 +36,13 @@ export const TrendingThisWeek = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-end justify-between gap-4 mb-10">
           <div>
-            <motion.span
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-80px" }}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-orange-600 mb-3"
-            >
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-orange-600 mb-3">
               <TrendingUp className="w-3.5 h-3.5" />
               Trending this week
-            </motion.span>
-            <motion.h2
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-80px" }}
-              transition={{ duration: 0.5 }}
-              className="text-3xl sm:text-4xl font-bold tracking-tight text-gray-900"
-            >
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-gray-900">
               What everyone's <span className="gradient-text">using</span>
-            </motion.h2>
+            </h2>
           </div>
           <Link
             href="/trending"
@@ -70,12 +58,10 @@ export const TrendingThisWeek = () => {
                 <div key={i} className="h-64 rounded-2xl bg-gray-100/60 animate-pulse" />
               ))
             : tools.map((tool, idx) => (
-                <motion.div
+                <div
                   key={tool.id}
-                  initial={{ opacity: 0, y: 24 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-80px" }}
-                  transition={{ duration: 0.5, delay: idx * 0.1 }}
+                  className="card-reveal"
+                  style={{ animationDelay: `${idx * 60}ms` }}
                 >
                   <Link href={`/ai-tools/${tool.slug}`} className="block group h-full relative">
                     {/* Soft gradient frame */}
@@ -118,7 +104,7 @@ export const TrendingThisWeek = () => {
                       </div>
                     </div>
                   </Link>
-                </motion.div>
+                </div>
               ))}
         </div>
       </div>
