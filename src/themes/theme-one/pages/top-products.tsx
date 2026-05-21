@@ -7,6 +7,7 @@ import { ProductCard } from "../components/ProductCard";
 import { useState } from "react";
 import { useTools } from "@/lib/api/tools";
 import { useToolActions } from "@/hooks/useToolActions";
+import { useInViewReveal } from "@/hooks/useInViewReveal";
 import { ToolCardSkeletonGrid } from "../components/ToolCardSkeleton";
 
 const getPricingColor = (type: string) => {
@@ -76,6 +77,8 @@ export const TopProducts = () => {
 
   const visibleTools = getFilteredAndSortedTools().slice(0, 9);
   const featuredTool = visibleTools[0];
+
+  useInViewReveal([visibleTools.length]);
 
   const handleTimeFilterChange = (filter: 'all' | 'month' | 'week') => {
     setTimeFilter(filter);
@@ -246,7 +249,7 @@ export const TopProducts = () => {
             <div
               key={tool.id}
               className="card-reveal"
-              style={{ animationDelay: `${batchIndex * 40}ms` }}
+              style={{ transitionDelay: `${batchIndex * 40}ms` }}
             >
               <ProductCard
                 id={tool.id}

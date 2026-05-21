@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useTools } from "@/lib/api/tools";
 import { useToolActions } from "@/hooks/useToolActions";
+import { useInViewReveal } from "@/hooks/useInViewReveal";
 
 export const Upcoming = () => {
   const { data, isLoading, error } = useTools({ limit: 500, sortBy: 'createdAt', sortOrder: 'desc' });
@@ -32,6 +33,8 @@ export const Upcoming = () => {
   }, [tools]);
 
   const visibleTools = recentTools.slice(0, pageSize);
+
+  useInViewReveal([visibleTools.length]);
 
   const loadMore = () => {
     setPageSize(prev => prev + 12);
@@ -101,7 +104,7 @@ export const Upcoming = () => {
               <div
                 key={tool.id}
                 className="card-reveal relative bg-white rounded-2xl p-6 mb-8 border border-gray-100 hover:border-orange-200 transition-all duration-300 hover:shadow-lg group"
-                style={{ animationDelay: `${batchIndex * 40}ms` }}
+                style={{ transitionDelay: `${batchIndex * 40}ms` }}
               >
                 {future && (
                   <div className="absolute -top-3 right-6 bg-orange-100 text-orange-600 px-4 py-1 rounded-full text-sm font-medium flex items-center gap-2">

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useTools } from "@/lib/api/tools";
 import { useToolActions } from "@/hooks/useToolActions";
+import { useInViewReveal } from "@/hooks/useInViewReveal";
 import { ToolCardSkeletonGrid } from "../components/ToolCardSkeleton";
 
 // Helper function to convert pricing type
@@ -59,6 +60,8 @@ export const LatestLaunches = () => {
 
   const filteredTools = getFilteredTools();
   const visibleTools = filteredTools.slice(0, pageSize);
+
+  useInViewReveal([visibleTools.length]);
 
   const handleTimeFilterChange = (filter: 'all' | 'week' | 'month') => {
     setTimeFilter(filter);
@@ -151,7 +154,7 @@ export const LatestLaunches = () => {
             <div
               key={tool.id}
               className="card-reveal"
-              style={{ animationDelay: `${batchIndex * 40}ms` }}
+              style={{ transitionDelay: `${batchIndex * 40}ms` }}
             >
               <ProductCard
                 id={tool.id}

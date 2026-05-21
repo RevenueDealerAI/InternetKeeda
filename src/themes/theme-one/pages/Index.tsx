@@ -13,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { useTools } from "@/lib/api/tools";
+import { useInViewReveal } from "@/hooks/useInViewReveal";
 import { Tool } from "@/types/tool";
 import dynamic from "next/dynamic";
 import { HeroSection } from "../components/HeroSection";
@@ -130,6 +131,8 @@ const AnimatedCounter = ({ value, className }: { value: string | number; classNa
 
 export default function Index() {
   const [selectedCategory, setSelectedCategory] = useState("all");
+  // Card reveal observer reattaches whenever the visible grid swaps
+  // (filter change, AI search results, load-more pagination).
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("trending");
   const [selectedPricing, setSelectedPricing] = useState<'Free' | 'Freemium' | 'Paid' | 'All'>('All');
@@ -163,6 +166,8 @@ export default function Index() {
   const [aiQuery, setAiQuery] = useState<string>('');
   const [aiResults, setAiResults] = useState<Tool[]>([]);
   const [aiLoading, setAiLoading] = useState<boolean>(false);
+
+  useInViewReveal([visibleTools.length, aiResults.length]);
 
   const handleAiSearch = useCallback(async (query: string) => {
     const trimmed = query.trim();
@@ -729,10 +734,10 @@ export default function Index() {
                   key={tool.id}
                   href={`/ai-tools/${tool.slug}`}
                   className="card-reveal group block h-[320px]"
-                  style={{ animationDelay: `${Math.min(index * 40, 400)}ms` }}
+                  style={{ transitionDelay: `${Math.min(index * 40, 400)}ms` }}
                 >
-                  <article className="relative h-full transform-gpu transition-all duration-200 group overflow-hidden">
-                    <div className="absolute inset-0 bg-white/90 backdrop-blur-md rounded-2xl shadow-[0_2px_8px_-2px_rgba(22,23,24,0.05)] group-hover:shadow-lg group-hover:shadow-orange-500/10 transition-all duration-200" />
+                  <article className="relative h-full transform-gpu transition-all duration-200 ease-out group overflow-hidden group-hover:-translate-y-2 group-hover:scale-[1.02] motion-reduce:group-hover:translate-y-0 motion-reduce:group-hover:scale-100">
+                    <div className="absolute inset-0 bg-white/90 backdrop-blur-md rounded-2xl shadow-[0_2px_8px_-2px_rgba(22,23,24,0.05)] group-hover:shadow-xl group-hover:shadow-red-500/15 transition-all duration-200" />
                     <div className="absolute inset-0 bg-gradient-to-br from-orange-50/50 via-white/50 to-blue-50/50 rounded-2xl opacity-40 group-hover:opacity-60 transition-all duration-200" />
                     <div className="absolute inset-0 ring-1 ring-inset ring-gray-200 group-hover:ring-orange-200 rounded-2xl transition-all duration-200" />
                     <div className="absolute inset-[1px] ring-1 ring-inset ring-black/[0.025] group-hover:ring-orange-900/[0.05] rounded-[15px] transition-all duration-200" />

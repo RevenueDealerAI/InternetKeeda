@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { TrendingUp, ArrowRight } from "lucide-react";
 import { useTools } from "@/lib/api/tools";
+import { useInViewReveal } from "@/hooks/useInViewReveal";
 import { getToolLogo } from "@/utils/toolHelpers";
 import { Tool } from "@/types/tool";
 
@@ -30,6 +31,8 @@ export const TrendingThisWeek = () => {
       .sort((a, b) => rank(b) - rank(a))
       .slice(0, 3);
   }, [data]);
+
+  useInViewReveal([tools.length]);
 
   return (
     <section className="relative py-20 sm:py-24 bg-gradient-to-b from-white via-[#FAFAFA] to-white overflow-hidden">
@@ -61,7 +64,7 @@ export const TrendingThisWeek = () => {
                 <div
                   key={tool.id}
                   className="card-reveal"
-                  style={{ animationDelay: `${idx * 60}ms` }}
+                  style={{ transitionDelay: `${idx * 60}ms` }}
                 >
                   <Link href={`/ai-tools/${tool.slug}`} className="block group h-full relative">
                     {/* Soft gradient frame */}

@@ -6,6 +6,7 @@ import { ProductCard } from "../components/ProductCard";
 import { useTools } from "@/lib/api/tools";
 import { Tool } from "@/types/tool";
 import { useToolActions } from "@/hooks/useToolActions";
+import { useInViewReveal } from "@/hooks/useInViewReveal";
 
 const TrendingPage = () => {
   const [timeFilter, setTimeFilter] = useState<'today' | 'week' | 'month'>('today');
@@ -44,6 +45,8 @@ const TrendingPage = () => {
 
     return finalList.slice(0, 50);
   }, [tools, timeFilter]);
+
+  useInViewReveal([trendingTools.length]);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -142,7 +145,7 @@ const TrendingPage = () => {
               <div
                 key={tool.id}
                 className="card-reveal"
-                style={{ animationDelay: `${Math.min(index * 40, 400)}ms` }}
+                style={{ transitionDelay: `${Math.min(index * 40, 400)}ms` }}
               >
                 <ProductCard
                   id={tool.id}

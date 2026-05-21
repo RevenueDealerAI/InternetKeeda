@@ -63,7 +63,7 @@ export const ProductCard = ({
   return (
     <article
       onClick={handleCardClick}
-      className="gradient-border group relative h-full bg-white rounded-2xl border border-gray-200 shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:shadow-[0_18px_40px_-20px_rgba(220,38,38,0.25)] hover:-translate-y-1 transition-all duration-200 ease-out cursor-pointer overflow-hidden motion-reduce:transform-none"
+      className="gradient-border group relative h-full bg-white rounded-2xl border border-gray-200 shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:shadow-xl hover:shadow-red-500/15 hover:-translate-y-2 hover:scale-[1.02] transition-all duration-200 ease-out cursor-pointer overflow-hidden motion-reduce:transform-none motion-reduce:hover:translate-y-0 motion-reduce:hover:scale-100"
     >
       <div className="p-5">
         <div className="flex items-start gap-4">

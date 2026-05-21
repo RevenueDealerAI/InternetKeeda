@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { useTools } from "@/lib/api/tools";
+import { useInViewReveal } from "@/hooks/useInViewReveal";
 import { getToolLogo } from "@/utils/toolHelpers";
 import { Tool } from "@/types/tool";
 
@@ -24,6 +25,8 @@ export const FeaturedToolsCarousel = () => {
       .sort((a, b) => score(b) - score(a))
       .slice(0, 10);
   }, [data]);
+
+  useInViewReveal([top.length]);
 
   const scroll = (dir: 1 | -1) => {
     const el = scrollRef.current;
@@ -89,7 +92,7 @@ export const FeaturedToolsCarousel = () => {
                     <div
                       key={tool.id}
                       className="card-reveal snap-start shrink-0 w-[280px]"
-                      style={{ animationDelay: `${Math.min(idx * 40, 400)}ms` }}
+                      style={{ transitionDelay: `${Math.min(idx * 40, 400)}ms` }}
                     >
                       <Link
                         href={`/ai-tools/${tool.slug}`}

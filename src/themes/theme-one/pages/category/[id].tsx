@@ -6,6 +6,7 @@ import { usePathname, useSearchParams } from 'next/navigation'
 import { ProductCard } from "../../components/ProductCard";
 import { useTools } from "@/lib/api/tools";
 import { useToolActions } from "@/hooks/useToolActions";
+import { useInViewReveal } from "@/hooks/useInViewReveal";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { ToolCardSkeletonGrid } from "../../components/ToolCardSkeleton";
@@ -81,6 +82,8 @@ export default function CategoryPage() {
   });
 
   const visibleTools = filteredTools.slice(0, pageSize);
+
+  useInViewReveal([visibleTools.length]);
 
   const handleVote = (e: React.MouseEvent | undefined, toolId: string, currentVotes: number = 0) => {
     if (e) {
@@ -184,7 +187,7 @@ export default function CategoryPage() {
                   <div
                     key={tool.id}
                     className="card-reveal"
-                    style={{ animationDelay: `${batchIndex * 40}ms` }}
+                    style={{ transitionDelay: `${batchIndex * 40}ms` }}
                   >
                     <ProductCard
                       id={tool.id}
