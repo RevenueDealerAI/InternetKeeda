@@ -137,25 +137,13 @@ export const useUpdatePaymentSettings = () => {
   });
 };
 
-// Test Stripe connection (admin only)
+// Test Stripe connection — deprecated, the Stripe integration was
+// removed in the Cashfree migration. Phase D will replace the admin
+// PaymentSettingsPage with a Cashfree-shaped one.
 export const useTestStripeConnection = () => {
   return useMutation({
-    mutationFn: async ({ mode }: { mode: 'test' | 'live' }): Promise<TestStripeResponse> => {
-      const response = await fetch(`/api/payment-settings/test-stripe`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
-        },
-        body: JSON.stringify({ mode }),
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to test Stripe connection');
-      }
-      
-      return response.json();
+    mutationFn: async (_args: { mode: 'test' | 'live' }): Promise<TestStripeResponse> => {
+      throw new Error('Stripe was removed in the Cashfree migration. The admin payment settings page will be rebuilt in Phase D.');
     },
   });
 };

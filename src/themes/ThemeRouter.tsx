@@ -23,7 +23,7 @@ import { Blog } from './theme-one/pages/blog';
 import ThemeOneBlogPost from './theme-one/pages/BlogPost';
 import { Discussions } from './theme-one/pages/discussions';
 import { Events } from './theme-one/pages/events';
-import { Advertise } from './theme-one/pages/advertise';
+// Advertise pages removed in the Cashfree migration — new boost flow lives on /dashboard.
 import ThemeOneDashboard from './theme-one/pages/Dashboard';
 import ThemeTwoDashboard from './theme-two/pages/Dashboard';
 import { AIToolDetail } from './theme-one/pages/AIToolDetail';
@@ -35,8 +35,6 @@ import ThemeOnePrivacyPolicyPage from './theme-one/pages/Privacy';
 import ThemeOneTermsPage from './theme-one/pages/Terms';
 import CategoryPage from './theme-one/pages/category/[id]';
 import SoftwarePageDetail from './theme-one/pages/software/[slug]';
-import { AdvertiseSuccess } from './theme-one/pages/AdvertiseSuccess';
-import { AdvertiseCancel } from './theme-one/pages/AdvertiseCancel';
 import { SignInPage as ThemeOneSignInPage } from './theme-one/pages/SignInPage';
 import { SignUpPage as ThemeOneSignUpPage } from './theme-one/pages/SignUpPage';
 
@@ -99,7 +97,6 @@ import { Blog as ThemeTwoBlog } from './theme-two/pages/blog';
 import ThemeTwoBlogPost from './theme-two/pages/BlogPost';
 import { Discussions as ThemeTwoDiscussions } from './theme-two/pages/discussions';
 import { Events as ThemeTwoEvents } from './theme-two/pages/events';
-import { Advertise as ThemeTwoAdvertise } from './theme-two/pages/advertise';
 
 // Best Software Pages - Theme Two
 import BestProjectManagementTools from './theme-two/pages/best-project-management-tools';
@@ -209,15 +206,12 @@ export const ThemeRouter: React.FC<ThemeRouterProps> = ({ isAdminRoute }) => {
             <Route path="/blog/:slug" element={<ThemeOneBlogPost />} />
             <Route path="/discussions" element={<Discussions />} />
             <Route path="/events" element={<Events />} />
-            <Route path="/advertise" element={<Advertise />} />
             <Route path="/dashboard" element={<ThemeOneDashboard />} />
             <Route path="/ai-tools/:slug" element={<AIToolDetail />} />
             <Route path="/ai-tool/:id" element={<AIToolDetail />} />
             <Route path="/trending" element={<ThemeOneTrendingPage />} />
             <Route path="/about" element={<ThemeOneAboutPage />} />
             <Route path="/software/:slug" element={<SoftwarePageDetail />} />
-            <Route path="/advertise-success" element={<AdvertiseSuccess />} />
-            <Route path="/advertise-cancel" element={<AdvertiseCancel />} />
             <Route path="/sign-in" element={<ThemeOneSignInPage />} />
             <Route path="/sign-up" element={<ThemeOneSignUpPage />} />
 
@@ -256,15 +250,12 @@ export const ThemeRouter: React.FC<ThemeRouterProps> = ({ isAdminRoute }) => {
             <Route path={`${safeTheme.path}/blog/:slug`} element={<ThemeOneBlogPost />} />
             <Route path={`${safeTheme.path}/discussions`} element={<Discussions />} />
             <Route path={`${safeTheme.path}/events`} element={<Events />} />
-            <Route path={`${safeTheme.path}/advertise`} element={<Advertise />} />
             <Route path={`${safeTheme.path}/dashboard`} element={<ThemeTwoDashboard />} />
             <Route path={`${safeTheme.path}/ai-tools/:slug`} element={<AIToolDetail />} />
             <Route path={`${safeTheme.path}/ai-tool/:id`} element={<AIToolDetail />} />
             <Route path={`${safeTheme.path}/trending`} element={<ThemeOneTrendingPage />} />
             <Route path={`${safeTheme.path}/about`} element={<ThemeOneAboutPage />} />
             <Route path={`${safeTheme.path}/software/:slug`} element={<SoftwarePageDetail />} />
-            <Route path={`${safeTheme.path}/advertise-success`} element={<AdvertiseSuccess />} />
-            <Route path={`${safeTheme.path}/advertise-cancel`} element={<AdvertiseCancel />} />
             <Route path={`${safeTheme.path}/best-project-management-tools`} element={<BestProjectManagementTools />} />
             <Route path={`${safeTheme.path}/best-ai-note-taking-software`} element={<BestAINoteTakingSoftware />} />
             <Route path={`${safeTheme.path}/best-ai-daily-planning-software`} element={<BestAIDailyPlanningSoftware />} />
@@ -296,7 +287,6 @@ export const ThemeRouter: React.FC<ThemeRouterProps> = ({ isAdminRoute }) => {
             <Route path="/blog/:slug" element={<ThemeTwoBlogPost />} />
             <Route path="/discussions" element={<ThemeTwoDiscussions />} />
             <Route path="/events" element={<ThemeTwoEvents />} />
-            <Route path="/advertise" element={<ThemeTwoAdvertise />} />
             <Route path="/ai-tools/:slug" element={<ThemeTwoAIToolDetail />} />
             <Route path="/ai-tool/:id" element={<ThemeTwoAIToolDetail />} />
             <Route path="/sign-in" element={<SignInPage />} />

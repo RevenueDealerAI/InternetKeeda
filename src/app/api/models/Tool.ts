@@ -1,5 +1,14 @@
 import mongoose, { Document, Model } from 'mongoose';
 
+export type ToolListingStatus =
+  | 'free-seeded'      // grandfathered original 5000 — always visible, never billed
+  | 'paid-active'      // subscription active — visible
+  | 'paid-expired'     // subscription lapsed but tool still owned — hidden, can re-activate
+  | 'unpaid-pending'   // newly submitted, awaiting first payment
+  | 'unpaid-hidden';   // hidden after 3 failed renewals or admin action
+
+export type BoostSlot = 'category-top' | 'home-rotation' | 'featured-badge';
+
 export interface ITool {
   name: string;
   slug: string;
@@ -25,6 +34,24 @@ export interface ITool {
   votes: number;
   rating: number;
   reviews: number;
+  /** True for the 5000 tools seeded from the original scrape. They
+   * are visible without payment forever. New (user-submitted) tools
+   * default to false and must carry a paid subscription to publish. */
+  seededTool: boolean;
+  listingStatus: ToolListingStatus;
+  /** Active paid boosts. A tool can hold multiple at once
+   * (e.g. category-top + featured-badge). */
+  activeBoosts: BoostSlot[];
+  /** Expiry timestamps keyed by slot. Cron sweeps this and removes
+   * the corresponding slot from `activeBoosts` when expired. */
+  boostExpiresAt?: {
+    'category-top'?: Date;
+    'home-rotation'?: Date;
+    'featured-badge'?: Date;
+  };
+  /** Owner's Clerk user ID — set on submission for paid-flow tools.
+   * Seeded tools have no owner. */
+  ownerUserId?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -61,7 +88,23 @@ const toolSchema = new mongoose.Schema<ITool>({
   views: { type: Number, default: 0 },
   votes: { type: Number, default: 0 },
   rating: { type: Number, default: 0 },
-  reviews: { type: Number, default: 0 }
+  reviews: { type: Number, default: 0 },
+  seededTool: { type: Boolean, default: false },
+  listingStatus: {
+    type: String,
+    enum: ['free-seeded', 'paid-active', 'paid-expired', 'unpaid-pending', 'unpaid-hidden'],
+    default: 'unpaid-pending',
+  },
+  activeBoosts: [{
+    type: String,
+    enum: ['category-top', 'home-rotation', 'featured-badge'],
+  }],
+  boostExpiresAt: {
+    'category-top': { type: Date },
+    'home-rotation': { type: Date },
+    'featured-badge': { type: Date },
+  },
+  ownerUserId: { type: String, index: true },
 }, {
   timestamps: true // This will add createdAt and updatedAt fields automatically
 });
@@ -77,6 +120,8 @@ toolSchema.index({ isTopRated: 1 }); // Top rated filter
 toolSchema.index({ createdAt: -1 }); // Sort by date
 toolSchema.index({ rating: -1 }); // Sort by rating
 toolSchema.index({ views: -1 }); // Sort by views
+toolSchema.index({ listingStatus: 1 }); // Filter to publishable tools
+toolSchema.index({ activeBoosts: 1 }); // "give me tools with this boost" lookups
 
 export const Tool = (mongoose.models.Tool || mongoose.model('Tool', toolSchema)) as unknown as Model<ToolDocument>;
 
