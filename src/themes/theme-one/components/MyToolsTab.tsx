@@ -105,11 +105,27 @@ export function MyToolsTab() {
     try {
       const cashfree = window.Cashfree({ mode: session.mode });
       const returnUrl = `${window.location.origin}/subscription/return?subscription_id=${encodeURIComponent(session.subscriptionId)}`;
-      await cashfree.subscriptionsCheckout({
-        subscriptionSessionId: session.sessionId,
+      // NOTE: the browser SDK v3 calls this field `subsSessionId`.
+      // The server-side cashfree-pg SDK returns it as
+      // `subscription_session_id`. Different SDKs, different naming;
+      // the browser-side one wins because that's who we're calling.
+      const result = await cashfree.subscriptionsCheckout({
+        subsSessionId: session.sessionId,
         returnUrl,
         redirectTarget: "_self",
       });
+
+      // The SDK does NOT throw on option-validation errors — it
+      // resolves with { error: { e, message } }. Without surfacing
+      // this, a misnamed field looks like a no-op to the user.
+      if (result?.error) {
+        const errObj = result.error as { e?: string; message?: string };
+        toast({
+          title: "Cashfree authorization failed",
+          description: errObj.e || errObj.message || "Unknown error",
+          variant: "destructive",
+        });
+      }
     } catch (err) {
       toast({
         title: "Authorization failed to start",

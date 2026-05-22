@@ -209,18 +209,6 @@ export async function POST(req: NextRequest) {
         },
       });
 
-      // Keep the raw dump for now — useful if Cashfree changes the
-      // response shape in a future API version. Remove in a later
-      // cleanup commit once we've seen a few successful flows.
-      console.log(
-        "[sub-create] cf.raw.response",
-        JSON.stringify(cfResp.data, null, 2),
-      );
-      console.log(
-        "[sub-create] cf.raw.keys",
-        Object.keys((cfResp.data as Record<string, unknown>) || {}).join(","),
-      );
-
       // Cashfree's SubscriptionEntity has NO authorization link field
       // (verified against the cashfree-pg@6 SDK's TypeScript types).
       // The only actionable handoff value is `subscription_session_id`
