@@ -216,15 +216,33 @@ export async function POST(req: NextRequest) {
         },
       });
 
+      // RAW dump so we can see exactly what Cashfree returns for
+      // subscription create — field names vary by API version. Remove
+      // once we know the auth-link shape.
+      console.log(
+        "[sub-create] cf.raw.response",
+        JSON.stringify(cfResp.data, null, 2),
+      );
+      console.log(
+        "[sub-create] cf.raw.keys",
+        Object.keys((cfResp.data as Record<string, unknown>) || {}).join(","),
+      );
+
       const data = cfResp.data as {
         subscription_session_id?: string;
         authorisation_details?: { authorisation_link?: string };
+        authorization_details?: { authorization_link?: string };
         auth_link?: string;
+        authorization_link?: string;
+        link?: string;
       };
 
       const authLink =
         data.authorisation_details?.authorisation_link ||
+        data.authorization_details?.authorization_link ||
         data.auth_link ||
+        data.authorization_link ||
+        data.link ||
         undefined;
 
       // subscriptionId was already stored on insert; just stash CF response.
