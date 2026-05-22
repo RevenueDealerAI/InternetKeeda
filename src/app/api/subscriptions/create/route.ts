@@ -39,13 +39,23 @@ function siteOrigin(req: NextRequest): string {
  * publicly visible.
  */
 export async function POST(req: NextRequest) {
+  // Temporary debug logging — remove after first successful sandbox run.
+  const log = (step: string, payload?: unknown) =>
+    console.error("[sub-create]", step, payload ?? "");
+
   try {
+    log("start");
     await connectDB();
+    log("db.connected");
     const auth = await requireAuth(req);
+    log("auth.ok", { userId: auth.userId });
     const body = await req.json();
+    log("body.parsed", body);
     const { toolId } = bodySchema.parse(body);
+    log("zod.ok", { toolId });
 
     const tool = await Tool.findById(toolId);
+    log("tool.lookup", { found: !!tool, seededTool: tool?.seededTool, ownerUserId: tool?.ownerUserId, listingStatus: tool?.listingStatus });
     if (!tool) {
       return NextResponse.json({ error: "Tool not found" }, { status: 404 });
     }
@@ -56,6 +66,7 @@ export async function POST(req: NextRequest) {
       );
     }
     if (tool.ownerUserId !== auth.userId) {
+      log("owner.mismatch", { expected: auth.userId, actual: tool.ownerUserId });
       return NextResponse.json(
         { error: "You can only subscribe for tools you own." },
         { status: 403 },
@@ -66,6 +77,7 @@ export async function POST(req: NextRequest) {
       toolId: tool._id,
       status: { $in: ["initialized", "active", "paused"] },
     });
+    log("existing.check", { has: !!existingActive });
     if (existingActive) {
       return NextResponse.json(
         {
@@ -87,10 +99,16 @@ export async function POST(req: NextRequest) {
       status: "initialized",
       billingCycle: "monthly",
     });
+    log("sub.row.created", { dbId: String(sub._id) });
 
     const subscriptionId = `sub_${sub._id.toString()}_${Date.now()}`;
 
     const clerkUser = await getAuth();
+    log("clerk.user", {
+      hasUser: !!clerkUser,
+      hasEmail: !!clerkUser?.emailAddresses?.[0]?.emailAddress,
+      hasPhone: !!clerkUser?.phoneNumbers?.[0]?.phoneNumber,
+    });
     const customerEmail =
       clerkUser?.emailAddresses?.[0]?.emailAddress ||
       `${auth.userId}@no-email.internetkeeda.com`;
@@ -105,8 +123,21 @@ export async function POST(req: NextRequest) {
     const planAmountRupees = PRICING.MONTHLY_LISTING_PAISE / 100;
     const planMaxAmountRupees = planAmountRupees * 2; // headroom for future price increases
 
+    log("cf.about_to_call", {
+      subscriptionId,
+      planAmountRupees,
+      planMaxAmountRupees,
+      customerEmail,
+      customerPhonePresent: !!customerPhone,
+      origin,
+      mode: process.env.CASHFREE_MODE,
+      appIdPrefix: (process.env.CASHFREE_APP_ID || "").slice(0, 12),
+      secretPrefix: (process.env.CASHFREE_SECRET_KEY || "").slice(0, 16),
+    });
+
     try {
       const cf = getCashfreeClient();
+      log("cf.client.created");
       const cfResp = await cf.SubsCreateSubscription({
         subscription_id: subscriptionId,
         customer_details: {
@@ -155,12 +186,20 @@ export async function POST(req: NextRequest) {
         mode: process.env.CASHFREE_MODE === "PROD" ? "production" : "sandbox",
       });
     } catch (cfErr) {
+      // Axios errors carry the real API response under response.data.
+      const axiosLike = cfErr as { response?: { status?: number; data?: unknown }; message?: string };
+      log("cf.error", {
+        message: axiosLike.message,
+        status: axiosLike.response?.status,
+        data: axiosLike.response?.data,
+      });
       sub.status = "failed";
       sub.metadata = {
         error: cfErr instanceof Error ? cfErr.message : String(cfErr),
+        cfResponse: axiosLike.response?.data,
+        cfStatus: axiosLike.response?.status,
       };
       await sub.save();
-      console.error("Cashfree SubsCreateSubscription failed:", cfErr);
       return errorResponse("Failed to create Cashfree subscription", 502);
     }
   } catch (err) {
@@ -173,7 +212,10 @@ export async function POST(req: NextRequest) {
     if (err instanceof Error && err.message === "Unauthorized") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    console.error("subscriptions/create error:", err);
+    log("outer.catch", {
+      message: err instanceof Error ? err.message : String(err),
+      stack: err instanceof Error ? err.stack?.split("\n").slice(0, 6) : undefined,
+    });
     return errorResponse("Failed to create subscription", 500);
   }
 }
