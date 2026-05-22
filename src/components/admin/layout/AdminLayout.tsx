@@ -63,9 +63,9 @@ const navigation: NavigationItem[] = [
   { name: 'Reviews', href: '/admin/reviews', icon: MessageCircle },
   { name: 'Sales Inquiries', href: '/admin/inquiries', icon: MessageSquare },
   { name: 'Newsletter Subscriptions', href: '/admin/newsletter', icon: Mail },
-  { name: 'Advertising Plans', href: '/admin/advertising-plans', icon: CreditCard },
+  { name: 'Payments', href: '/admin/payments', icon: CreditCard },
+  { name: 'Subscriptions', href: '/admin/subscriptions', icon: Wallet },
   { name: 'Site Settings', href: '/admin/settings', icon: Settings },
-  { name: 'Payment Settings', href: '/admin/payment-settings', icon: Wallet },
   { name: 'Auto Scraper', href: '/admin/scraper', icon: Bot },
 ];
 

@@ -5,9 +5,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Rocket, Plus } from "lucide-react";
+import { Rocket, Plus, Sparkles, XCircle } from "lucide-react";
 import { BoostModal } from "./BoostModal";
 import { useQuery } from "@tanstack/react-query";
+import { useCreateSubscription, useMySubscriptions, useCancelSubscription } from "@/lib/api/subscriptions";
+import { toast } from "@/components/ui/use-toast";
 
 interface MyTool {
   id: string;
@@ -22,10 +24,7 @@ interface MyTool {
   createdAt: string;
 }
 
-const STATUS_BADGE: Record<
-  string,
-  { label: string; className: string }
-> = {
+const STATUS_BADGE: Record<string, { label: string; className: string }> = {
   "free-seeded": { label: "Free Seeded", className: "bg-emerald-50 text-emerald-700 ring-emerald-200/60" },
   "paid-active": { label: "Live", className: "bg-emerald-50 text-emerald-700 ring-emerald-200/60" },
   "paid-expired": { label: "Expired", className: "bg-amber-50 text-amber-700 ring-amber-200/60" },
@@ -35,8 +34,11 @@ const STATUS_BADGE: Record<
 
 export function MyToolsTab() {
   const [boostTarget, setBoostTarget] = useState<MyTool | null>(null);
+  const createSub = useCreateSubscription();
+  const cancelSub = useCancelSubscription();
+  const { data: subData } = useMySubscriptions();
 
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["my-tools"],
     queryFn: async (): Promise<{ tools: MyTool[] }> => {
       const r = await fetch("/api/tools/mine", { credentials: "include" });
@@ -45,16 +47,55 @@ export function MyToolsTab() {
     },
   });
 
-  if (isLoading) {
-    return <div className="text-sm text-gray-500 py-10 text-center">Loading your tools…</div>;
+  // Map toolId → active subscription (initialized / active / paused).
+  const subsByTool = new Map<string, { subscriptionId: string; status: string }>();
+  for (const s of subData?.subscriptions ?? []) {
+    const tid = typeof s.toolId === "object" ? s.toolId._id : s.toolId;
+    if (!tid) continue;
+    if (["initialized", "active", "paused"].includes(s.status)) {
+      subsByTool.set(String(tid), { subscriptionId: s.subscriptionId, status: s.status });
+    }
   }
-  if (error) {
-    return (
-      <div className="text-sm text-red-600 py-10 text-center">
-        {error instanceof Error ? error.message : "Failed to load"}
-      </div>
-    );
-  }
+
+  const handleActivate = async (tool: MyTool) => {
+    try {
+      const res = await createSub.mutateAsync({ toolId: tool.id });
+      if (res.authLink) {
+        window.location.href = res.authLink;
+        return;
+      }
+      // Some Cashfree responses return only sessionId; the return page
+      // can still poll. Push the user there with the subscription id.
+      window.location.href = `/subscription/return?subscription_id=${encodeURIComponent(res.subscriptionId)}`;
+    } catch (err) {
+      toast({
+        title: "Could not start subscription",
+        description: err instanceof Error ? err.message : "Unknown error",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCancel = async (subscriptionId: string) => {
+    if (!confirm("Cancel this subscription? Your tool will be hidden from the directory.")) return;
+    try {
+      await cancelSub.mutateAsync({ subscriptionId });
+      toast({
+        title: "Cancellation requested",
+        description: "Cashfree will confirm in a moment. Refresh the page if needed.",
+      });
+      setTimeout(refetch, 1500);
+    } catch (err) {
+      toast({
+        title: "Cancel failed",
+        description: err instanceof Error ? err.message : "Unknown error",
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (isLoading) return <div className="text-sm text-gray-500 py-10 text-center">Loading your tools…</div>;
+  if (error) return <div className="text-sm text-red-600 py-10 text-center">{error instanceof Error ? error.message : "Failed to load"}</div>;
   const tools = data?.tools ?? [];
 
   if (tools.length === 0) {
@@ -92,11 +133,12 @@ export function MyToolsTab() {
             label: t.listingStatus,
             className: "bg-gray-100 text-gray-700 ring-gray-200/60",
           };
+          const sub = subsByTool.get(t.id);
+          const needsActivation = t.listingStatus === "unpaid-pending" && !sub;
+          const isActive = t.listingStatus === "paid-active" && sub?.status === "active";
+
           return (
-            <div
-              key={t.id}
-              className="flex items-center gap-4 bg-white border border-gray-200 rounded-xl p-4"
-            >
+            <div key={t.id} className="flex items-center gap-4 bg-white border border-gray-200 rounded-xl p-4">
               <div className="relative w-12 h-12 shrink-0 rounded-lg overflow-hidden bg-gradient-to-br from-orange-50 to-gray-50 ring-1 ring-gray-200/80">
                 {t.logo ? (
                   <Image src={t.logo} alt={t.name} fill sizes="48px" className="object-cover" unoptimized />
@@ -115,16 +157,47 @@ export function MyToolsTab() {
                       {b.replace(/-/g, " ")}
                     </Badge>
                   ))}
+                  {sub?.status === "initialized" && (
+                    <Badge className="bg-amber-50 text-amber-700 ring-1 ring-amber-200/60">Awaiting authorization</Badge>
+                  )}
                 </div>
                 <p className="text-xs text-gray-500 truncate">{t.category}</p>
               </div>
-              <Button
-                size="sm"
-                onClick={() => setBoostTarget(t)}
-                className="bg-gradient-to-r from-orange-500 to-red-600 text-white"
-              >
-                <Rocket className="w-4 h-4 mr-1" /> Boost
-              </Button>
+              <div className="flex items-center gap-2">
+                {needsActivation && (
+                  <Button
+                    size="sm"
+                    onClick={() => handleActivate(t)}
+                    disabled={createSub.isPending}
+                    className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white"
+                  >
+                    <Sparkles className="w-4 h-4 mr-1" />
+                    Activate ₹499/mo
+                  </Button>
+                )}
+                {isActive && (
+                  <>
+                    <Button
+                      size="sm"
+                      onClick={() => setBoostTarget(t)}
+                      className="bg-gradient-to-r from-orange-500 to-red-600 text-white"
+                    >
+                      <Rocket className="w-4 h-4 mr-1" /> Boost
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => sub && handleCancel(sub.subscriptionId)}
+                      disabled={cancelSub.isPending}
+                    >
+                      <XCircle className="w-4 h-4 text-gray-400" />
+                    </Button>
+                  </>
+                )}
+                {t.listingStatus === "free-seeded" && (
+                  <span className="text-xs text-gray-400">Grandfathered free</span>
+                )}
+              </div>
             </div>
           );
         })}

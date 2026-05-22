@@ -35,6 +35,7 @@ import {
   Cell
 } from 'recharts';
 import { Button } from "@/components/ui/button";
+import { RevenueCards } from "@/themes/theme-one/components/admin/RevenueCards";
 
 const API_URL = ''; // Use relative URLs since APIs are handled by Next.js API routes
 
@@ -186,6 +187,9 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Revenue (Cashfree) */}
+      <RevenueCards />
 
       {/* Charts */}
       <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2">
