@@ -90,8 +90,17 @@ const CLERK_PROTECTED_PATHS = [
 
 function needsClerk(pathname: string): boolean {
   // Auth-touching API routes — anything that does requireAuth() needs
-  // the Clerk session cookie validated by middleware.
-  if (pathname.startsWith('/api/users') || pathname.startsWith('/api/admin')) {
+  // the Clerk session cookie validated by middleware. If a route
+  // calls requireAuth(req) but isn't in this list, auth() returns
+  // no userId and the route 401s even for signed-in users.
+  if (
+    pathname.startsWith('/api/users') ||
+    pathname.startsWith('/api/admin') ||
+    pathname.startsWith('/api/payments') ||
+    pathname.startsWith('/api/subscriptions') ||
+    pathname === '/api/tools/submit' ||
+    pathname === '/api/tools/mine'
+  ) {
     return true;
   }
   return CLERK_PROTECTED_PATHS.some((p) => pathname === p || pathname.startsWith(p + '/'));
