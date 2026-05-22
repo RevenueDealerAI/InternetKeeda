@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
+import mongoose from "mongoose";
 import { z } from "zod";
 import { connectDB } from "@/app/api/lib/db";
 import { requireAuth, errorResponse, getAuth } from "@/app/api/lib/auth";
 import { Tool } from "@/app/api/models/Tool";
 import { Subscription } from "@/app/api/models/Subscription";
 import { getCashfreeClient, PRICING } from "@/lib/cashfree";
+
+const RESUME_WINDOW_MS = 10 * 60 * 1000;
 
 const bodySchema = z.object({
   toolId: z.string().min(1, "toolId is required"),
@@ -73,35 +76,87 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // ── Resume-or-clean check ──────────────────────────────────
+    // If an active/paused sub exists, refuse (409). If an
+    // initialized (i.e. authorization-pending) sub exists from a
+    // recent attempt, return its existing authorization link so
+    // the user resumes the same flow. If the initialized sub is
+    // stale (>10 min) the user probably abandoned it — delete the
+    // orphan and start fresh.
     const existingActive = await Subscription.findOne({
       toolId: tool._id,
-      status: { $in: ["initialized", "active", "paused"] },
+      status: { $in: ["active", "paused"] },
     });
-    log("existing.check", { has: !!existingActive });
+    log("existing.activeCheck", { has: !!existingActive });
     if (existingActive) {
       return NextResponse.json(
         {
-          error: "This tool already has an active or pending subscription.",
+          error: "This tool already has an active subscription.",
           subscriptionId: existingActive.subscriptionId,
         },
         { status: 409 },
       );
     }
 
-    // DB row first so we have a stable id to embed in subscription_id.
+    const existingInitialized = await Subscription.findOne({
+      toolId: tool._id,
+      userId: auth.userId,
+      status: "initialized",
+    }).sort({ createdAt: -1 });
+
+    if (existingInitialized) {
+      const ageMs = Date.now() - new Date(existingInitialized.createdAt).getTime();
+      log("existing.initialized", {
+        dbId: String(existingInitialized._id),
+        subscriptionId: existingInitialized.subscriptionId,
+        ageMs,
+      });
+      if (ageMs < RESUME_WINDOW_MS) {
+        const stashed = (existingInitialized.metadata as Record<string, unknown>)
+          ?.createResponse as
+          | {
+              authorisation_details?: { authorisation_link?: string };
+              auth_link?: string;
+              subscription_session_id?: string;
+            }
+          | undefined;
+        const authLink =
+          stashed?.authorisation_details?.authorisation_link ||
+          stashed?.auth_link ||
+          undefined;
+        return NextResponse.json({
+          subscriptionId: existingInitialized.subscriptionId,
+          subscriptionDbId: String(existingInitialized._id),
+          authLink,
+          sessionId: stashed?.subscription_session_id,
+          amount: existingInitialized.amount,
+          currency: existingInitialized.currency,
+          mode: process.env.CASHFREE_MODE === "PROD" ? "production" : "sandbox",
+          resumed: true,
+        });
+      }
+      // Stale orphan — wipe it and continue.
+      await Subscription.deleteOne({ _id: existingInitialized._id });
+      log("existing.initialized.deleted", { dbId: String(existingInitialized._id) });
+    }
+
+    // Pre-generate the ObjectId so subscription_id is unique on
+    // first insert — no "pending" placeholder, no E11000 retry hazard.
+    const dbId = new mongoose.Types.ObjectId();
+    const subscriptionId = `sub_${dbId.toString()}_${Date.now()}`;
+
     const sub = await Subscription.create({
+      _id: dbId,
       userId: auth.userId,
       toolId: tool._id,
       planId: "monthly-listing-499",
-      subscriptionId: "pending", // backfilled below
+      subscriptionId,
       amount: PRICING.MONTHLY_LISTING_PAISE,
       currency: "INR",
       status: "initialized",
       billingCycle: "monthly",
     });
-    log("sub.row.created", { dbId: String(sub._id) });
-
-    const subscriptionId = `sub_${sub._id.toString()}_${Date.now()}`;
+    log("sub.row.created", { dbId: String(sub._id), subscriptionId });
 
     const clerkUser = await getAuth();
     log("clerk.user", {
@@ -172,7 +227,7 @@ export async function POST(req: NextRequest) {
         data.auth_link ||
         undefined;
 
-      sub.subscriptionId = subscriptionId;
+      // subscriptionId was already stored on insert; just stash CF response.
       sub.metadata = { createResponse: cfResp.data };
       await sub.save();
 
@@ -193,13 +248,17 @@ export async function POST(req: NextRequest) {
         status: axiosLike.response?.status,
         data: axiosLike.response?.data,
       });
-      sub.status = "failed";
-      sub.metadata = {
-        error: cfErr instanceof Error ? cfErr.message : String(cfErr),
-        cfResponse: axiosLike.response?.data,
-        cfStatus: axiosLike.response?.status,
-      };
-      await sub.save();
+      // Delete the Mongo row so the next retry isn't blocked by an
+      // orphan. The user gets a clean E11000-free retry attempt.
+      try {
+        await Subscription.deleteOne({ _id: sub._id });
+        log("sub.row.deleted_after_cf_error", { dbId: String(sub._id) });
+      } catch (delErr) {
+        log("sub.row.delete_failed", {
+          dbId: String(sub._id),
+          err: delErr instanceof Error ? delErr.message : String(delErr),
+        });
+      }
       return errorResponse("Failed to create Cashfree subscription", 502);
     }
   } catch (err) {
