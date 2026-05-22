@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createHmac, timingSafeEqual } from "crypto";
 import { connectDB } from "@/app/api/lib/db";
 import { Subscription } from "@/app/api/models/Subscription";
 import { Tool } from "@/app/api/models/Tool";
@@ -6,7 +7,6 @@ import { User } from "@/app/api/models/User";
 import { AffiliateProfile } from "@/app/api/models/AffiliateProfile";
 import { Commission } from "@/app/api/models/Commission";
 import { AffiliateSettings } from "@/models/AffiliateSettings";
-import { getCashfreeClient } from "@/lib/cashfree";
 
 type SubscriptionEvent =
   | "SUBSCRIPTION_NEW"
@@ -23,6 +23,48 @@ const MAX_FAILED_RENEWALS_BEFORE_UNLIST = 3;
 
 export const dynamic = "force-dynamic";
 
+/**
+ * HMAC verification per Cashfree's webhook spec:
+ *
+ *   signature = base64(HMAC-SHA256(timestamp + rawBody, secret))
+ *
+ * Subscription webhooks are signed with the **per-webhook secret**
+ * generated when you register the webhook in Cashfree's dashboard —
+ * NOT the client secret used for API auth. We honour
+ * CASHFREE_WEBHOOK_SECRET when set, and fall back to
+ * CASHFREE_SECRET_KEY for environments that left it blank (which is
+ * what the sandbox dashboard does until you explicitly create one).
+ */
+function verifyCashfreeSignature(
+  rawBody: string,
+  timestamp: string,
+  signature: string,
+): { ok: boolean; expected: string; secretSource: "webhook" | "client" | "none" } {
+  const webhookSecret = process.env.CASHFREE_WEBHOOK_SECRET || "";
+  const clientSecret = process.env.CASHFREE_SECRET_KEY || "";
+  const secret = webhookSecret || clientSecret;
+  if (!secret) {
+    return { ok: false, expected: "", secretSource: "none" };
+  }
+  const expected = createHmac("sha256", secret)
+    .update(timestamp + rawBody)
+    .digest("base64");
+
+  let ok = false;
+  try {
+    const a = Buffer.from(signature);
+    const b = Buffer.from(expected);
+    ok = a.length === b.length && timingSafeEqual(a, b);
+  } catch {
+    ok = false;
+  }
+  return {
+    ok,
+    expected,
+    secretSource: webhookSecret ? "webhook" : "client",
+  };
+}
+
 export async function POST(req: NextRequest) {
   try {
     const rawBody = await req.text();
@@ -30,6 +72,12 @@ export async function POST(req: NextRequest) {
     const timestamp = req.headers.get("x-webhook-timestamp");
 
     if (!signature || !timestamp) {
+      console.warn("[cf-subs-webhook] reject", {
+        reason: "missing_headers",
+        hasSignature: !!signature,
+        hasTimestamp: !!timestamp,
+        allHeaders: Object.fromEntries(req.headers.entries()),
+      });
       return NextResponse.json(
         { error: "Missing webhook headers" },
         { status: 401 },
@@ -41,17 +89,36 @@ export async function POST(req: NextRequest) {
       Number.isNaN(tsMs) ||
       Math.abs(Date.now() - tsMs) > MAX_REPLAY_WINDOW_MS
     ) {
+      console.warn("[cf-subs-webhook] reject", {
+        reason: "timestamp_out_of_range",
+        timestamp,
+        nowMs: Date.now(),
+        deltaMs: Math.abs(Date.now() - tsMs),
+      });
       return NextResponse.json(
         { error: "Webhook timestamp out of range" },
         { status: 401 },
       );
     }
 
-    try {
-      const cf = getCashfreeClient();
-      cf.PGVerifyWebhookSignature(signature, rawBody, timestamp);
-    } catch (verifyErr) {
-      console.warn("cashfree-subscriptions sig invalid", verifyErr);
+    const { ok, expected, secretSource } = verifyCashfreeSignature(
+      rawBody,
+      timestamp,
+      signature,
+    );
+    if (!ok) {
+      console.warn("[cf-subs-webhook] reject", {
+        reason: "signature_mismatch",
+        receivedSig: signature,
+        expectedSig: expected,
+        timestamp,
+        bodyLength: rawBody.length,
+        secretSource,
+        webhookSecretPrefix:
+          (process.env.CASHFREE_WEBHOOK_SECRET || "").slice(0, 8),
+        clientSecretPrefix:
+          (process.env.CASHFREE_SECRET_KEY || "").slice(0, 8),
+      });
       return NextResponse.json(
         { error: "Invalid signature" },
         { status: 401 },
