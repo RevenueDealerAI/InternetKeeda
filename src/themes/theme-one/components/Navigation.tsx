@@ -57,7 +57,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { toast } from "sonner";
-import { SubmitToolModal } from "./modals/SubmitToolModal";
+// SubmitToolModal removed — the "Submit Your Tool" button now navigates
+// to /submit-tool, which has its own ClerkRouteWrapper layout. The
+// previous in-place modal imported useSubmitTool → useAuth from
+// @clerk/clerk-react, which crashed the home page when the modal opened
+// (no ClerkProvider in scope).
 import { useSiteConfig } from '@/contexts/SiteConfigContext';
 import { getUserDisplayName } from '@/lib/utils';
 import { useCategories } from '@/hooks/useCategories';
@@ -73,7 +77,6 @@ export const Navigation = () => {
   const router = useRouter();
   const hasNotifications = true;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
   const { config } = useSiteConfig();
   const pathname = usePathname();
 
@@ -288,14 +291,16 @@ export const Navigation = () => {
 
               {/* Right side actions */}
               <div className="flex items-center space-x-4">
-                {/* Submit tool button */}
-                <Button
-                  className="hidden md:flex bg-orange-500 hover:bg-orange-600 text-white h-10 px-4 shadow-[0_6px_20px_-8px_rgba(220,38,38,0.6)]"
-                  onClick={() => setIsSubmitModalOpen(true)}
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Submit Your Tool
-                </Button>
+                {/* Submit tool — navigate to /submit-tool (has its own
+                  * ClerkRouteWrapper layout). The previous in-place modal
+                  * pulled useAuth into the home chunk and crashed on
+                  * open. */}
+                <Link href="/submit-tool" className="hidden md:flex">
+                  <Button className="bg-orange-500 hover:bg-orange-600 text-white h-10 px-4 shadow-[0_6px_20px_-8px_rgba(220,38,38,0.6)]">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Submit Your Tool
+                  </Button>
+                </Link>
 
                 {/* Auth chrome. Anonymous: Sign in / Sign up routes
                   * (each has its own ClerkProvider per-route layout).
@@ -619,15 +624,15 @@ export const Navigation = () => {
             <ListTodo className="h-5 w-5 mb-1" />
             <span>Categories</span>
           </Link>
-          <button
-            onClick={() => setIsSubmitModalOpen(true)}
+          <Link
+            href="/submit-tool"
             className="flex flex-col items-center justify-center text-xs font-medium text-orange-600 active-scale"
           >
             <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-full h-12 w-12 flex items-center justify-center -mt-5 shadow-lg shadow-orange-500/30">
               <Plus className="h-6 w-6 text-white" />
             </div>
             <span className="mt-1">Submit</span>
-          </button>
+          </Link>
           <Link href="/trending" className="flex flex-col items-center justify-center text-xs font-medium text-gray-600 active-scale">
             <TrendingUp className="h-5 w-5 mb-1" />
             <span>Trending</span>
@@ -639,11 +644,6 @@ export const Navigation = () => {
         </div>
       </div>
 
-      {/* Submit Tool Modal */}
-      {isSubmitModalOpen && (
-        <SubmitToolModal isOpen={isSubmitModalOpen} onOpenChange={setIsSubmitModalOpen} />
-      )}
-      
       {/* Add padding to the bottom of the page content to accommodate the bottom nav on mobile */}
       <div className="md:hidden h-16"></div>
     </>
