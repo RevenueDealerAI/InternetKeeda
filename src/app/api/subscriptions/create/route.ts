@@ -33,8 +33,10 @@ function siteOrigin(req: NextRequest): string {
  *   1. Validate user owns the tool, no active sub exists for it
  *   2. Insert Subscription row (status: 'initialized')
  *   3. Call Cashfree SubsCreateSubscription with PLAN inlined
- *   4. Return { authLink, subscriptionId } so the frontend can
- *      redirect the user to Cashfree's authorization page
+ *   4. Return { subscriptionId, sessionId } so the frontend can
+ *      hand `sessionId` to Cashfree's JS v3 SDK
+ *      (`cashfree.subscriptionsCheckout({ subscriptionSessionId })`),
+ *      which opens the hosted authorization page
  *
  * The actual status flip to 'active' happens via the
  * SUBSCRIPTION_ACTIVATED webhook — Tool.listingStatus moves to
@@ -114,20 +116,11 @@ export async function POST(req: NextRequest) {
       if (ageMs < RESUME_WINDOW_MS) {
         const stashed = (existingInitialized.metadata as Record<string, unknown>)
           ?.createResponse as
-          | {
-              authorisation_details?: { authorisation_link?: string };
-              auth_link?: string;
-              subscription_session_id?: string;
-            }
+          | { subscription_session_id?: string }
           | undefined;
-        const authLink =
-          stashed?.authorisation_details?.authorisation_link ||
-          stashed?.auth_link ||
-          undefined;
         return NextResponse.json({
           subscriptionId: existingInitialized.subscriptionId,
           subscriptionDbId: String(existingInitialized._id),
-          authLink,
           sessionId: stashed?.subscription_session_id,
           amount: existingInitialized.amount,
           currency: existingInitialized.currency,
@@ -216,9 +209,9 @@ export async function POST(req: NextRequest) {
         },
       });
 
-      // RAW dump so we can see exactly what Cashfree returns for
-      // subscription create — field names vary by API version. Remove
-      // once we know the auth-link shape.
+      // Keep the raw dump for now — useful if Cashfree changes the
+      // response shape in a future API version. Remove in a later
+      // cleanup commit once we've seen a few successful flows.
       console.log(
         "[sub-create] cf.raw.response",
         JSON.stringify(cfResp.data, null, 2),
@@ -228,22 +221,14 @@ export async function POST(req: NextRequest) {
         Object.keys((cfResp.data as Record<string, unknown>) || {}).join(","),
       );
 
+      // Cashfree's SubscriptionEntity has NO authorization link field
+      // (verified against the cashfree-pg@6 SDK's TypeScript types).
+      // The only actionable handoff value is `subscription_session_id`
+      // — the client hands it to Cashfree's JS v3 SDK, which opens
+      // the hosted authorization page.
       const data = cfResp.data as {
         subscription_session_id?: string;
-        authorisation_details?: { authorisation_link?: string };
-        authorization_details?: { authorization_link?: string };
-        auth_link?: string;
-        authorization_link?: string;
-        link?: string;
       };
-
-      const authLink =
-        data.authorisation_details?.authorisation_link ||
-        data.authorization_details?.authorization_link ||
-        data.auth_link ||
-        data.authorization_link ||
-        data.link ||
-        undefined;
 
       // subscriptionId was already stored on insert; just stash CF response.
       sub.metadata = { createResponse: cfResp.data };
@@ -252,7 +237,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({
         subscriptionId,
         subscriptionDbId: String(sub._id),
-        authLink,
         sessionId: data.subscription_session_id,
         amount: PRICING.MONTHLY_LISTING_PAISE,
         currency: "INR",

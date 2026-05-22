@@ -5,11 +5,13 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 export interface CreateSubscriptionResponse {
   subscriptionId: string;
   subscriptionDbId: string;
-  authLink?: string;
+  /** subscription_session_id from Cashfree — hand to
+   * `cashfree.subscriptionsCheckout({ subscriptionSessionId })`. */
   sessionId?: string;
   amount: number;
   currency: "INR";
   mode: "sandbox" | "production";
+  resumed?: boolean;
 }
 
 export const useCreateSubscription = () =>

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import Script from "next/script";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Rocket, Plus, Sparkles, XCircle } from "lucide-react";
@@ -10,6 +11,14 @@ import { BoostModal } from "./BoostModal";
 import { useQuery } from "@tanstack/react-query";
 import { useCreateSubscription, useMySubscriptions, useCancelSubscription } from "@/lib/api/subscriptions";
 import { toast } from "@/components/ui/use-toast";
+
+// Cashfree's hosted-checkout JS SDK. Same loader and version as
+// BoostModal — only the SDK *method* differs (subscriptionsCheckout
+// vs checkout). The SDK exposes both off the same `window.Cashfree`.
+const CF_SDK_URL = "https://sdk.cashfree.com/js/v3/cashfree.js";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+declare global { interface Window { Cashfree?: any } }
 
 interface MyTool {
   id: string;
@@ -34,6 +43,7 @@ const STATUS_BADGE: Record<string, { label: string; className: string }> = {
 
 export function MyToolsTab() {
   const [boostTarget, setBoostTarget] = useState<MyTool | null>(null);
+  const [sdkReady, setSdkReady] = useState(false);
   const createSub = useCreateSubscription();
   const cancelSub = useCancelSubscription();
   const { data: subData } = useMySubscriptions();
@@ -58,18 +68,51 @@ export function MyToolsTab() {
   }
 
   const handleActivate = async (tool: MyTool) => {
+    let session;
     try {
-      const res = await createSub.mutateAsync({ toolId: tool.id });
-      if (res.authLink) {
-        window.location.href = res.authLink;
-        return;
-      }
-      // Some Cashfree responses return only sessionId; the return page
-      // can still poll. Push the user there with the subscription id.
-      window.location.href = `/subscription/return?subscription_id=${encodeURIComponent(res.subscriptionId)}`;
+      session = await createSub.mutateAsync({ toolId: tool.id });
     } catch (err) {
       toast({
         title: "Could not start subscription",
+        description: err instanceof Error ? err.message : "Unknown error",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!session.sessionId) {
+      toast({
+        title: "Cashfree didn't return a session",
+        description: "Please retry. If this keeps happening, contact support.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Cashfree subscription auth flow: hand the session_id to the
+    // hosted-checkout SDK and let it redirect to CF's authorization
+    // page. CF bounces the user back to returnUrl after the mandate
+    // is set up.
+    if (!window.Cashfree) {
+      toast({
+        title: "Payment gateway unavailable",
+        description: "Cashfree SDK didn't load. Please retry.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const cashfree = window.Cashfree({ mode: session.mode });
+      const returnUrl = `${window.location.origin}/subscription/return?subscription_id=${encodeURIComponent(session.subscriptionId)}`;
+      await cashfree.subscriptionsCheckout({
+        subscriptionSessionId: session.sessionId,
+        returnUrl,
+        redirectTarget: "_self",
+      });
+    } catch (err) {
+      toast({
+        title: "Authorization failed to start",
         description: err instanceof Error ? err.message : "Unknown error",
         variant: "destructive",
       });
@@ -116,7 +159,13 @@ export function MyToolsTab() {
   }
 
   return (
-    <div className="space-y-4">
+    <>
+      <Script
+        src={CF_SDK_URL}
+        strategy="lazyOnload"
+        onLoad={() => setSdkReady(true)}
+      />
+      <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-semibold text-gray-900">My Tools</h2>
         <Link href="/submit-tool">
@@ -168,11 +217,11 @@ export function MyToolsTab() {
                   <Button
                     size="sm"
                     onClick={() => handleActivate(t)}
-                    disabled={createSub.isPending}
+                    disabled={createSub.isPending || !sdkReady}
                     className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white"
                   >
                     <Sparkles className="w-4 h-4 mr-1" />
-                    Activate ₹499/mo
+                    {sdkReady ? "Activate ₹499/mo" : "Loading…"}
                   </Button>
                 )}
                 {isActive && (
@@ -211,6 +260,7 @@ export function MyToolsTab() {
           toolName={boostTarget.name}
         />
       )}
-    </div>
+      </div>
+    </>
   );
 }
