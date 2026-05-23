@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { connectDB } from "@/app/api/lib/db";
 import { requireAdmin, adminErrorResponse } from "@/app/api/lib/admin";
@@ -36,10 +37,14 @@ export async function POST(
     const body = await req.json().catch(() => ({}));
     const { category } = bodySchema.parse(body);
 
-    let slugOverride: string | undefined;
+    // Tool.category stores the canonical NAME (e.g. "Image
+    // Generation"), not the slug. The admin UI sends a slug from
+    // its dropdown; we resolve to the name before writing.
+    let categoryNameOverride: string | undefined;
+    let categorySlugForRevalidate: string | undefined;
     if (category) {
       const cat = await Category.findOne({ slug: category, isActive: { $ne: false } })
-        .select("slug")
+        .select("name slug")
         .lean();
       if (!cat) {
         return NextResponse.json(
@@ -47,7 +52,8 @@ export async function POST(
           { status: 400 },
         );
       }
-      slugOverride = cat.slug;
+      categoryNameOverride = cat.name;
+      categorySlugForRevalidate = cat.slug;
     }
 
     const update: Record<string, unknown> = {
@@ -55,7 +61,7 @@ export async function POST(
       rejectionReason: null,
       rejectedAt: null,
     };
-    if (slugOverride) update.category = slugOverride;
+    if (categoryNameOverride) update.category = categoryNameOverride;
 
     const tool = await Tool.findOneAndUpdate(
       { _id: id, status: "pending" },
@@ -77,6 +83,27 @@ export async function POST(
         },
         { status: 409 },
       );
+    }
+
+    // Cache bust the public category page so the approved tool
+    // shows up without waiting for an ISR cycle. We need the SLUG
+    // for the URL, but Tool.category holds the NAME — look it up
+    // again if we don't have the slug yet.
+    let slugToRevalidate = categorySlugForRevalidate;
+    if (!slugToRevalidate && tool.category) {
+      const cat = await Category.findOne({ name: tool.category })
+        .select("slug")
+        .lean();
+      slugToRevalidate = cat?.slug;
+    }
+    if (slugToRevalidate) {
+      try {
+        revalidatePath(`/category/${slugToRevalidate}`);
+      } catch (e) {
+        // revalidatePath can throw if called outside a request context
+        // during build — guard so the API response isn't blocked.
+        console.warn("[admin/approve] revalidatePath failed", e);
+      }
     }
 
     return NextResponse.json({

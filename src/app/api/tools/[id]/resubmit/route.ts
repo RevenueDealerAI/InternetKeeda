@@ -40,7 +40,7 @@ export async function POST(
     const data = bodySchema.parse(await req.json());
 
     const cat = await Category.findOne({ slug: data.category, isActive: { $ne: false } })
-      .select("slug")
+      .select("name slug")
       .lean();
     if (!cat) {
       return NextResponse.json(
@@ -60,7 +60,7 @@ export async function POST(
           name: data.name,
           websiteUrl: data.websiteUrl,
           description: data.description,
-          category: cat.slug,
+          category: cat.name,
           status: "pending",
         },
         $unset: {

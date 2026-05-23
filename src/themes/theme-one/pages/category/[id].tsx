@@ -72,13 +72,23 @@ export default function CategoryPage() {
     }
   }, [id, categoryFromState, categoryName]);
 
+  // Match tools against either the canonical category NAME or the
+  // URL slug. The server now writes Tool.category as the canonical
+  // name (the seed convention) — legacy Phase B rows that stored the
+  // slug are still rendered correctly thanks to this dual-key match.
+  const slugFromId = id ? decodeURIComponent(id).toLowerCase() : "";
+  const nameSlug = (s: string) =>
+    s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
   const filteredTools = tools.filter(tool => {
     const allowedStatuses = ['published', 'approved'] as const;
     if (!allowedStatuses.includes(tool.status as typeof allowedStatuses[number])) {
       return false;
     }
-    if (!categoryName) return false;
-    return tool.category.toLowerCase() === categoryName.toLowerCase();
+    if (!tool.category) return false;
+    const toolSlug = nameSlug(tool.category);
+    if (categoryName && toolSlug === nameSlug(categoryName)) return true;
+    if (slugFromId && toolSlug === slugFromId) return true;
+    return false;
   });
 
   const visibleTools = filteredTools.slice(0, pageSize);

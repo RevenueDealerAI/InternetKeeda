@@ -15,15 +15,22 @@ const submitSchema = z.object({
 
 async function validateCategorySlug(
   slug: string,
-): Promise<{ slug: string | null; error?: string }> {
-  const cat = await Category.findOne({ slug, isActive: { $ne: false } }).select("slug").lean();
+): Promise<{ name: string | null; error?: string }> {
+  // Tool.category is stored as the canonical NAME (e.g. "Image
+  // Generation"), not the slug. That matches the seed convention
+  // used by the 5,000 imported tools and the category page's
+  // client-side filter. We accept the slug from the form, validate
+  // it exists, and return the name for storage.
+  const cat = await Category.findOne({ slug, isActive: { $ne: false } })
+    .select("name slug")
+    .lean();
   if (!cat) {
     return {
-      slug: null,
+      name: null,
       error: `Category "${slug}" is not a valid category. Pick from the dropdown.`,
     };
   }
-  return { slug: cat.slug };
+  return { name: cat.name };
 }
 
 function slugify(name: string): string {
@@ -51,7 +58,7 @@ export async function POST(req: NextRequest) {
     const data = submitSchema.parse(body);
 
     const cat = await validateCategorySlug(data.category);
-    if (!cat.slug) {
+    if (!cat.name) {
       return NextResponse.json({ error: cat.error }, { status: 400 });
     }
 
@@ -74,7 +81,7 @@ export async function POST(req: NextRequest) {
       slug,
       description: data.description,
       websiteUrl: data.websiteUrl,
-      category: cat.slug,
+      category: cat.name,
       tags: [],
       pricing: { type: "freemium" },
       features: [],
