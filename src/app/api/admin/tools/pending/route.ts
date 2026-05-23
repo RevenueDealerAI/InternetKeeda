@@ -26,7 +26,12 @@ export async function GET(req: NextRequest) {
     );
     const skip = (page - 1) * limit;
 
-    const filter = { status: "pending" };
+    // Seeded tools are pre-approved by definition (the 5,000
+    // imported from the original CodeCanyon scrape). Excluding
+    // them keeps the moderation queue to actual user submissions —
+    // a few of the seeded rows have status:"pending" left over
+    // from the import and shouldn't compete for the admin's time.
+    const filter = { status: "pending", seededTool: { $ne: true } };
 
     const [items, total] = await Promise.all([
       Tool.find(filter)
