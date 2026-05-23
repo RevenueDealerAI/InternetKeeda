@@ -106,7 +106,26 @@ function needsClerk(pathname: string): boolean {
   return CLERK_PROTECTED_PATHS.some((p) => pathname === p || pathname.startsWith(p + '/'));
 }
 
+// Cashfree (and some other payment processors) bounce the user back
+// to returnUrl via a form POST after authorization. Next.js App Router
+// page.tsx routes only serve GET → 405. Convert any non-GET arriving
+// at our return pages into a 303 GET so the page renders normally.
+const POST_TO_GET_PATHS = new Set(['/subscription/return', '/payment/return']);
+
+function postToGetRedirect(req: NextRequest): NextResponse | null {
+  if (req.method === 'GET' || req.method === 'HEAD') return null;
+  if (!POST_TO_GET_PATHS.has(req.nextUrl.pathname)) return null;
+  // 303 forces the browser to switch to GET on the redirected request,
+  // regardless of the original method.
+  return NextResponse.redirect(req.nextUrl, { status: 303 });
+}
+
 export default async function middleware(req: NextRequest, event: NextFetchEvent) {
+  // Run the POST→GET redirect first; it short-circuits both branches
+  // below so we don't run Clerk on a soon-to-be-redirected request.
+  const bounce = postToGetRedirect(req);
+  if (bounce) return bounce;
+
   if (!hasClerkConfig()) {
     if (typeof console !== 'undefined') {
       console.warn(

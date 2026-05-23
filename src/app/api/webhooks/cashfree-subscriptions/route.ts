@@ -141,22 +141,40 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const tsMs = Number(timestamp) * 1000;
-    if (
-      Number.isNaN(tsMs) ||
-      Math.abs(Date.now() - tsMs) > MAX_REPLAY_WINDOW_MS
-    ) {
+    // Cashfree's x-webhook-timestamp may arrive as Unix seconds
+    // (10 digits) OR milliseconds (13 digits) depending on the
+    // product / API version. Previously hardcoded `* 1000`, which
+    // rejected every delivery from endpoints emitting ms. Auto-
+    // detect by magnitude — anything < 1e12 is seconds.
+    const rawTs = Number(timestamp);
+    if (Number.isNaN(rawTs)) {
+      console.warn("[cf-subs-webhook] reject", {
+        reason: "timestamp_not_a_number",
+        timestamp,
+      });
+      return NextResponse.json(
+        { error: "Webhook timestamp invalid" },
+        { status: 401 },
+      );
+    }
+    const tsMs = rawTs < 1e12 ? rawTs * 1000 : rawTs;
+    const deltaMs = Math.abs(Date.now() - tsMs);
+    if (deltaMs > MAX_REPLAY_WINDOW_MS) {
       console.warn("[cf-subs-webhook] reject", {
         reason: "timestamp_out_of_range",
-        timestamp,
+        rawTimestamp: timestamp,
+        parsedTsMs: tsMs,
         nowMs: Date.now(),
-        deltaMs: Math.abs(Date.now() - tsMs),
+        deltaMs,
+        windowMs: MAX_REPLAY_WINDOW_MS,
       });
       return NextResponse.json(
         { error: "Webhook timestamp out of range" },
         { status: 401 },
       );
     }
+    // HMAC computation below uses the raw `timestamp` string — that's
+    // what Cashfree signed against, regardless of unit.
 
     const verifyResult = verifyCashfreeSignature(
       rawBody,
