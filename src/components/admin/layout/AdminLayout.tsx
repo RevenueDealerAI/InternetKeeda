@@ -60,6 +60,7 @@ const navigation: NavigationItem[] = [
   { name: 'FAQ', href: '/admin/faq', icon: HelpCircle },
   { name: 'Users', href: '/admin/users', icon: Users },
   { name: 'Tool Submissions', href: '/admin/submissions', icon: Send },
+  { name: 'Moderation', href: '/admin/moderation', icon: Wrench },
   { name: 'Reviews', href: '/admin/reviews', icon: MessageCircle },
   { name: 'Sales Inquiries', href: '/admin/inquiries', icon: MessageSquare },
   { name: 'Newsletter Subscriptions', href: '/admin/newsletter', icon: Mail },

@@ -99,7 +99,8 @@ function needsClerk(pathname: string): boolean {
     pathname.startsWith('/api/payments') ||
     pathname.startsWith('/api/subscriptions') ||
     pathname === '/api/tools/submit' ||
-    pathname === '/api/tools/mine'
+    pathname === '/api/tools/mine' ||
+    (pathname.startsWith('/api/tools/') && pathname.endsWith('/resubmit'))
   ) {
     return true;
   }

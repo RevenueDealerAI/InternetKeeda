@@ -8,8 +8,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "@/components/ui/use-toast";
 import { ArrowRight } from "lucide-react";
+import { useCategories } from "@/hooks/useCategories";
 
 /**
  * Phase B minimum tool submission. Phase C will replace the post-submit
@@ -24,6 +32,8 @@ export default function SubmitToolPage() {
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
   const [busy, setBusy] = useState(false);
+  const { data: catData, isLoading: catLoading } = useCategories();
+  const categories = catData?.data ?? [];
 
   if (isLoaded && !isSignedIn) {
     return (
@@ -48,6 +58,10 @@ export default function SubmitToolPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!category) {
+      toast({ title: "Pick a category", variant: "destructive" });
+      return;
+    }
     setBusy(true);
     try {
       const res = await fetch("/api/tools/submit", {
@@ -95,7 +109,20 @@ export default function SubmitToolPage() {
           </div>
           <div>
             <Label htmlFor="category">Category</Label>
-            <Input id="category" required value={category} onChange={(e) => setCategory(e.target.value)} placeholder="Writing, Image Generation, Productivity…" />
+            <Select value={category} onValueChange={setCategory}>
+              <SelectTrigger id="category">
+                <SelectValue
+                  placeholder={catLoading ? "Loading categories…" : "Pick a category"}
+                />
+              </SelectTrigger>
+              <SelectContent className="max-h-72">
+                {categories.map((c) => (
+                  <SelectItem key={c.slug} value={c.slug}>
+                    {c.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div>
             <Label htmlFor="desc">Short description</Label>

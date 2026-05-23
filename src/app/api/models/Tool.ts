@@ -52,6 +52,11 @@ export interface ITool {
   /** Owner's Clerk user ID — set on submission for paid-flow tools.
    * Seeded tools have no owner. */
   ownerUserId?: string;
+  /** Set when an admin rejects the submission via /admin/moderation.
+   * Surfaces back to the owner on the dashboard so they can edit
+   * and resubmit. Cleared on resubmit. */
+  rejectionReason?: string;
+  rejectedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -105,6 +110,8 @@ const toolSchema = new mongoose.Schema<ITool>({
     'featured-badge': { type: Date },
   },
   ownerUserId: { type: String, index: true },
+  rejectionReason: { type: String },
+  rejectedAt: { type: Date },
 }, {
   timestamps: true // This will add createdAt and updatedAt fields automatically
 });

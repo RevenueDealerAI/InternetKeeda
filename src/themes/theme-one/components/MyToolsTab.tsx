@@ -6,11 +6,17 @@ import Link from "next/link";
 import Script from "next/script";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Rocket, Plus, Sparkles, XCircle } from "lucide-react";
+import { Rocket, Plus, Sparkles, XCircle, Edit, ChevronDown, ChevronUp } from "lucide-react";
 import { BoostModal } from "./BoostModal";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCreateSubscription, useMySubscriptions, useCancelSubscription } from "@/lib/api/subscriptions";
 import { toast } from "@/components/ui/use-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useCategories } from "@/hooks/useCategories";
 
 // Cashfree's hosted-checkout JS SDK. Same loader and version as
 // BoostModal — only the SDK *method* differs (subscriptionsCheckout
@@ -26,10 +32,14 @@ interface MyTool {
   slug: string;
   logo?: string;
   category: string;
+  description?: string;
+  websiteUrl?: string;
   status: string;
   listingStatus: string;
   activeBoosts: Array<"category-top" | "home-rotation" | "featured-badge">;
   boostExpiresAt: Partial<Record<string, string>>;
+  rejectionReason?: string;
+  rejectedAt?: string;
   createdAt: string;
 }
 
@@ -43,10 +53,49 @@ const STATUS_BADGE: Record<string, { label: string; className: string }> = {
 
 export function MyToolsTab() {
   const [boostTarget, setBoostTarget] = useState<MyTool | null>(null);
+  const [editTarget, setEditTarget] = useState<MyTool | null>(null);
+  const [expandedReason, setExpandedReason] = useState<Record<string, boolean>>({});
   const [sdkReady, setSdkReady] = useState(false);
   const createSub = useCreateSubscription();
   const cancelSub = useCancelSubscription();
   const { data: subData } = useMySubscriptions();
+  const qc = useQueryClient();
+  const { data: catData } = useCategories();
+  const categories = catData?.data ?? [];
+
+  const resubmitMut = useMutation({
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: { name: string; websiteUrl: string; description: string; category: string };
+    }) => {
+      const r = await fetch(`/api/tools/${id}/resubmit`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(data),
+      });
+      if (!r.ok) {
+        const body = await r.json().catch(() => ({}));
+        throw new Error(body.error || "Resubmit failed");
+      }
+      return r.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Resubmitted", description: "Your tool is back in review." });
+      setEditTarget(null);
+      qc.invalidateQueries({ queryKey: ["my-tools"] });
+    },
+    onError: (err) => {
+      toast({
+        title: "Resubmit failed",
+        description: err instanceof Error ? err.message : "Unknown error",
+        variant: "destructive",
+      });
+    },
+  });
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["my-tools"],
@@ -218,74 +267,145 @@ export function MyToolsTab() {
             className: "bg-gray-100 text-gray-700 ring-gray-200/60",
           };
           const sub = subsByTool.get(t.id);
-          const needsActivation = t.listingStatus === "unpaid-pending" && !sub;
+          const isRejected = t.status === "rejected";
+          const isPendingReview = t.status === "pending";
+          // Don't show Activate while the tool is in admin review or
+          // rejected — paying before approval is wasteful for the user.
+          const needsActivation =
+            t.listingStatus === "unpaid-pending" && !sub && !isRejected && !isPendingReview;
           const isActive = t.listingStatus === "paid-active" && sub?.status === "active";
+          const reasonOpen = !!expandedReason[t.id];
 
           return (
-            <div key={t.id} className="flex items-center gap-4 bg-white border border-gray-200 rounded-xl p-4">
-              <div className="relative w-12 h-12 shrink-0 rounded-lg overflow-hidden bg-gradient-to-br from-orange-50 to-gray-50 ring-1 ring-gray-200/80">
-                {t.logo ? (
-                  <Image src={t.logo} alt={t.name} fill sizes="48px" className="object-cover" unoptimized />
-                ) : (
-                  <div className="absolute inset-0 grid place-items-center text-orange-500 font-bold">
-                    {t.name.slice(0, 1).toUpperCase()}
-                  </div>
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="text-sm font-semibold text-gray-900 truncate">{t.name}</h3>
-                  <Badge className={`ring-1 ${statusMeta.className}`}>{statusMeta.label}</Badge>
-                  {t.activeBoosts.map((b) => (
-                    <Badge key={b} className="bg-gradient-to-r from-orange-500 to-red-600 text-white ring-0">
-                      {b.replace(/-/g, " ")}
-                    </Badge>
-                  ))}
-                  {sub?.status === "initialized" && (
-                    <Badge className="bg-amber-50 text-amber-700 ring-1 ring-amber-200/60">Awaiting authorization</Badge>
+            <div key={t.id} className="bg-white border border-gray-200 rounded-xl p-4">
+              <div className="flex items-center gap-4">
+                <div className="relative w-12 h-12 shrink-0 rounded-lg overflow-hidden bg-gradient-to-br from-orange-50 to-gray-50 ring-1 ring-gray-200/80">
+                  {t.logo ? (
+                    <Image src={t.logo} alt={t.name} fill sizes="48px" className="object-cover" unoptimized />
+                  ) : (
+                    <div className="absolute inset-0 grid place-items-center text-orange-500 font-bold">
+                      {t.name.slice(0, 1).toUpperCase()}
+                    </div>
                   )}
                 </div>
-                <p className="text-xs text-gray-500 truncate">{t.category}</p>
-              </div>
-              <div className="flex items-center gap-2">
-                {needsActivation && (
-                  <Button
-                    size="sm"
-                    onClick={() => handleActivate(t)}
-                    disabled={createSub.isPending || !sdkReady}
-                    className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white"
-                  >
-                    <Sparkles className="w-4 h-4 mr-1" />
-                    {sdkReady ? "Activate ₹499/mo" : "Loading…"}
-                  </Button>
-                )}
-                {isActive && (
-                  <>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="text-sm font-semibold text-gray-900 truncate">{t.name}</h3>
+                    {isRejected ? (
+                      <Badge className="ring-1 bg-red-50 text-red-700 ring-red-200/60">Rejected</Badge>
+                    ) : isPendingReview ? (
+                      <Badge className="ring-1 bg-amber-50 text-amber-700 ring-amber-200/60">In review</Badge>
+                    ) : (
+                      <Badge className={`ring-1 ${statusMeta.className}`}>{statusMeta.label}</Badge>
+                    )}
+                    {t.activeBoosts.map((b) => (
+                      <Badge key={b} className="bg-gradient-to-r from-orange-500 to-red-600 text-white ring-0">
+                        {b.replace(/-/g, " ")}
+                      </Badge>
+                    ))}
+                    {sub?.status === "initialized" && (
+                      <Badge className="bg-amber-50 text-amber-700 ring-1 ring-amber-200/60">Awaiting authorization</Badge>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500 truncate">{t.category}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  {isRejected && (
                     <Button
                       size="sm"
-                      onClick={() => setBoostTarget(t)}
+                      onClick={() => setEditTarget(t)}
                       className="bg-gradient-to-r from-orange-500 to-red-600 text-white"
                     >
-                      <Rocket className="w-4 h-4 mr-1" /> Boost
+                      <Edit className="w-4 h-4 mr-1" />
+                      Edit & resubmit
                     </Button>
+                  )}
+                  {needsActivation && (
                     <Button
                       size="sm"
-                      variant="ghost"
-                      onClick={() => sub && handleCancel(sub.subscriptionId)}
-                      disabled={cancelSub.isPending}
+                      onClick={() => handleActivate(t)}
+                      disabled={createSub.isPending || !sdkReady}
+                      className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white"
                     >
-                      <XCircle className="w-4 h-4 text-gray-400" />
+                      <Sparkles className="w-4 h-4 mr-1" />
+                      {sdkReady ? "Activate ₹499/mo" : "Loading…"}
                     </Button>
-                  </>
-                )}
-                {t.listingStatus === "free-seeded" && (
-                  <span className="text-xs text-gray-400">Grandfathered free</span>
-                )}
+                  )}
+                  {isActive && (
+                    <>
+                      <Button
+                        size="sm"
+                        onClick={() => setBoostTarget(t)}
+                        className="bg-gradient-to-r from-orange-500 to-red-600 text-white"
+                      >
+                        <Rocket className="w-4 h-4 mr-1" /> Boost
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => sub && handleCancel(sub.subscriptionId)}
+                        disabled={cancelSub.isPending}
+                      >
+                        <XCircle className="w-4 h-4 text-gray-400" />
+                      </Button>
+                    </>
+                  )}
+                  {t.listingStatus === "free-seeded" && (
+                    <span className="text-xs text-gray-400">Grandfathered free</span>
+                  )}
+                </div>
               </div>
+
+              {isRejected && t.rejectionReason && (
+                <div className="mt-3 ml-16 text-xs">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setExpandedReason((m) => ({ ...m, [t.id]: !reasonOpen }))
+                    }
+                    className="inline-flex items-center text-red-700 hover:underline"
+                  >
+                    {reasonOpen ? (
+                      <>
+                        Hide reason
+                        <ChevronUp className="w-3 h-3 ml-1" />
+                      </>
+                    ) : (
+                      <>
+                        View reason
+                        <ChevronDown className="w-3 h-3 ml-1" />
+                      </>
+                    )}
+                  </button>
+                  {reasonOpen && (
+                    <p className="mt-2 p-3 bg-red-50 border border-red-100 rounded-md text-red-900 whitespace-pre-wrap">
+                      {t.rejectionReason}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           );
         })}
       </div>
+
+      {/* Edit & resubmit modal */}
+      <Dialog open={!!editTarget} onOpenChange={(o) => !o && setEditTarget(null)}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Edit and resubmit</DialogTitle>
+          </DialogHeader>
+          {editTarget && (
+            <ResubmitForm
+              tool={editTarget}
+              categories={categories}
+              busy={resubmitMut.isPending}
+              onCancel={() => setEditTarget(null)}
+              onSubmit={(data) => resubmitMut.mutate({ id: editTarget.id, data })}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
 
       {boostTarget && (
         <BoostModal
@@ -297,5 +417,78 @@ export function MyToolsTab() {
       )}
       </div>
     </>
+  );
+}
+
+interface ResubmitFormProps {
+  tool: MyTool;
+  categories: Array<{ slug: string; name: string }>;
+  busy: boolean;
+  onCancel: () => void;
+  onSubmit: (data: { name: string; websiteUrl: string; description: string; category: string }) => void;
+}
+
+function ResubmitForm({ tool, categories, busy, onCancel, onSubmit }: ResubmitFormProps) {
+  const [name, setName] = useState(tool.name);
+  const [websiteUrl, setWebsiteUrl] = useState(tool.websiteUrl ?? "");
+  const [description, setDescription] = useState(tool.description ?? "");
+  const [category, setCategory] = useState(tool.category);
+
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (!category) {
+          toast({ title: "Pick a category", variant: "destructive" });
+          return;
+        }
+        onSubmit({ name, websiteUrl, description, category });
+      }}
+      className="space-y-4"
+    >
+      <div>
+        <Label htmlFor="resub-name">Tool name</Label>
+        <Input id="resub-name" required minLength={2} value={name} onChange={(e) => setName(e.target.value)} />
+      </div>
+      <div>
+        <Label htmlFor="resub-url">Website</Label>
+        <Input id="resub-url" required type="url" value={websiteUrl} onChange={(e) => setWebsiteUrl(e.target.value)} />
+      </div>
+      <div>
+        <Label htmlFor="resub-cat">Category</Label>
+        <Select value={category} onValueChange={setCategory}>
+          <SelectTrigger id="resub-cat">
+            <SelectValue placeholder="Pick a category" />
+          </SelectTrigger>
+          <SelectContent className="max-h-72">
+            {categories.map((c) => (
+              <SelectItem key={c.slug} value={c.slug}>
+                {c.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div>
+        <Label htmlFor="resub-desc">Short description</Label>
+        <Textarea
+          id="resub-desc"
+          required
+          minLength={20}
+          maxLength={2000}
+          rows={4}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
+      </div>
+      <div className="flex justify-end gap-2 pt-2">
+        <Button type="button" variant="ghost" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button type="submit" disabled={busy} className="bg-gradient-to-r from-orange-500 to-red-600 text-white">
+          {busy ? "Resubmitting…" : "Resubmit for review"}
+        </Button>
+      </div>
+    </form>
   );
 }

@@ -12,6 +12,12 @@ export interface IUser {
   savedTools: string[];
   submittedTools: mongoose.Types.ObjectId[];
   referredBy?: string; // Affiliate code of the referrer
+  /** DB-side admin flag. Source of truth for /admin/moderation and
+   * future admin surfaces. Set manually for trusted accounts —
+   * `scripts/seed-admin.ts` flips it by email. The Clerk
+   * publicMetadata.role check is still honoured by requireAdmin for
+   * backwards compatibility, but new code should rely on this. */
+  isAdmin: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -30,6 +36,7 @@ const userSchema = new mongoose.Schema<IUser>({
   savedTools: [{ type: String }],
   submittedTools: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Tool' }],
   referredBy: { type: String, trim: true },
+  isAdmin: { type: Boolean, default: false, index: true },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });

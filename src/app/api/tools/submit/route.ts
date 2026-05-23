@@ -3,6 +3,7 @@ import { z } from "zod";
 import { connectDB } from "@/app/api/lib/db";
 import { requireAuth, errorResponse } from "@/app/api/lib/auth";
 import { Tool } from "@/app/api/models/Tool";
+import { Category } from "@/app/api/models/Category";
 
 const submitSchema = z.object({
   name: z.string().min(2).max(120),
@@ -11,6 +12,19 @@ const submitSchema = z.object({
   category: z.string().min(2).max(80),
   logo: z.string().url().optional(),
 });
+
+async function validateCategorySlug(
+  slug: string,
+): Promise<{ slug: string | null; error?: string }> {
+  const cat = await Category.findOne({ slug, isActive: { $ne: false } }).select("slug").lean();
+  if (!cat) {
+    return {
+      slug: null,
+      error: `Category "${slug}" is not a valid category. Pick from the dropdown.`,
+    };
+  }
+  return { slug: cat.slug };
+}
 
 function slugify(name: string): string {
   return name
@@ -36,6 +50,11 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const data = submitSchema.parse(body);
 
+    const cat = await validateCategorySlug(data.category);
+    if (!cat.slug) {
+      return NextResponse.json({ error: cat.error }, { status: 400 });
+    }
+
     // Resolve slug collisions by suffixing.
     const base = slugify(data.name);
     let slug = base;
@@ -55,7 +74,7 @@ export async function POST(req: NextRequest) {
       slug,
       description: data.description,
       websiteUrl: data.websiteUrl,
-      category: data.category,
+      category: cat.slug,
       tags: [],
       pricing: { type: "freemium" },
       features: [],
