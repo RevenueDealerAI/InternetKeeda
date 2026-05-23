@@ -413,6 +413,7 @@ export function MyToolsTab() {
           onOpenChange={(o) => !o && setBoostTarget(null)}
           toolId={boostTarget.id}
           toolName={boostTarget.name}
+          sdkReady={sdkReady}
         />
       )}
       </div>

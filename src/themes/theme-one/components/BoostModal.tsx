@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Script from "next/script";
 import { useRouter } from "next/navigation";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -9,11 +8,23 @@ import { ArrowRight, TrendingUp, Home, Award } from "lucide-react";
 import { useCreateBoost, type BoostProductType } from "@/lib/api/payments";
 import { toast } from "@/components/ui/use-toast";
 
+// Cashfree's hosted-checkout JS SDK is loaded once at the parent
+// (MyToolsTab) level via next/script — Next dedupes <Script> elements
+// by URL, so rendering a second one here would not fire onLoad again
+// and leave our local sdkReady state stuck at false. Take sdkReady
+// as a prop instead and trust window.Cashfree.
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+declare global { interface Window { Cashfree?: any } }
+
 interface BoostModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   toolId: string;
   toolName: string;
+  /** Provided by the parent that already mounted the CF JS SDK
+   * <Script>. False until that load completes; gates the Pay button. */
+  sdkReady: boolean;
 }
 
 interface BoostOption {
@@ -52,41 +63,55 @@ const OPTIONS: BoostOption[] = [
   },
 ];
 
-// Cashfree's hosted-checkout JS SDK. Loaded once, lazily, via next/script.
-const CF_SDK_URL = "https://sdk.cashfree.com/js/v3/cashfree.js";
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-declare global { interface Window { Cashfree?: any } }
-
-export function BoostModal({ open, onOpenChange, toolId, toolName }: BoostModalProps) {
+export function BoostModal({ open, onOpenChange, toolId, toolName, sdkReady }: BoostModalProps) {
   const [selected, setSelected] = useState<BoostProductType | null>(null);
-  const [sdkReady, setSdkReady] = useState(false);
   const router = useRouter();
   const createBoost = useCreateBoost();
 
   const handlePay = async () => {
     if (!selected) return;
+    let session;
     try {
-      const session = await createBoost.mutateAsync({ toolId, productType: selected });
-
-      // The CF JS SDK takes the paymentSessionId returned by the
-      // server-side PGCreateOrder call. `redirect` mode bounces the
-      // user to Cashfree's hosted page and back to our return_url.
-      if (!window.Cashfree) {
-        // Fall back: redirect to the return page; the polling there
-        // will catch up once the webhook lands. This shouldn't happen
-        // — the Script tag below sets sdkReady on load.
-        router.push(`/payment/return?order_id=${session.orderId}`);
-        return;
-      }
-      const cf = window.Cashfree({ mode: session.mode });
-      cf.checkout({
-        paymentSessionId: session.paymentSessionId,
-        redirectTarget: "_self",
-      });
+      session = await createBoost.mutateAsync({ toolId, productType: selected });
     } catch (err) {
       toast({
         title: "Could not start payment",
+        description: err instanceof Error ? err.message : "Unknown error",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Belt-and-suspenders: parent gates the button on sdkReady, but
+    // if window.Cashfree is somehow missing at click time, bounce
+    // the user to the return page. The webhook + polling there will
+    // pick up the order once it lands.
+    if (!window.Cashfree) {
+      router.push(`/payment/return?order_id=${session.orderId}`);
+      return;
+    }
+
+    try {
+      const cf = window.Cashfree({ mode: session.mode });
+      const result = await cf.checkout({
+        paymentSessionId: session.paymentSessionId,
+        redirectTarget: "_self",
+      });
+      // The SDK does NOT throw on option-validation errors — it
+      // resolves with { error: { e, message } }. Mirror the same
+      // result-handling we added to subscriptionsCheckout so a
+      // misnamed field surfaces as a toast.
+      if (result?.error) {
+        const errObj = result.error as { e?: string; message?: string };
+        toast({
+          title: "Cashfree payment failed",
+          description: errObj.e || errObj.message || "Unknown error",
+          variant: "destructive",
+        });
+      }
+    } catch (err) {
+      toast({
+        title: "Payment failed to start",
         description: err instanceof Error ? err.message : "Unknown error",
         variant: "destructive",
       });
@@ -95,11 +120,6 @@ export function BoostModal({ open, onOpenChange, toolId, toolName }: BoostModalP
 
   return (
     <>
-      <Script
-        src={CF_SDK_URL}
-        strategy="lazyOnload"
-        onLoad={() => setSdkReady(true)}
-      />
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-xl">
           <DialogHeader>
