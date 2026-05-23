@@ -108,9 +108,11 @@ function needsClerk(pathname: string): boolean {
 
 // Cashfree (and some other payment processors) bounce the user back
 // to returnUrl via a form POST after authorization. Next.js App Router
-// page.tsx routes only serve GET → 405. Convert any non-GET arriving
-// at our return pages into a 303 GET so the page renders normally.
-const POST_TO_GET_PATHS = new Set(['/subscription/return', '/payment/return']);
+// page.tsx routes only serve GET → 405. Subscription flow now uses
+// /subscription/return-bounce (a dedicated route handler that parses
+// the form body), so this fallback only covers /payment/return —
+// kept in case the one-time boost flow ever hits the same condition.
+const POST_TO_GET_PATHS = new Set(['/payment/return']);
 
 function postToGetRedirect(req: NextRequest): NextResponse | null {
   if (req.method === 'GET' || req.method === 'HEAD') return null;

@@ -20,12 +20,19 @@ export default function SubscriptionReturnPage() {
   const params = useSearchParams();
   const router = useRouter();
 
-  // Cashfree's redirect URL handling is unreliable — sometimes the
-  // literal `{subscription_id}` placeholder survives substitution,
-  // sometimes the SDK appends a different param name. Prefer the id
-  // we stashed in localStorage right before redirecting. Fall back
-  // to any of the URL params CF is known to use.
+  // Priority: URL query param (set by /subscription/return-bounce
+  // from Cashfree's form body) → localStorage (stashed client-side
+  // right before the Cashfree redirect, defensive fallback if the
+  // bounce route ever misses the id) → error state.
   const subscriptionId = useMemo<string | undefined>(() => {
+    const urlVal =
+      params.get("subscription_id") ||
+      params.get("subscriptionId") ||
+      params.get("subs_id") ||
+      undefined;
+    // If CF passed the literal placeholder somehow, treat as missing.
+    if (urlVal && !/^\{.*\}$/.test(urlVal)) return urlVal;
+
     if (typeof window !== "undefined") {
       try {
         const stashed = window.localStorage.getItem(
@@ -33,17 +40,10 @@ export default function SubscriptionReturnPage() {
         );
         if (stashed) return stashed;
       } catch {
-        // ignore — fall through to URL parsing
+        // ignore — fall through to undefined
       }
     }
-    const urlVal =
-      params.get("subscription_id") ||
-      params.get("subscriptionId") ||
-      params.get("subs_id") ||
-      undefined;
-    // If CF passed the literal placeholder, treat it as no id.
-    if (urlVal && /^\{.*\}$/.test(urlVal)) return undefined;
-    return urlVal;
+    return undefined;
   }, [params]);
 
   // Clear the localStorage stash once we've reached a terminal state.

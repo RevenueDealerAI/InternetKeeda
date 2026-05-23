@@ -118,7 +118,12 @@ export function MyToolsTab() {
       } catch {
         // Private mode / blocked storage — fall back to URL only.
       }
-      const returnUrl = `${window.location.origin}/subscription/return`;
+      // /subscription/return-bounce is a route handler that accepts
+      // Cashfree's form POST, extracts subscription_id from the body,
+      // and 303-redirects to /subscription/return?subscription_id=…
+      // The page can't do this itself (Next.js page.tsx serves GET
+      // only — POST yields 405).
+      const returnUrl = `${window.location.origin}/subscription/return-bounce`;
       // NOTE: the browser SDK v3 calls this field `subsSessionId`.
       // The server-side cashfree-pg SDK returns it as
       // `subscription_session_id`. Different SDKs, different naming;
