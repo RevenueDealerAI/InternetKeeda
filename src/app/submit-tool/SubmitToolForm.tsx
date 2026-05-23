@@ -29,7 +29,12 @@ export function SubmitToolForm() {
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
   const [busy, setBusy] = useState(false);
-  const { data: catData, isLoading: catLoading } = useCategories();
+  const {
+    data: catData,
+    isLoading: catLoading,
+    error: catError,
+    refetch: refetchCategories,
+  } = useCategories();
   const categories = catData?.data ?? [];
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -85,20 +90,35 @@ export function SubmitToolForm() {
           </div>
           <div>
             <Label htmlFor="category">Category</Label>
-            <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger id="category">
-                <SelectValue
-                  placeholder={catLoading ? "Loading categories…" : "Pick a category"}
-                />
-              </SelectTrigger>
-              <SelectContent className="max-h-72">
-                {categories.map((c) => (
-                  <SelectItem key={c.slug} value={c.slug}>
-                    {c.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {catError ? (
+              <div className="mt-1 flex items-center justify-between gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                <span>Couldn&apos;t load categories.</span>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => refetchCategories()}
+                  className="border-red-200 text-red-700 hover:bg-red-100"
+                >
+                  Retry
+                </Button>
+              </div>
+            ) : (
+              <Select value={category} onValueChange={setCategory} disabled={catLoading}>
+                <SelectTrigger id="category">
+                  <SelectValue
+                    placeholder={catLoading ? "Loading categories…" : "Pick a category"}
+                  />
+                </SelectTrigger>
+                <SelectContent className="max-h-72">
+                  {categories.map((c) => (
+                    <SelectItem key={c.slug} value={c.slug}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
           <div>
             <Label htmlFor="desc">Short description</Label>

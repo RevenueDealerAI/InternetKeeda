@@ -32,9 +32,20 @@ export async function GET(req: NextRequest) {
       query.isActive = true;
     }
 
+    // Source of truth: the `categories` collection in MongoDB.
+    // Sort alphabetically — surfaces (submit form, moderation
+    // dropdown, navbar list) all expect this order.
+    //
+    // Earlier this endpoint prepended a 19-item TOOL_CATEGORIES
+    // placeholder list to the front of every response, in the
+    // declaration order of that constant. The submit-tool dropdown
+    // saw those 19 placeholders first, in unsorted order, with the
+    // alphabetised 673 real DB rows pushed below the fold. The
+    // user's "8 generic categories" report was exactly the visible
+    // top of the prepended list. The prepend is gone — DB rows
+    // only.
     const categories = await Category.find(query).sort({ name: 1 });
 
-    // Get tool counts for each category if needed
     let countMap = new Map<string, number>();
     if (includeToolCount) {
       const toolCounts = await Tool.aggregate([
@@ -50,30 +61,7 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // Merge with static categories
-    const staticCategories = TOOL_CATEGORIES.map(name => {
-      const existingCategory = categories.find(cat => cat.name === name);
-      if (existingCategory) {
-        return {
-          ...existingCategory.toObject(),
-          toolCount: includeToolCount ? (countMap.get(name) || 0) : undefined
-        };
-      }
-      // Return static category structure
-      return {
-        name,
-        slug: generateSlug(name),
-        isDefault: true,
-        isActive: true,
-        toolCount: includeToolCount ? (countMap.get(name) || 0) : undefined
-      };
-    });
-
-    // Combine: static categories first, then custom categories
-    let allCategories = [
-      ...staticCategories,
-      ...categories.filter(cat => !TOOL_CATEGORIES.includes(cat.name as typeof TOOL_CATEGORIES[number])).map(cat => cat.toObject())
-    ];
+    let allCategories = categories.map(cat => cat.toObject());
 
     // When limit is requested AND tool counts are included, return the
     // top-N by toolCount instead of alpha-sorted by name. Useful for nav
