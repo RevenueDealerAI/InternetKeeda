@@ -205,7 +205,11 @@ export async function POST(req: NextRequest) {
           plan_interval_type: "MONTH",
         },
         subscription_meta: {
-          return_url: `${origin}/subscription/return?subscription_id={subscription_id}`,
+          // No query string — Cashfree's `{subscription_id}` placeholder
+          // substitution is unreliable across API versions. The client
+          // bridges the id via localStorage and the return page reads
+          // it from there.
+          return_url: `${origin}/subscription/return`,
         },
       });
 

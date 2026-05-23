@@ -24,45 +24,102 @@ const MAX_FAILED_RENEWALS_BEFORE_UNLIST = 3;
 export const dynamic = "force-dynamic";
 
 /**
- * HMAC verification per Cashfree's webhook spec:
+ * Multi-variant Cashfree webhook signature verifier.
  *
- *   signature = base64(HMAC-SHA256(timestamp + rawBody, secret))
+ * The previous single-variant implementation (timestamp + body,
+ * base64) rejects every Cashfree subscription delivery in production.
+ * Cashfree's documented spec for PG webhooks matches that variant —
+ * but Subscription webhooks may use a different concatenation,
+ * encoding, or separator. Rather than guess, we compute every common
+ * variant for each candidate secret (CASHFREE_WEBHOOK_SECRET if set,
+ * CASHFREE_SECRET_KEY as fallback) and accept if *any* matches.
  *
- * Subscription webhooks are signed with the **per-webhook secret**
- * generated when you register the webhook in Cashfree's dashboard —
- * NOT the client secret used for API auth. We honour
- * CASHFREE_WEBHOOK_SECRET when set, and fall back to
- * CASHFREE_SECRET_KEY for environments that left it blank (which is
- * what the sandbox dashboard does until you explicitly create one).
+ * On a match: log which variant + which secret matched so we can
+ * collapse back to a single variant later.
+ *
+ * On reject: log every computed candidate so we can see what's close.
  */
+
+type Variant = {
+  name: string;
+  compute: (secret: string, body: string, ts: string) => string;
+};
+
+const VARIANTS: Variant[] = [
+  {
+    name: "b64(ts+body)",
+    compute: (s, b, t) => createHmac("sha256", s).update(t + b).digest("base64"),
+  },
+  {
+    name: "hex(ts+body)",
+    compute: (s, b, t) => createHmac("sha256", s).update(t + b).digest("hex"),
+  },
+  {
+    name: "b64(body+ts)",
+    compute: (s, b, t) => createHmac("sha256", s).update(b + t).digest("base64"),
+  },
+  {
+    name: "hex(body+ts)",
+    compute: (s, b, t) => createHmac("sha256", s).update(b + t).digest("hex"),
+  },
+  {
+    name: "b64(body)",
+    compute: (s, b) => createHmac("sha256", s).update(b).digest("base64"),
+  },
+  {
+    name: "hex(body)",
+    compute: (s, b) => createHmac("sha256", s).update(b).digest("hex"),
+  },
+  {
+    name: "b64(ts.body)",
+    compute: (s, b, t) => createHmac("sha256", s).update(t + "." + b).digest("base64"),
+  },
+  {
+    name: 'b64(v1,ts,body)',
+    compute: (s, b, t) =>
+      createHmac("sha256", s).update("v1," + t + "," + b).digest("base64"),
+  },
+];
+
+function constantTimeEq(a: string, b: string): boolean {
+  try {
+    const ab = Buffer.from(a);
+    const bb = Buffer.from(b);
+    return ab.length === bb.length && timingSafeEqual(ab, bb);
+  } catch {
+    return false;
+  }
+}
+
+interface VerifyResult {
+  ok: boolean;
+  matchedVariant?: string;
+  matchedSecretSource?: "webhook" | "client";
+  candidates: Array<{ variant: string; secretSource: string; computed: string }>;
+}
+
 function verifyCashfreeSignature(
   rawBody: string,
   timestamp: string,
   signature: string,
-): { ok: boolean; expected: string; secretSource: "webhook" | "client" | "none" } {
+): VerifyResult {
   const webhookSecret = process.env.CASHFREE_WEBHOOK_SECRET || "";
   const clientSecret = process.env.CASHFREE_SECRET_KEY || "";
-  const secret = webhookSecret || clientSecret;
-  if (!secret) {
-    return { ok: false, expected: "", secretSource: "none" };
-  }
-  const expected = createHmac("sha256", secret)
-    .update(timestamp + rawBody)
-    .digest("base64");
+  const sources: Array<{ source: "webhook" | "client"; secret: string }> = [];
+  if (webhookSecret) sources.push({ source: "webhook", secret: webhookSecret });
+  if (clientSecret) sources.push({ source: "client", secret: clientSecret });
 
-  let ok = false;
-  try {
-    const a = Buffer.from(signature);
-    const b = Buffer.from(expected);
-    ok = a.length === b.length && timingSafeEqual(a, b);
-  } catch {
-    ok = false;
+  const candidates: VerifyResult["candidates"] = [];
+  for (const { source, secret } of sources) {
+    for (const v of VARIANTS) {
+      const computed = v.compute(secret, rawBody, timestamp);
+      candidates.push({ variant: v.name, secretSource: source, computed });
+      if (constantTimeEq(computed, signature)) {
+        return { ok: true, matchedVariant: v.name, matchedSecretSource: source, candidates };
+      }
+    }
   }
-  return {
-    ok,
-    expected,
-    secretSource: webhookSecret ? "webhook" : "client",
-  };
+  return { ok: false, candidates };
 }
 
 export async function POST(req: NextRequest) {
@@ -101,29 +158,32 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { ok, expected, secretSource } = verifyCashfreeSignature(
+    const verifyResult = verifyCashfreeSignature(
       rawBody,
       timestamp,
       signature,
     );
-    if (!ok) {
+    if (!verifyResult.ok) {
       console.warn("[cf-subs-webhook] reject", {
         reason: "signature_mismatch",
         receivedSig: signature,
-        expectedSig: expected,
         timestamp,
         bodyLength: rawBody.length,
-        secretSource,
         webhookSecretPrefix:
           (process.env.CASHFREE_WEBHOOK_SECRET || "").slice(0, 8),
         clientSecretPrefix:
           (process.env.CASHFREE_SECRET_KEY || "").slice(0, 8),
+        candidates: verifyResult.candidates,
       });
       return NextResponse.json(
         { error: "Invalid signature" },
         { status: 401 },
       );
     }
+    console.log("[cf-subs-webhook] sig.match", {
+      variant: verifyResult.matchedVariant,
+      secretSource: verifyResult.matchedSecretSource,
+    });
 
     let parsed: {
       type?: SubscriptionEvent;

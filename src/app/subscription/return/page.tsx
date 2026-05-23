@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams, useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -18,8 +18,44 @@ interface Status {
 
 export default function SubscriptionReturnPage() {
   const params = useSearchParams();
-  const subscriptionId = params.get("subscription_id") || undefined;
   const router = useRouter();
+
+  // Cashfree's redirect URL handling is unreliable — sometimes the
+  // literal `{subscription_id}` placeholder survives substitution,
+  // sometimes the SDK appends a different param name. Prefer the id
+  // we stashed in localStorage right before redirecting. Fall back
+  // to any of the URL params CF is known to use.
+  const subscriptionId = useMemo<string | undefined>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const stashed = window.localStorage.getItem(
+          "ik_pending_subscription_id",
+        );
+        if (stashed) return stashed;
+      } catch {
+        // ignore — fall through to URL parsing
+      }
+    }
+    const urlVal =
+      params.get("subscription_id") ||
+      params.get("subscriptionId") ||
+      params.get("subs_id") ||
+      undefined;
+    // If CF passed the literal placeholder, treat it as no id.
+    if (urlVal && /^\{.*\}$/.test(urlVal)) return undefined;
+    return urlVal;
+  }, [params]);
+
+  // Clear the localStorage stash once we've reached a terminal state.
+  useEffect(() => {
+    return () => {
+      try {
+        window.localStorage.removeItem("ik_pending_subscription_id");
+      } catch {
+        // ignore
+      }
+    };
+  }, []);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["subscription-status", subscriptionId],

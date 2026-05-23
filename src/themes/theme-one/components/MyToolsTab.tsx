@@ -104,7 +104,21 @@ export function MyToolsTab() {
 
     try {
       const cashfree = window.Cashfree({ mode: session.mode });
-      const returnUrl = `${window.location.origin}/subscription/return?subscription_id=${encodeURIComponent(session.subscriptionId)}`;
+      // Cashfree's redirect doesn't reliably template-substitute
+      // `{subscription_id}` in the return URL we hand it. Some
+      // attempts come back with the literal placeholder string. To
+      // avoid that whole class of bug, bridge the id via
+      // localStorage and pass a clean URL with no query params.
+      // The return page reads localStorage first, URL params second.
+      try {
+        window.localStorage.setItem(
+          "ik_pending_subscription_id",
+          session.subscriptionId,
+        );
+      } catch {
+        // Private mode / blocked storage — fall back to URL only.
+      }
+      const returnUrl = `${window.location.origin}/subscription/return`;
       // NOTE: the browser SDK v3 calls this field `subsSessionId`.
       // The server-side cashfree-pg SDK returns it as
       // `subscription_session_id`. Different SDKs, different naming;
