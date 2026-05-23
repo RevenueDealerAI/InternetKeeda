@@ -37,15 +37,18 @@ function readSignedInFromCookies(): boolean {
   if (typeof document === "undefined") return false;
   const cookies = document.cookie.split(";").map((c) => c.trim());
   for (const c of cookies) {
-    // __client_uat=0 → signed out; any non-zero value → signed in.
+    // Source of truth: __client_uat="0" → signed out, any non-zero
+    // unix-timestamp → signed in. No other cookie is a reliable
+    // sign-in indicator:
+    //   - __clerk_db_jwt is set by ClerkProvider for ALL visitors
+    //     as a device-identity cookie. Treating its presence as
+    //     "signed in" (as the previous fallback did) made the
+    //     navbar hide Sign in / Sign up for anon visitors who had
+    //     ever touched any Clerk-enabled route.
+    //   - __session is HttpOnly so JS can't read it anyway.
     if (c.startsWith("__client_uat=")) {
       const val = c.slice("__client_uat=".length);
       return val.length > 0 && val !== "0";
-    }
-    // Fallback signals — these cookies exist when Clerk has set up
-    // a session. Some envs use slightly different names.
-    if (c.startsWith("__session=") || c.startsWith("__clerk_db_jwt=")) {
-      return true;
     }
   }
   return false;
