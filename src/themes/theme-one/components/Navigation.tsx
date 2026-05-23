@@ -352,7 +352,24 @@ export const Navigation = () => {
                     </Button>
                   </div>
                 ) : (
-                  <DropdownMenu>
+                  <>
+                    {/* Admin shortcut — prominent on desktop when
+                      * the signed-in user is an admin. Hidden on
+                      * mobile to save space; the avatar dropdown
+                      * below still carries the same link. */}
+                    {isAdmin && (
+                      <Link href="/admin" className="hidden md:inline-flex">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-10 border-red-200 text-red-700 hover:bg-red-50 hover:border-red-300"
+                        >
+                          <Shield className="mr-1.5 h-4 w-4" />
+                          Admin
+                        </Button>
+                      </Link>
+                    )}
+                    <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
                         variant="ghost"
@@ -398,6 +415,7 @@ export const Navigation = () => {
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
+                  </>
                 )}
 
                 {/* Mobile search shortcut — opens the existing search

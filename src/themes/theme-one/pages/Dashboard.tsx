@@ -46,6 +46,7 @@ import {
   Edit,
   BarChart3,
   Users,
+  Shield,
 } from "lucide-react";
 import { useUser, useClerk, useAuth } from "@clerk/nextjs";
 import {
@@ -422,6 +423,32 @@ export default function Dashboard() {
   const [editingField, setEditingField] = useState<'name' | 'username' | null>(null);
   const [editingValue, setEditingValue] = useState('');
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
+
+  // Mongo admin flag — surfaces the Admin Panel banner + tile when
+  // the signed-in user has User.isAdmin === true. /api/users/me is
+  // already used by Navigation for the same purpose.
+  const [isMongoAdmin, setIsMongoAdmin] = useState(false);
+  useEffect(() => {
+    if (!isSignedIn) {
+      setIsMongoAdmin(false);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const r = await fetch("/api/users/me", { credentials: "include" });
+        if (!r.ok) return;
+        const u = await r.json();
+        if (cancelled) return;
+        setIsMongoAdmin(!!u?.isAdmin);
+      } catch {
+        // ignore — banner just won't render
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isSignedIn]);
 
   // Avatar generator state
   const [selectedStyle, setSelectedStyle] = useState("avataaars");
@@ -951,6 +978,33 @@ export default function Dashboard() {
         </DialogContent>
       </Dialog>
 
+      {/* Admin shortcut banner — only renders for users with
+        * User.isAdmin === true. Sits above the welcome header so
+        * it's the first thing on the page. */}
+      {isMongoAdmin && (
+        <Link
+          href="/admin"
+          className="mb-6 flex items-center justify-between gap-4 rounded-xl border border-red-200 bg-gradient-to-r from-red-50 to-orange-50 px-4 py-3 hover:border-red-300 transition-colors group"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-red-500 to-orange-500 text-white grid place-items-center shrink-0">
+              <Shield className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-red-900">
+                You&apos;re signed in as an admin
+              </p>
+              <p className="text-xs text-red-700/80">
+                Moderation queue, tools, users, payments
+              </p>
+            </div>
+          </div>
+          <span className="text-sm font-semibold text-red-700 group-hover:translate-x-0.5 transition-transform">
+            Go to Admin Panel →
+          </span>
+        </Link>
+      )}
+
       {/* Header with User Info */}
       <div className="flex flex-col md:flex-row items-center md:items-start gap-8 mb-12">
         <div className="flex-shrink-0">
@@ -1051,6 +1105,30 @@ export default function Dashboard() {
         {/* Left Column: Tabs Content */}
         <div className="lg:col-span-2">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
+            {/* Admin Panel tile — first visual element in the
+              * quick-actions area when isMongoAdmin. Outside the
+              * TabsList because it's a navigation Link, not a tab.
+              * Visually matches the tile size + corner radius so it
+              * reads as part of the same grid. */}
+            {isMongoAdmin && (
+              <Link
+                href="/admin"
+                className="block h-24 rounded-xl border border-red-200 bg-gradient-to-br from-red-50 via-orange-50 to-white hover:border-red-300 hover:shadow-md transition-all"
+              >
+                <div className="h-full flex items-center gap-4 px-4 md:px-6">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500 to-orange-500 text-white grid place-items-center shadow-md shrink-0">
+                    <Shield className="w-6 h-6" />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="text-sm md:text-base font-semibold text-red-900">Admin Panel</h3>
+                    <p className="text-xs text-red-700/80 truncate">
+                      Manage moderation queue, tools, users
+                    </p>
+                  </div>
+                </div>
+              </Link>
+            )}
+
             <TabsList className="grid grid-cols-2 md:grid-cols-5 gap-4 bg-transparent h-auto p-0">
               <TabsTrigger
                 value="saved"
