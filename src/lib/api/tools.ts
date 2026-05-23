@@ -23,6 +23,8 @@ export interface ToolsQueryParams {
   status?: string;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
+  /** Admin views: opt in to soft-deleted tools alongside live ones. */
+  includeDeleted?: boolean;
 }
 
 // API functions
@@ -38,6 +40,7 @@ async function getTools(params: ToolsQueryParams = {}): Promise<PaginatedRespons
   if (params.status) searchParams.set('status', params.status);
   if (params.sortBy) searchParams.set('sortBy', params.sortBy);
   if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
+  if (params.includeDeleted) searchParams.set('includeDeleted', 'true');
 
   console.log('Fetching tools with params:', params);
   const response = await fetch(`/api/tools?${searchParams.toString()}`, {
@@ -153,18 +156,31 @@ async function updateTool(token: string, toolId: string, toolData: Partial<Tool>
   return response.json();
 }
 
-async function deleteTool(token: string, toolId: string) {
-  const response = await fetch(`/api/tools/${toolId}`, {
+async function deleteTool(_token: string, toolId: string) {
+  // Hits the admin-only soft-delete endpoint. Session cookie
+  // travels via credentials: 'include'; no bearer needed.
+  const response = await fetch(`/api/admin/tools/${toolId}`, {
     method: 'DELETE',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    credentials: 'include',
   });
 
   if (!response.ok) {
-    throw new Error('Failed to delete tool');
+    const body = await response.json().catch(() => ({}));
+    throw new Error(body?.error || 'Failed to delete tool');
   }
 
+  return response.json();
+}
+
+async function restoreTool(toolId: string) {
+  const response = await fetch(`/api/admin/tools/${toolId}/restore`, {
+    method: 'POST',
+    credentials: 'include',
+  });
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    throw new Error(body?.error || 'Failed to restore tool');
+  }
   return response.json();
 }
 
@@ -270,6 +286,16 @@ export function useDeleteTool() {
       const token = await getToken();
       return deleteTool(token, toolId);
     },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tools'] });
+    },
+  });
+}
+
+export function useRestoreTool() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (toolId: string) => restoreTool(toolId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tools'] });
     },

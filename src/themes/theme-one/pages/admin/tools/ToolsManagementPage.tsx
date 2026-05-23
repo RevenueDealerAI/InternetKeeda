@@ -32,13 +32,14 @@ import {
   Trash2, 
   Eye, 
   Archive,
+  RotateCcw,
   Search,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ToolFormDialog } from "@/components/admin/tools/ToolFormDialog";
-import { useTools, useCreateTool, useUpdateTool, useDeleteTool, useUpdateToolStatus, type ToolsQueryParams } from "@/lib/api/tools";
+import { useTools, useCreateTool, useUpdateTool, useDeleteTool, useRestoreTool, useUpdateToolStatus, type ToolsQueryParams } from "@/lib/api/tools";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -76,7 +77,10 @@ export default function ToolsManagementPage() {
     status: statusFilter === 'all' ? undefined : statusFilter,
     category: categoryFilter === 'all' ? undefined : categoryFilter,
     sortBy,
-    sortOrder
+    sortOrder,
+    // Admin view: include soft-deleted rows so the operator can
+    // see what's gone and restore if needed.
+    includeDeleted: true,
   };
 
   // Fetch tools with pagination
@@ -91,7 +95,17 @@ export default function ToolsManagementPage() {
   const createToolMutation = useCreateTool();
   const updateToolMutation = useUpdateTool();
   const deleteToolMutation = useDeleteTool();
+  const restoreToolMutation = useRestoreTool();
   const updateStatusMutation = useUpdateToolStatus();
+
+  const handleRestore = async (tool: Tool) => {
+    try {
+      await restoreToolMutation.mutateAsync(tool.id || tool._id);
+      toast.success(`Restored ${tool.name}`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Restore failed');
+    }
+  };
 
   if (error) {
     console.error('Error fetching tools:', error);
@@ -294,8 +308,10 @@ export default function ToolsManagementPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {tools.map((tool) => (
-                  <TableRow key={tool.id}>
+                {tools.map((tool) => {
+                  const isDeleted = !!tool.deletedAt;
+                  return (
+                  <TableRow key={tool.id} className={isDeleted ? "opacity-60" : undefined}>
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 relative">
@@ -308,7 +324,7 @@ export default function ToolsManagementPage() {
                           />
                         </div>
                         <div>
-                          <div className="font-medium">{tool.name}</div>
+                          <div className={cn("font-medium", isDeleted && "line-through text-gray-500")}>{tool.name}</div>
                           <div className="text-sm text-gray-500 truncate max-w-[300px]">
                             {tool.description}
                           </div>
@@ -326,9 +342,13 @@ export default function ToolsManagementPage() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge className={cn("capitalize", getStatusColor(tool.status))}>
-                        {tool.status}
-                      </Badge>
+                      {isDeleted ? (
+                        <Badge className="bg-red-100 text-red-700">Deleted</Badge>
+                      ) : (
+                        <Badge className={cn("capitalize", getStatusColor(tool.status))}>
+                          {tool.status}
+                        </Badge>
+                      )}
                     </TableCell>
                     <TableCell>
                       <div className="text-sm text-gray-500">
@@ -343,30 +363,43 @@ export default function ToolsManagementPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleEdit(tool)}>
-                            <Pencil className="mr-2 h-4 w-4" />
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => window.open(`/ai-tools/${tool.slug}`, '_blank')}>
-                            <Eye className="mr-2 h-4 w-4" />
-                            View
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleArchive(tool)}>
-                            <Archive className="mr-2 h-4 w-4" />
-                            Archive
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="text-red-600"
-                            onClick={() => handleDelete(tool)}
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete
-                          </DropdownMenuItem>
+                          {isDeleted ? (
+                            <DropdownMenuItem
+                              onClick={() => handleRestore(tool)}
+                              disabled={restoreToolMutation.isPending}
+                            >
+                              <RotateCcw className="mr-2 h-4 w-4" />
+                              Restore
+                            </DropdownMenuItem>
+                          ) : (
+                            <>
+                              <DropdownMenuItem onClick={() => handleEdit(tool)}>
+                                <Pencil className="mr-2 h-4 w-4" />
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => window.open(`/ai-tools/${tool.slug}`, '_blank')}>
+                                <Eye className="mr-2 h-4 w-4" />
+                                View
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleArchive(tool)}>
+                                <Archive className="mr-2 h-4 w-4" />
+                                Archive
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="text-red-600"
+                                onClick={() => handleDelete(tool)}
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete
+                              </DropdownMenuItem>
+                            </>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
                   </TableRow>
-                ))}
+                  );
+                })}
               </TableBody>
             </Table>
           </div>

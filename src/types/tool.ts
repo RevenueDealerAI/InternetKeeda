@@ -36,4 +36,5 @@ export interface Tool {
     | 'unpaid-pending'
     | 'unpaid-hidden';
   seededTool?: boolean;
+  deletedAt?: string | null;
 }

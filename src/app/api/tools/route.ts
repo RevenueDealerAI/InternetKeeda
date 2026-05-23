@@ -88,6 +88,15 @@ export async function GET(req: NextRequest) {
         // (listingStatus absent) all stay visible.
         query.listingStatus = { $nin: ['unpaid-pending', 'unpaid-hidden'] } as unknown as string;
 
+        // Soft-delete filter. Admin contexts can opt in via
+        // ?includeDeleted=true (shows deleted tools alongside live
+        // ones — the admin UI strikes them through). Public reads
+        // default to excluding deleted.
+        const includeDeleted = searchParams.get('includeDeleted') === 'true';
+        if (!includeDeleted) {
+            (query as Record<string, unknown>).deletedAt = { $in: [null, undefined] };
+        }
+
         if (category) {
             query.category = { $regex: category, $options: 'i' };
         }

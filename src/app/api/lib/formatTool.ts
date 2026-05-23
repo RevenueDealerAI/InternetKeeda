@@ -40,6 +40,7 @@ export interface FormattableTool {
   activeBoosts?: Array<'category-top' | 'home-rotation' | 'featured-badge'>;
   listingStatus?: string;
   seededTool?: boolean;
+  deletedAt?: Date | string | null;
 }
 
 function safeHostname(url: string | undefined): string {
@@ -84,5 +85,6 @@ export function formatTool(tool: FormattableTool) {
     activeBoosts: tool.activeBoosts || [],
     listingStatus: tool.listingStatus,
     seededTool: tool.seededTool || false,
+    deletedAt: tool.deletedAt || null,
   };
 }

@@ -57,6 +57,12 @@ export interface ITool {
    * and resubmit. Cleared on resubmit. */
   rejectionReason?: string;
   rejectedAt?: Date;
+  /** Soft-delete marker. Public listings filter out non-null
+   * deletedAt; admin views can opt in via ?includeDeleted=true.
+   * Payment/subscription history stays intact (Cashfree audit
+   * trail), and any active subscription is cancelled at delete
+   * time. Restore by clearing this field. */
+  deletedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -112,6 +118,7 @@ const toolSchema = new mongoose.Schema<ITool>({
   ownerUserId: { type: String, index: true },
   rejectionReason: { type: String },
   rejectedAt: { type: Date },
+  deletedAt: { type: Date, index: true },
 }, {
   timestamps: true // This will add createdAt and updatedAt fields automatically
 });

@@ -57,6 +57,13 @@ export async function GET(
             return NextResponse.json({ error: 'Tool not found' }, { status: 404 });
         }
 
+        // Soft-deleted tools are 404 on public reads. Admin views
+        // request them via /api/admin/tools/[id] (or /api/tools
+        // with includeDeleted=true).
+        if (tool.deletedAt) {
+            return NextResponse.json({ error: 'Tool not found' }, { status: 404 });
+        }
+
         tool.views += 1;
         await tool.save();
 
@@ -114,25 +121,9 @@ export async function PATCH(
     }
 }
 
-export async function DELETE(
-    req: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
-    try {
-        await connectDB();
-        await requireAuth();
-        
-        const { id } = await params;
-
-        const deletedTool = await Tool.findByIdAndDelete(id);
-        if (!deletedTool) {
-            return NextResponse.json({ error: 'Tool not found' }, { status: 404 });
-        }
-
-        return NextResponse.json({ success: true });
-    } catch (error: unknown) {
-        console.error('Error deleting tool:', error);
-        return errorResponse('Failed to delete tool', 500);
-    }
-}
+// DELETE moved to /api/admin/tools/[id]/route.ts (admin-only soft
+// delete, cancels active subscriptions). The previous handler here
+// had two bugs: it used requireAuth (any signed-in user could
+// delete) and called findByIdAndDelete(id) which threw a CastError
+// when `id` was a slug. Removed entirely so no fallback path exists.
 
