@@ -138,19 +138,47 @@ export const Navigation = () => {
     (c) => (c.toolCount ?? 0) > 0
   ).length;
 
-  // Cookie-detection mode: we don't know admin/email/name without
-  // loading the Clerk SDK. Header just shows "signed in" generically;
-  // full account UI (sign out, email display, admin link) lives on
-  // /dashboard which loads Clerk in its own per-route ClerkProvider.
-  const isAdmin = false;
-  const userEmail: string | undefined = undefined;
+  // When signed in, fetch the Mongo user row so we know isAdmin
+  // and email for the avatar dropdown. /api/users/me already
+  // exists and returns the full User doc (incl. the isAdmin flag
+  // added in the moderation flow). Skipped entirely when signed
+  // out — anon visitors never make this request.
+  const [meIsAdmin, setMeIsAdmin] = useState(false);
+  const [meEmail, setMeEmail] = useState<string | undefined>(undefined);
 
-  // Sign-out can't happen here without the Clerk SDK. The
-  // Navigation just points the user at /dashboard, which can
-  // sign them out cleanly.
+  useEffect(() => {
+    if (!isSignedIn) {
+      setMeIsAdmin(false);
+      setMeEmail(undefined);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const r = await fetch("/api/users/me", { credentials: "include" });
+        if (!r.ok) return;
+        const u = await r.json();
+        if (cancelled) return;
+        setMeIsAdmin(!!u?.isAdmin);
+        if (typeof u?.email === "string") setMeEmail(u.email);
+      } catch {
+        // ignore — dropdown just won't show the Admin link
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isSignedIn]);
+
+  const isAdmin = meIsAdmin;
+  const userEmail = meEmail;
+
+  // Sign-out routes through /sign-out, a dedicated page with its
+  // own ClerkRouteWrapper layout — keeps the navbar Clerk-free
+  // while still cleanly clearing the session.
   const handleSignOut = () => {
     setIsMobileMenuOpen(false);
-    router.push("/dashboard");
+    router.push("/sign-out");
   };
 
   return (
@@ -324,18 +352,52 @@ export const Navigation = () => {
                     </Button>
                   </div>
                 ) : (
-                  <Button
-                    variant="ghost"
-                    onClick={() => router.push("/dashboard")}
-                    aria-label="Account"
-                    className="relative rounded-full h-10 w-10 p-0 overflow-hidden"
-                  >
-                    <Avatar className="h-10 w-10 rounded-full">
-                      <AvatarFallback className="bg-orange-100 text-orange-700">
-                        <User className="h-5 w-5" />
-                      </AvatarFallback>
-                    </Avatar>
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        aria-label="Account menu"
+                        className="relative rounded-full h-10 w-10 p-0 overflow-hidden"
+                      >
+                        <Avatar className="h-10 w-10 rounded-full">
+                          <AvatarFallback className="bg-orange-100 text-orange-700">
+                            <User className="h-5 w-5" />
+                          </AvatarFallback>
+                        </Avatar>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                      {userEmail && (
+                        <>
+                          <DropdownMenuLabel className="font-normal text-xs text-gray-500 truncate">
+                            {userEmail}
+                          </DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                        </>
+                      )}
+                      <DropdownMenuItem
+                        onClick={() => router.push("/dashboard")}
+                        className="cursor-pointer"
+                      >
+                        <User className="mr-2 h-4 w-4" />
+                        Dashboard
+                      </DropdownMenuItem>
+                      {isAdmin && (
+                        <DropdownMenuItem
+                          onClick={() => router.push("/admin")}
+                          className="cursor-pointer"
+                        >
+                          <Shield className="mr-2 h-4 w-4" />
+                          Admin Panel
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Sign out
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 )}
 
                 {/* Mobile search shortcut — opens the existing search

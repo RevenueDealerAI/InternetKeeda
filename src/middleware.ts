@@ -84,6 +84,7 @@ const CLERK_PROTECTED_PATHS = [
   '/dashboard',
   '/sign-in',
   '/sign-up',
+  '/sign-out',
   '/verify-email',
   '/sso-callback',
 ];

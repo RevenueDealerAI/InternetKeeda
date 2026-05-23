@@ -361,6 +361,32 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               : "h-[calc(100vh-72px-64px)] md:h-[calc(100vh-100px-80px)] px-4 md:py-6"
           )}>
             <nav className="space-y-1 md:space-y-2">
+              {/* Back to main site — surfaces an explicit "leave admin"
+                  affordance in the sidebar to match the top-bar one.
+                  Visually distinct from the admin nav items below so
+                  it doesn't feel like another admin section. */}
+              <Link
+                href="/"
+                title={isPermanentlyCollapsed ? "Back to site" : ""}
+                className={cn(
+                  "flex items-center transition-all rounded-xl text-gray-500 hover:text-gray-900 hover:bg-gray-50",
+                  isPermanentlyCollapsed
+                    ? "justify-center py-3 px-2"
+                    : "gap-3 md:gap-4 px-3 md:px-4 py-2 md:py-3 text-sm md:text-base"
+                )}
+                onClick={() => isMobile && setSidebarOpen(false)}
+              >
+                <div className={cn(
+                  "rounded-lg",
+                  isPermanentlyCollapsed ? "p-1.5" : "p-1.5 md:p-2",
+                )}>
+                  <Home className={cn(
+                    isPermanentlyCollapsed ? "h-5 w-5" : "h-4 w-4 md:h-5 md:w-5"
+                  )} />
+                </div>
+                {!isPermanentlyCollapsed && <span className="font-medium">Back to site</span>}
+              </Link>
+
               {navigation.map((item) => (
                 <Link
                   key={item.href}
