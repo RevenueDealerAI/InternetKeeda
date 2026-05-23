@@ -16,6 +16,7 @@ type SubscriptionEvent =
   | "SUBSCRIPTION_CANCELLED"
   | "SUBSCRIPTION_PAUSED"
   | "SUBSCRIPTION_AUTH_STATUS"
+  | "SUBSCRIPTION_STATUS_CHANGED"
   | "SUBSCRIPTION_CARD_EXPIRY_REMINDER";
 
 const MAX_REPLAY_WINDOW_MS = 5 * 60 * 1000;
@@ -203,39 +204,74 @@ export async function POST(req: NextRequest) {
       secretSource: verifyResult.matchedSecretSource,
     });
 
-    let parsed: {
-      type?: SubscriptionEvent;
-      data?: {
-        subscription?: {
-          subscription_id?: string;
-          subscription_status?: string;
-          authorization_status?: string;
-          current_cycle?: number;
-          next_charge_date?: string;
-        };
-        payment?: {
-          payment_amount?: number;
-          payment_status?: string;
-        };
-      };
-    };
+    console.log("[cf-subs-webhook] body.parse.start", { length: rawBody.length });
+    let parsed: { type?: SubscriptionEvent; data?: Record<string, unknown> };
     try {
       parsed = JSON.parse(rawBody);
-    } catch {
+    } catch (err) {
+      console.error("[cf-subs-webhook] processing.error", {
+        step: "json_parse",
+        err: err instanceof Error ? err.message : String(err),
+      });
       return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
     }
 
-    const eventType = parsed.type;
-    const subscriptionId = parsed.data?.subscription?.subscription_id;
+    // Extract subscription_id from any of the shapes Cashfree may use.
+    // Their docs and the wild diverge: some payloads put fields flat
+    // under `data`, others nest under `data.subscription`. Try both.
+    const data = parsed.data ?? {};
+    const dataSub = (data.subscription as Record<string, unknown> | undefined) ?? {};
+    const dataAuth =
+      (data.authorization as Record<string, unknown> | undefined) ??
+      (data.authorization_details as Record<string, unknown> | undefined) ??
+      (dataSub.authorization as Record<string, unknown> | undefined) ??
+      {};
 
+    const subscriptionId =
+      (data.subscription_id as string | undefined) ||
+      (dataSub.subscription_id as string | undefined);
+    const subscriptionStatus =
+      (data.subscription_status as string | undefined) ||
+      (dataSub.subscription_status as string | undefined);
+    const authorizationStatus =
+      (data.authorization_status as string | undefined) ||
+      (dataSub.authorization_status as string | undefined) ||
+      (dataAuth.authorization_status as string | undefined);
+    const nextChargeDate =
+      (data.next_charge_date as string | undefined) ||
+      (dataSub.next_charge_date as string | undefined);
+
+    console.log("[cf-subs-webhook] body.parsed", {
+      type: parsed.type,
+      subscriptionId,
+      subscriptionStatus,
+      authorizationStatus,
+      dataKeys: Object.keys(data),
+    });
+
+    const eventType = parsed.type;
     if (!eventType || !subscriptionId) {
+      console.warn("[cf-subs-webhook] event.routed", {
+        handler: "no_handler_found",
+        reason: !eventType ? "missing_type" : "missing_subscription_id",
+        rawPayload: parsed,
+      });
       return NextResponse.json({ received: true, skipped: "no-subscription-id" });
     }
 
+    console.log("[cf-subs-webhook] db.lookup", { subscriptionId });
     await connectDB();
     const sub = await Subscription.findOne({ subscriptionId });
+    console.log("[cf-subs-webhook] db.found", {
+      found: !!sub,
+      currentStatus: sub?.status,
+    });
     if (!sub) {
-      console.warn("cashfree-subscriptions for unknown id", subscriptionId);
+      console.warn("[cf-subs-webhook] event.routed", {
+        handler: "no_handler_found",
+        reason: "unknown_subscription_id",
+        subscriptionId,
+      });
       return NextResponse.json({ received: true, skipped: "unknown" });
     }
 
@@ -253,53 +289,121 @@ export async function POST(req: NextRequest) {
       ],
     };
 
+    // Unified "this subscription is now live" handler. Cashfree
+    // signals this via multiple events depending on which product /
+    // API version is in play — SUBSCRIPTION_ACTIVATED, or
+    // SUBSCRIPTION_AUTH_STATUS with authorization_status=ACTIVE, or
+    // SUBSCRIPTION_STATUS_CHANGED with subscription_status=ACTIVE.
+    // We treat all three as the same signal and route through here.
+    // Idempotent: re-running on an already-active sub is a no-op
+    // except for refreshing nextBillingDate when it shifts.
+    const markActive = async (handlerLabel: string) => {
+      const prevStatus = sub.status;
+      sub.status = "active";
+      if (authorizationStatus) sub.authorizationStatus = authorizationStatus;
+      if (nextChargeDate) {
+        sub.nextBillingDate = new Date(nextChargeDate);
+        sub.currentPeriodStart = new Date();
+        sub.currentPeriodEnd = sub.nextBillingDate;
+      }
+      sub.failedRenewalCount = 0;
+      console.log("[cf-subs-webhook] db.update.start", {
+        handler: handlerLabel,
+        from: prevStatus,
+        to: "active",
+        nextBillingDate: sub.nextBillingDate,
+      });
+      await sub.save();
+      const toolRes = await Tool.findByIdAndUpdate(sub.toolId, {
+        $set: { listingStatus: "paid-active" },
+      });
+      console.log("[cf-subs-webhook] db.update.done", {
+        handler: handlerLabel,
+        subStatus: sub.status,
+        toolUpdated: !!toolRes,
+      });
+    };
+
     switch (eventType) {
       case "SUBSCRIPTION_NEW": {
-        sub.status = "initialized";
-        if (parsed.data?.subscription?.authorization_status) {
-          sub.authorizationStatus = parsed.data.subscription.authorization_status;
+        console.log("[cf-subs-webhook] event.routed", { type: eventType, handler: "new" });
+        // Don't downgrade an already-active sub if events arrive out
+        // of order — only set to initialized if we were truly fresh.
+        if (sub.status === "initialized" || sub.status === "failed") {
+          sub.status = "initialized";
         }
+        if (authorizationStatus) sub.authorizationStatus = authorizationStatus;
         await sub.save();
         break;
       }
       case "SUBSCRIPTION_ACTIVATED": {
-        sub.status = "active";
-        sub.authorizationStatus =
-          parsed.data?.subscription?.authorization_status || sub.authorizationStatus;
-        if (parsed.data?.subscription?.next_charge_date) {
-          sub.nextBillingDate = new Date(parsed.data.subscription.next_charge_date);
-          sub.currentPeriodStart = new Date();
-          sub.currentPeriodEnd = sub.nextBillingDate;
-        }
-        sub.failedRenewalCount = 0;
-        await sub.save();
-        // Flip the tool to publicly visible.
-        await Tool.findByIdAndUpdate(sub.toolId, {
-          $set: { listingStatus: "paid-active" },
+        console.log("[cf-subs-webhook] event.routed", { type: eventType, handler: "activated" });
+        await markActive("SUBSCRIPTION_ACTIVATED");
+        break;
+      }
+      case "SUBSCRIPTION_AUTH_STATUS": {
+        const isActive = authorizationStatus?.toUpperCase() === "ACTIVE";
+        console.log("[cf-subs-webhook] event.routed", {
+          type: eventType,
+          handler: isActive ? "auth_status_active" : "auth_status_other",
+          authorizationStatus,
         });
+        if (isActive) {
+          await markActive("SUBSCRIPTION_AUTH_STATUS(ACTIVE)");
+        } else {
+          if (authorizationStatus) sub.authorizationStatus = authorizationStatus;
+          await sub.save();
+        }
+        break;
+      }
+      case "SUBSCRIPTION_STATUS_CHANGED": {
+        const isActive = subscriptionStatus?.toUpperCase() === "ACTIVE";
+        const isCancelled = subscriptionStatus?.toUpperCase() === "CANCELLED";
+        console.log("[cf-subs-webhook] event.routed", {
+          type: eventType,
+          handler: isActive ? "status_changed_active" : isCancelled ? "status_changed_cancelled" : "status_changed_other",
+          subscriptionStatus,
+        });
+        if (isActive) {
+          await markActive("SUBSCRIPTION_STATUS_CHANGED(ACTIVE)");
+        } else if (isCancelled) {
+          sub.status = "cancelled";
+          sub.cancelledAt = new Date();
+          await sub.save();
+          await Tool.findByIdAndUpdate(sub.toolId, {
+            $set: { listingStatus: "unpaid-hidden" },
+          });
+        } else {
+          await sub.save();
+        }
         break;
       }
       case "SUBSCRIPTION_PAYMENT_SUCCESS": {
+        console.log("[cf-subs-webhook] event.routed", { type: eventType, handler: "payment_success" });
         sub.failedRenewalCount = 0;
-        if (parsed.data?.subscription?.next_charge_date) {
-          sub.nextBillingDate = new Date(parsed.data.subscription.next_charge_date);
+        if (nextChargeDate) {
+          sub.nextBillingDate = new Date(nextChargeDate);
           sub.currentPeriodStart = new Date();
           sub.currentPeriodEnd = sub.nextBillingDate;
         }
-        // Keep status as active if we were active; ignore if we were
-        // cancelled (Cashfree shouldn't fire success after cancel, but
-        // defensive in case of out-of-order delivery).
-        if (sub.status !== "cancelled") sub.status = "active";
-        await sub.save();
+        // Keep status as active unless we were cancelled (out-of-order
+        // delivery defence).
+        if (sub.status !== "cancelled") {
+          if (sub.status !== "active") {
+            await markActive("SUBSCRIPTION_PAYMENT_SUCCESS");
+          } else {
+            await sub.save();
+          }
+        }
         await recordAffiliateCommission(sub);
         break;
       }
       case "SUBSCRIPTION_PAYMENT_FAILED": {
+        console.log("[cf-subs-webhook] event.routed", { type: eventType, handler: "payment_failed" });
         sub.failedRenewalCount = (sub.failedRenewalCount || 0) + 1;
         if (sub.failedRenewalCount >= MAX_FAILED_RENEWALS_BEFORE_UNLIST) {
           sub.status = "failed";
           await sub.save();
-          // Auto-unlist after 3 strikes.
           await Tool.findByIdAndUpdate(sub.toolId, {
             $set: { listingStatus: "unpaid-hidden" },
           });
@@ -309,6 +413,7 @@ export async function POST(req: NextRequest) {
         break;
       }
       case "SUBSCRIPTION_CANCELLED": {
+        console.log("[cf-subs-webhook] event.routed", { type: eventType, handler: "cancelled" });
         sub.status = "cancelled";
         sub.cancelledAt = new Date();
         await sub.save();
@@ -318,31 +423,33 @@ export async function POST(req: NextRequest) {
         break;
       }
       case "SUBSCRIPTION_PAUSED": {
+        console.log("[cf-subs-webhook] event.routed", { type: eventType, handler: "paused" });
         sub.status = "paused";
         await sub.save();
         break;
       }
-      case "SUBSCRIPTION_AUTH_STATUS": {
-        if (parsed.data?.subscription?.authorization_status) {
-          sub.authorizationStatus = parsed.data.subscription.authorization_status;
-        }
-        await sub.save();
-        break;
-      }
       case "SUBSCRIPTION_CARD_EXPIRY_REMINDER": {
-        // Log only — Phase B/C don't have email infrastructure to
-        // forward this. Admin can pull it from metadata.events[].
+        console.log("[cf-subs-webhook] event.routed", { type: eventType, handler: "card_expiry_reminder" });
         await sub.save();
         break;
       }
       default: {
+        console.warn("[cf-subs-webhook] event.routed", {
+          type: eventType,
+          handler: "no_handler_found",
+          reason: "unknown_event_type",
+        });
         await sub.save();
       }
     }
 
     return NextResponse.json({ received: true });
   } catch (err) {
-    console.error("cashfree-subscriptions handler crashed:", err);
+    console.error("[cf-subs-webhook] processing.error", {
+      step: "outer_catch",
+      err: err instanceof Error ? err.message : String(err),
+      stack: err instanceof Error ? err.stack?.split("\n").slice(0, 6) : undefined,
+    });
     return NextResponse.json(
       { error: "Webhook processing failed" },
       { status: 500 },
