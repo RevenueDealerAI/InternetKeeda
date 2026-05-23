@@ -28,7 +28,8 @@ import {
   Wallet,
   HelpCircle,
   Share2,
-  Bot
+  Bot,
+  ShieldCheck
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { DemoModeBanner } from '@/components/DemoModeBanner';
@@ -60,7 +61,7 @@ const navigation: NavigationItem[] = [
   { name: 'FAQ', href: '/admin/faq', icon: HelpCircle },
   { name: 'Users', href: '/admin/users', icon: Users },
   { name: 'Tool Submissions', href: '/admin/submissions', icon: Send },
-  { name: 'Moderation', href: '/admin/moderation', icon: Wrench },
+  { name: 'Moderation', href: '/admin/moderation', icon: ShieldCheck },
   { name: 'Reviews', href: '/admin/reviews', icon: MessageCircle },
   { name: 'Sales Inquiries', href: '/admin/inquiries', icon: MessageSquare },
   { name: 'Newsletter Subscriptions', href: '/admin/newsletter', icon: Mail },
