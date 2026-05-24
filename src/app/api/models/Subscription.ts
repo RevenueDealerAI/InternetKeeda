@@ -31,6 +31,10 @@ export interface ISubscription {
   currentPeriodStart?: Date;
   currentPeriodEnd?: Date;
   authorizationStatus?: string;  // raw Cashfree auth status (BANK_APPROVAL_PENDING, ACTIVE, etc.)
+  /** Mirrors Payment.paymentVerifiedVia — 'webhook' for the signed
+   * path, 'polling-fallback' when the status endpoint self-healed
+   * because the webhook never arrived. */
+  activationVerifiedVia?: 'webhook' | 'polling-fallback';
   cancelledAt?: Date;
   failedRenewalCount: number;
   /** Anything else Cashfree sends in webhook payloads — keep raw. */
@@ -59,6 +63,7 @@ const subscriptionSchema = new mongoose.Schema<ISubscription>({
   currentPeriodStart: { type: Date },
   currentPeriodEnd: { type: Date },
   authorizationStatus: { type: String },
+  activationVerifiedVia: { type: String, enum: ['webhook', 'polling-fallback'] },
   cancelledAt: { type: Date },
   failedRenewalCount: { type: Number, default: 0 },
   metadata: { type: mongoose.Schema.Types.Mixed, default: {} },

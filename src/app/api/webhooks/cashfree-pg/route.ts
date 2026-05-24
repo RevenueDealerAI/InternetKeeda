@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/app/api/lib/db";
 import { Payment } from "@/app/api/models/Payment";
-import { Tool } from "@/app/api/models/Tool";
-import { User } from "@/app/api/models/User";
-import { AffiliateProfile } from "@/app/api/models/AffiliateProfile";
-import { Commission } from "@/app/api/models/Commission";
-import { getCashfreeClient, boostSlotFor, type BoostProductType } from "@/lib/cashfree";
+import {
+  markBoostPaid,
+  markBoostFailed,
+  markBoostRefunded,
+  removeBoostFromTool,
+} from "@/app/api/lib/boost-state";
+import { getCashfreeClient } from "@/lib/cashfree";
 
 // Cashfree's signed webhook events. Status mapping is deliberately
 // narrow — anything outside this set is logged and acked with 200 so
@@ -124,52 +126,43 @@ export async function POST(req: NextRequest) {
       ],
     };
 
+    // First persist the metadata.events[] update we just appended.
+    await payment.save();
+
     switch (eventType) {
       case "PAYMENT_SUCCESS_WEBHOOK": {
-        payment.status = "success";
-        payment.paidAt = new Date();
-        payment.cashfreePaymentId = parsed.data?.payment?.cf_payment_id
+        const cfPaymentId = parsed.data?.payment?.cf_payment_id
           ? String(parsed.data.payment.cf_payment_id)
           : undefined;
-        payment.cashfreeOrderStatus = "PAID";
-        await payment.save();
-        await applyBoostToTool(payment);
-        await recordAffiliateCommission(payment);
+        await markBoostPaid(payment.orderId, {
+          source: "webhook",
+          cashfreePaymentId: cfPaymentId,
+        });
         break;
       }
       case "PAYMENT_FAILED_WEBHOOK": {
-        payment.status = "failed";
-        payment.cashfreeOrderStatus = "FAILED";
-        await payment.save();
+        await markBoostFailed(payment.orderId, { source: "webhook", reason: "failed" });
         break;
       }
       case "PAYMENT_USER_DROPPED_WEBHOOK": {
-        payment.status = "dropped";
-        payment.cashfreeOrderStatus = "USER_DROPPED";
-        await payment.save();
+        await markBoostFailed(payment.orderId, { source: "webhook", reason: "dropped" });
         break;
       }
       case "REFUND_SUCCESS_WEBHOOK": {
-        payment.status = "refunded";
-        payment.refundedAt = new Date();
-        await payment.save();
-        await removeBoostFromTool(payment);
+        await markBoostRefunded(payment.orderId);
         break;
       }
       case "REFUND_FAILED_WEBHOOK": {
-        // Log only — keep status as it was. Admin can retry.
-        await payment.save();
+        // Log only — already persisted via the save above.
         break;
       }
       case "DISPUTE_CREATED_WEBHOOK": {
-        // Unfeature the tool immediately pending review.
-        await payment.save();
-        await removeBoostFromTool(payment);
+        // Unfeature pending review — don't touch payment.status.
+        await removeBoostFromTool({ toolId: payment.toolId, productType: payment.productType });
         break;
       }
       default: {
-        // Unknown event — log and ack.
-        await payment.save();
+        // Unknown event — already acked via save above.
       }
     }
 
@@ -184,74 +177,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-async function applyBoostToTool(payment: {
-  toolId: unknown;
-  productType: BoostProductType;
-  boostDurationDays: number;
-}) {
-  const slot = boostSlotFor(payment.productType);
-  const expiresAt = new Date(
-    Date.now() + payment.boostDurationDays * 24 * 60 * 60 * 1000,
-  );
-
-  await Tool.findByIdAndUpdate(payment.toolId, {
-    $addToSet: { activeBoosts: slot },
-    $set: { [`boostExpiresAt.${slot}`]: expiresAt },
-  });
-}
-
-async function removeBoostFromTool(payment: {
-  toolId: unknown;
-  productType: BoostProductType;
-}) {
-  const slot = boostSlotFor(payment.productType);
-  await Tool.findByIdAndUpdate(payment.toolId, {
-    $pull: { activeBoosts: slot },
-    $unset: { [`boostExpiresAt.${slot}`]: "" },
-  });
-}
-
-async function recordAffiliateCommission(payment: {
-  userId: string;
-  amount: number;
-  orderId: string;
-}) {
-  try {
-    const user = await User.findOne({ clerkId: payment.userId });
-    if (!user?.referredBy) return;
-
-    const affiliate = await AffiliateProfile.findOne({
-      uniqueCode: user.referredBy,
-    });
-    if (
-      !affiliate ||
-      affiliate.status !== "active" ||
-      affiliate.userId === payment.userId
-    ) {
-      return;
-    }
-
-    // Default boost commission: 10%. We don't read AffiliateSettings
-    // for boosts to avoid the case where the admin set a 20%
-    // subscription rate that's wrong for one-off boosts.
-    const BOOST_COMMISSION_RATE = 0.1;
-    const commissionAmount = Math.round(payment.amount * BOOST_COMMISSION_RATE);
-    if (commissionAmount <= 0) return;
-
-    await Commission.create({
-      affiliateId: affiliate.userId,
-      referredUserId: payment.userId,
-      amount: commissionAmount,
-      status: "pending",
-      type: "boost",
-      sourceId: payment.orderId,
-    });
-
-    affiliate.unpaidBalance += commissionAmount;
-    affiliate.totalEarnings += commissionAmount;
-    await affiliate.save();
-  } catch (err) {
-    // Affiliate failures must not break the payment success path.
-    console.error("recordAffiliateCommission failed:", err);
-  }
-}
+// applyBoostToTool / removeBoostFromTool / recordAffiliateCommission
+// moved to src/app/api/lib/boost-state.ts so the polling-fallback
+// path in /api/payments/status can call the same idempotent logic
+// without duplicating it.

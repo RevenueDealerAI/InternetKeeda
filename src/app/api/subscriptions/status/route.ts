@@ -2,14 +2,23 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/app/api/lib/db";
 import { requireAuth, errorResponse } from "@/app/api/lib/auth";
 import { Subscription } from "@/app/api/models/Subscription";
+import { markSubscriptionActive } from "@/app/api/lib/subscription-state";
 import { getCashfreeClient } from "@/lib/cashfree";
 
 /**
  * GET /api/subscriptions/status?subscriptionId=XXX
  *
  * Polled by /subscription/return until the row hits a terminal status.
- * Pokes Cashfree directly if the row is still 'initialized' — webhooks
- * can lag and a user sitting on the return page wants fast feedback.
+ * SELF-HEALING: if the row is still 'initialized' but Cashfree's
+ * SubsFetchSubscription reports the sub is ACTIVE (or its
+ * authorization_status is ACTIVE), apply the same activation
+ * transition the webhook would have via the shared
+ * markSubscriptionActive helper.
+ *
+ * Webhook stays the primary path. This is the safety net for when
+ * Cashfree's webhook delivery lags or fails — common during
+ * sandbox flows where webhook signatures or middleware coverage
+ * sometimes mis-fire.
  */
 export async function GET(req: NextRequest) {
   try {
@@ -24,7 +33,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const sub = await Subscription.findOne({ subscriptionId: subId });
+    let sub = await Subscription.findOne({ subscriptionId: subId });
     if (!sub) {
       return NextResponse.json({ error: "Subscription not found" }, { status: 404 });
     }
@@ -39,18 +48,61 @@ export async function GET(req: NextRequest) {
         const data = resp.data as {
           subscription_status?: string;
           authorization_status?: string;
+          next_charge_date?: string;
         };
-        if (data.authorization_status) sub.authorizationStatus = data.authorization_status;
-        // Stash CF's view, but never flip to 'active' here without the
-        // signed webhook — that's the authoritative source.
+
+        // Stash CF's view either way for visibility.
         sub.metadata = {
           ...(sub.metadata || {}),
           lastFetch: { at: new Date().toISOString(), data },
         };
-        await sub.save();
-      } catch {
-        // ignore — return DB state, client retries
+
+        const subStatus = (data.subscription_status || "").toUpperCase();
+        const authStatus = (data.authorization_status || "").toUpperCase();
+        const isActiveOnCf = subStatus === "ACTIVE" || authStatus === "ACTIVE";
+        const isCancelledOnCf = subStatus === "CANCELLED";
+
+        if (isActiveOnCf) {
+          console.log("[subscription-status] self-heal triggered", {
+            subscriptionId: subId,
+            subscriptionStatus: data.subscription_status,
+            authorizationStatus: data.authorization_status,
+          });
+          const { applied } = await markSubscriptionActive(subId, {
+            source: "polling-fallback",
+            authorizationStatus: data.authorization_status,
+            nextChargeDate: data.next_charge_date,
+          });
+          if (applied) {
+            sub = await Subscription.findOne({ subscriptionId: subId });
+          } else if (sub) {
+            // Race: another path already flipped it. Re-read.
+            sub = await Subscription.findOne({ subscriptionId: subId });
+          }
+        } else if (isCancelledOnCf) {
+          console.log("[subscription-status] cancellation detected by poll", {
+            subscriptionId: subId,
+          });
+          const cancelled = await Subscription.findOneAndUpdate(
+            { subscriptionId: subId, status: { $in: ["initialized", "active", "paused"] } },
+            { $set: { status: "cancelled", cancelledAt: new Date() } },
+            { new: true },
+          );
+          if (cancelled) sub = cancelled;
+        } else if (sub) {
+          // Non-terminal CF status — keep polling.
+          if (data.authorization_status) {
+            sub.authorizationStatus = data.authorization_status;
+          }
+          await sub.save();
+        }
+      } catch (err) {
+        console.warn("[subscription-status] cf fetch failed", err);
       }
+    }
+
+    if (!sub) {
+      return NextResponse.json({ error: "Subscription not found" }, { status: 404 });
     }
 
     return NextResponse.json({
@@ -64,6 +116,7 @@ export async function GET(req: NextRequest) {
       currentPeriodEnd: sub.currentPeriodEnd,
       authorizationStatus: sub.authorizationStatus,
       failedRenewalCount: sub.failedRenewalCount,
+      activationVerifiedVia: sub.activationVerifiedVia,
     });
   } catch (err) {
     if (err instanceof Error && err.message === "Unauthorized") {

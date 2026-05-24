@@ -3,6 +3,7 @@ import { createHmac, timingSafeEqual } from "crypto";
 import { connectDB } from "@/app/api/lib/db";
 import { Subscription } from "@/app/api/models/Subscription";
 import { Tool } from "@/app/api/models/Tool";
+import { markSubscriptionActive } from "@/app/api/lib/subscription-state";
 import { User } from "@/app/api/models/User";
 import { AffiliateProfile } from "@/app/api/models/AffiliateProfile";
 import { Commission } from "@/app/api/models/Commission";
@@ -294,33 +295,25 @@ export async function POST(req: NextRequest) {
     // API version is in play — SUBSCRIPTION_ACTIVATED, or
     // SUBSCRIPTION_AUTH_STATUS with authorization_status=ACTIVE, or
     // SUBSCRIPTION_STATUS_CHANGED with subscription_status=ACTIVE.
-    // We treat all three as the same signal and route through here.
-    // Idempotent: re-running on an already-active sub is a no-op
-    // except for refreshing nextBillingDate when it shifts.
+    // All three route through markSubscriptionActive (shared with
+    // the polling-fallback in /api/subscriptions/status), which
+    // uses an idempotent findOneAndUpdate so the two paths can't
+    // double-apply.
     const markActive = async (handlerLabel: string) => {
       const prevStatus = sub.status;
-      sub.status = "active";
-      if (authorizationStatus) sub.authorizationStatus = authorizationStatus;
-      if (nextChargeDate) {
-        sub.nextBillingDate = new Date(nextChargeDate);
-        sub.currentPeriodStart = new Date();
-        sub.currentPeriodEnd = sub.nextBillingDate;
-      }
-      sub.failedRenewalCount = 0;
       console.log("[cf-subs-webhook] db.update.start", {
         handler: handlerLabel,
         from: prevStatus,
         to: "active",
-        nextBillingDate: sub.nextBillingDate,
       });
-      await sub.save();
-      const toolRes = await Tool.findByIdAndUpdate(sub.toolId, {
-        $set: { listingStatus: "paid-active" },
+      const { applied } = await markSubscriptionActive(sub.subscriptionId, {
+        source: "webhook",
+        authorizationStatus,
+        nextChargeDate,
       });
       console.log("[cf-subs-webhook] db.update.done", {
         handler: handlerLabel,
-        subStatus: sub.status,
-        toolUpdated: !!toolRes,
+        applied,
       });
     };
 

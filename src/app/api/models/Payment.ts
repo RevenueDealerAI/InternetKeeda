@@ -28,6 +28,11 @@ export interface IPayment {
   status: PaymentStatus;
   cashfreePaymentId?: string;  // Cashfree's internal payment ID once captured
   cashfreeOrderStatus?: string; // raw order status string from Cashfree
+  /** Tracks which path reconciled this payment. 'webhook' is the
+   * signed path; 'polling-fallback' means the status endpoint
+   * self-healed when Cashfree's order API confirmed PAID but the
+   * webhook never arrived. */
+  paymentVerifiedVia?: 'webhook' | 'polling-fallback';
   /** Anything else Cashfree sends — webhook events, metadata blobs. */
   metadata: Record<string, unknown>;
   paidAt?: Date;
@@ -59,6 +64,7 @@ const paymentSchema = new mongoose.Schema<IPayment>({
   },
   cashfreePaymentId: { type: String },
   cashfreeOrderStatus: { type: String },
+  paymentVerifiedVia: { type: String, enum: ['webhook', 'polling-fallback'] },
   metadata: { type: mongoose.Schema.Types.Mixed, default: {} },
   paidAt: { type: Date },
   refundedAt: { type: Date },
