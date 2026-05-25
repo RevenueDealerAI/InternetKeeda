@@ -161,7 +161,7 @@ export default function BestAIMeetingTools() {
   return (
     <>
       <Helmet>
-        <title>Best AI Meeting Tools for 2025 - AI Tool Finder</title>
+        <title>Best AI Meeting Tools for 2025 — Internet Keeda</title>
         <meta name="description" content="Discover the best AI meeting tools for 2025 to help streamline your meetings, automate notes, and improve collaboration." />
       </Helmet>
 

@@ -161,7 +161,7 @@ export default function BestAIEmailManagementTools() {
   return (
     <>
       <Helmet>
-        <title>Best AI Email Management Tools for 2025 - AI Hunt</title>
+        <title>Best AI Email Management Tools for 2025 — Internet Keeda</title>
         <meta name="description" content="Discover the best AI-powered email management tools that help you organize your inbox, automate responses, and save time." />
       </Helmet>
 

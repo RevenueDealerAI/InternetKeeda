@@ -72,7 +72,7 @@ const AboutPage: React.FC = () => {
       >
         <motion.div variants={itemVariants} className="inline-flex items-center justify-center p-2 rounded-2xl bg-gradient-to-r from-green-500/10 via-green-400/10 to-green-300/10 backdrop-blur-sm mb-6">
           <div className="px-4 py-1 rounded-xl bg-gradient-to-r from-green-500 to-green-600">
-            <span className="text-white font-medium">About AI Tool Finder</span>
+            <span className="text-white font-medium">About Internet Keeda</span>
           </div>
         </motion.div>
         <motion.h1 
@@ -85,7 +85,7 @@ const AboutPage: React.FC = () => {
           variants={itemVariants}
           className="text-xl text-gray-600 max-w-3xl mx-auto"
         >
-          AI Tool Finder is your premier destination for discovering and exploring the latest AI tools and technologies. We're dedicated to helping innovators, creators, and businesses harness the power of artificial intelligence.
+          Internet Keeda is your premier destination for discovering and exploring the latest AI tools and technologies. We're dedicated to helping innovators, creators, and businesses harness the power of artificial intelligence.
         </motion.p>
       </motion.div>
 

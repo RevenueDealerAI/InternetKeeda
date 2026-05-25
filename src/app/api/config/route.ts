@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
         let config = await SiteConfig.findOne().lean();
         if (!config) {
             const defaultConfig = {
-                siteName: 'InternetKeeda',
+                siteName: 'Internet Keeda',
                 siteDescription: 'A hand-curated directory of the best AI tools, updated daily.',
                 logo: '',
                 logoLight: '',
@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
                 allowUserSubmissions: true,
                 requireApprovalForSubmissions: true,
                 requireApprovalForReviews: true,
-                footerText: `© ${new Date().getFullYear()} InternetKeeda. All rights reserved.`,
+                footerText: `© ${new Date().getFullYear()} Internet Keeda. All rights reserved.`,
                 contactEmail: '',
                 socialLinks: {
                     twitter: '',
@@ -53,7 +53,7 @@ export async function GET(req: NextRequest) {
                 adsenseAutoAds: true,
                 adsenseAdUnits: [],
                 metaTags: {
-                    title: 'InternetKeeda — Discover the Best AI Tools',
+                    title: 'Internet Keeda — Discover the Best AI Tools',
                     description: 'A hand-curated directory of the best AI tools for builders, marketers, and creators. Updated daily.',
                     keywords: 'AI tools directory, best AI tools, AI software, AI for productivity, AI for creators',
                     ogImage: '/og-image.svg'

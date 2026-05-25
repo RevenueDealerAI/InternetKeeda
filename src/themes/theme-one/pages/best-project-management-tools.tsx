@@ -185,7 +185,7 @@ export default function BestProjectManagementTools() {
   return (
     <>
       <Helmet>
-        <title>Best Project Management Tools for 2025 - AI Hunt</title>
+        <title>Best Project Management Tools for 2025 — Internet Keeda</title>
         <meta name="description" content="Discover the best project management tools for team collaboration, task tracking, and efficient workflow management in 2025." />
       </Helmet>
 

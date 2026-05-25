@@ -116,7 +116,7 @@ export const LatestLaunches = () => {
           Latest <span className="gradient-text">launches</span>.
         </h1>
         <p className="text-gray-600 max-w-2xl text-lg leading-relaxed">
-          The newest tools to hit InternetKeeda. Be the first to try what just shipped.
+          The newest tools to hit Internet Keeda. Be the first to try what just shipped.
         </p>
       </div>
 

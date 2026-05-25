@@ -248,7 +248,7 @@ export default function BestAINoteTrackingSoftware() {
   return (
     <>
       <Helmet>
-        <title>Best AI Note-Taking Software for 2025 - AI Hunt</title>
+        <title>Best AI Note-Taking Software for 2025 — Internet Keeda</title>
         <meta name="description" content="Discover AI-powered note-taking tools that help you capture, organize, and enhance your thoughts with intelligent features." />
       </Helmet>
       

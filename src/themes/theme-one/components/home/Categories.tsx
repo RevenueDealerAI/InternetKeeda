@@ -108,7 +108,7 @@ export const Categories = () => {
             Explore by <span className="gradient-text">category</span>
           </h2>
           <p className="text-gray-600 mt-3">
-            Six of the most-stocked corners of InternetKeeda. Click any tile to drill in.
+            Six of the most-stocked corners of Internet Keeda. Click any tile to drill in.
           </p>
         </div>
 

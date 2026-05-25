@@ -35,7 +35,7 @@ export const Footer = () => {
   };
 
   const footerText =
-    config?.footerText || `© ${currentYear} InternetKeeda. All rights reserved.`;
+    config?.footerText || `© ${currentYear} Internet Keeda. All rights reserved.`;
   const siteDescription =
     config?.siteDescription ||
     "A hand-curated directory of the best AI tools, updated daily.";

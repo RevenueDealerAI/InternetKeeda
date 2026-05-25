@@ -50,7 +50,7 @@ const siteConfigSchema = new mongoose.Schema({
   siteName: {
     type: String,
     required: true,
-    default: 'InternetKeeda'
+    default: 'Internet Keeda'
   },
   siteDescription: {
     type: String,
@@ -102,7 +102,7 @@ const siteConfigSchema = new mongoose.Schema({
   },
   footerText: {
     type: String,
-    default: `© ${new Date().getFullYear()} InternetKeeda. All rights reserved.`
+    default: `© ${new Date().getFullYear()} Internet Keeda. All rights reserved.`
   },
   contactEmail: { 
     type: String,
@@ -146,7 +146,7 @@ const siteConfigSchema = new mongoose.Schema({
   metaTags: {
     type: Object,
     default: {
-      title: 'InternetKeeda — Discover the Best AI Tools',
+      title: 'Internet Keeda — Discover the Best AI Tools',
       description: 'A hand-curated directory of the best AI tools for builders, marketers, and creators. Updated daily.',
       keywords: 'AI tools directory, best AI tools, AI software, AI for productivity, AI for creators',
       ogImage: '/og-image.svg'

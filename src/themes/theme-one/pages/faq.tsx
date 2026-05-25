@@ -71,7 +71,7 @@ const FAQPage: React.FC = () => {
           variants={itemVariants}
           className="text-xl text-gray-600 max-w-3xl mx-auto"
         >
-          Find answers to common questions about AI Tool Finder, our tools, and how to make the most of our platform.
+          Find answers to common questions about Internet Keeda, our tools, and how to make the most of our platform.
         </motion.p>
       </motion.div>
 

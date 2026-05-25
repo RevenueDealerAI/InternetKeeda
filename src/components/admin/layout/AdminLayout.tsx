@@ -177,13 +177,13 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                     </svg>
                   </div>
                   <div className="text-xl font-bold text-gray-900">
-                    AI Tool Finder
+                    Internet Keeda
                   </div>
                 </>
               ) : (
                 <Image
                   src="/theme-two/logo.svg"
-                  alt="AI Tool Finder"
+                  alt="Internet Keeda"
                   width={120}
                   height={28}
                   className="h-7 w-auto"

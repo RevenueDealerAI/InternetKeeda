@@ -161,7 +161,7 @@ export default function BestProductivityToolsForADHD() {
   return (
     <>
       <Helmet>
-        <title>Best Productivity Tools for ADHD in 2025 - AI Hunt</title>
+        <title>Best Productivity Tools for ADHD in 2025 — Internet Keeda</title>
         <meta name="description" content="Discover the best productivity tools designed for people with ADHD to improve focus, organization, and task management." />
       </Helmet>
 

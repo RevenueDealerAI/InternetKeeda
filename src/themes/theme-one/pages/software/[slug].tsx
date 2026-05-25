@@ -121,7 +121,7 @@ export default function SoftwarePageDetail({ staticSlug }: SoftwarePageDetailPro
     if (page) {
       setSoftwarePage(page);
       // Set page title
-      document.title = `${page.title} - AI Hunt`;
+      document.title = `${page.title} - Internet Keeda`;
     } else {
       console.warn(`Software page with slug "${slug}" not found`);
       // Only navigate away if we're on a dynamic route (not a staticSlug)

@@ -38,7 +38,7 @@ export default function SiteSettingsPage() {
   const { getToken } = useAuth();
   const [saving, setSaving] = useState(false);
   const [config, setConfig] = useState<SiteConfig>(siteConfig || {
-    siteName: 'AI Tool Finder',
+    siteName: 'Internet Keeda',
     siteDescription: 'Discover the best AI tools for your needs',
     logo: '/logo.svg',
     logoLight: '/logo-light.svg',
@@ -50,7 +50,7 @@ export default function SiteSettingsPage() {
     allowUserSubmissions: true,
     requireApprovalForSubmissions: true,
     requireApprovalForReviews: true,
-    footerText: '© 2024 AI Tool Finder. All rights reserved.',
+    footerText: '© 2024 Internet Keeda. All rights reserved.',
     contactEmail: '',
     socialLinks: {
       twitter: '',
@@ -67,7 +67,7 @@ export default function SiteSettingsPage() {
     adsenseAutoAds: true,
     adsenseAdUnits: [],
     metaTags: {
-      title: 'AI Tool Finder - Discover the Best AI Tools',
+      title: 'Internet Keeda - Discover the Best AI Tools',
       description: 'Find the best AI tools for your needs, from content creation to productivity and beyond.',
       keywords: 'AI tools, artificial intelligence, productivity tools, AI software',
       ogImage: '/og-image.svg'

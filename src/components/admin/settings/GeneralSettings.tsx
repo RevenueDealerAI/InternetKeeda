@@ -511,7 +511,7 @@ export default function GeneralSettings({ config, onSave }: GeneralSettingsProps
             name="siteName"
             value={formData.siteName}
             onChange={handleChange}
-            placeholder="AI Tool Finder"
+            placeholder="Internet Keeda"
             required
           />
         </div>
@@ -535,7 +535,7 @@ export default function GeneralSettings({ config, onSave }: GeneralSettingsProps
             name="footerText"
             value={formData.footerText}
             onChange={handleChange}
-            placeholder="© 2024 AI Tool Finder. All rights reserved."
+            placeholder="© 2024 Internet Keeda. All rights reserved."
           />
         </div>
         

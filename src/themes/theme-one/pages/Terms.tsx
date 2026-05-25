@@ -30,7 +30,7 @@ const TermsPage: React.FC = () => {
   const sections = [
     {
       title: "1. Acceptance of Terms",
-      content: `By accessing or using AI Tool Finder, you agree to be bound by these Terms of Service and all applicable laws and regulations. If you do not agree with any of these terms, you are prohibited from using or accessing this site.
+      content: `By accessing or using Internet Keeda, you agree to be bound by these Terms of Service and all applicable laws and regulations. If you do not agree with any of these terms, you are prohibited from using or accessing this site.
 
 We reserve the right to modify these terms at any time, and we'll always post the most current version on our website.`
     },
@@ -52,21 +52,21 @@ You agree not to submit Content that:
     },
     {
       title: "4. Intellectual Property",
-      content: `The AI Tool Finder platform, including its original content, features, and functionality, is owned by AI Tool Finder and protected by international copyright, trademark, and other intellectual property laws.
+      content: `The Internet Keeda platform, including its original content, features, and functionality, is owned by Internet Keeda and protected by international copyright, trademark, and other intellectual property laws.
 
 Our trademarks and trade dress may not be used in connection with any product or service without our prior written consent.`
     },
     {
       title: "5. Limitation of Liability",
-      content: `AI Tool Finder is provided "as is" without any warranties, expressed or implied. We do not warrant that the platform will be error-free or uninterrupted.
+      content: `Internet Keeda is provided "as is" without any warranties, expressed or implied. We do not warrant that the platform will be error-free or uninterrupted.
 
-In no event shall AI Tool Finder be liable for any indirect, incidental, special, consequential, or punitive damages arising out of or relating to your use of the platform.`
+In no event shall Internet Keeda be liable for any indirect, incidental, special, consequential, or punitive damages arising out of or relating to your use of the platform.`
     },
     {
       title: "6. Third-Party Links",
-      content: `Our platform may contain links to third-party websites or services not owned or controlled by AI Tool Finder. We have no control over and assume no responsibility for the content, privacy policies, or practices of any third-party sites or services.
+      content: `Our platform may contain links to third-party websites or services not owned or controlled by Internet Keeda. We have no control over and assume no responsibility for the content, privacy policies, or practices of any third-party sites or services.
 
-You acknowledge and agree that AI Tool Finder shall not be responsible or liable for any damage or loss caused by the use of such third-party services.`
+You acknowledge and agree that Internet Keeda shall not be responsible or liable for any damage or loss caused by the use of such third-party services.`
     }
   ];
 
@@ -96,7 +96,7 @@ You acknowledge and agree that AI Tool Finder shall not be responsible or liable
           variants={itemVariants}
           className="text-xl text-gray-600 max-w-3xl mx-auto"
         >
-          Please read these terms carefully before using AI Tool Finder. By using our platform, you agree to these terms.
+          Please read these terms carefully before using Internet Keeda. By using our platform, you agree to these terms.
         </motion.p>
         <motion.p
           variants={itemVariants}

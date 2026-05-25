@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Advertise on InternetKeeda",
+  title: "Advertise on Internet Keeda",
   description:
     "Reach 100k+ AI tool seekers — sponsored listings and homepage placements.",
   alternates: { canonical: "/advertise" },
@@ -31,7 +31,7 @@ export default function AdvertisePage() {
           <h1 className="mt-6 font-bold tracking-tight text-gray-900 leading-[1.05]" style={{ fontSize: "clamp(36px, 5vw, 64px)" }}>
             Advertise on{" "}
             <span className="bg-gradient-to-r from-orange-500 to-red-600 bg-clip-text text-transparent">
-              InternetKeeda
+              Internet Keeda
             </span>
           </h1>
           <p className="mt-5 max-w-2xl mx-auto text-base sm:text-lg text-gray-600 leading-relaxed">

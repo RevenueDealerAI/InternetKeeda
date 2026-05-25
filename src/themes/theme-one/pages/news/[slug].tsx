@@ -156,7 +156,7 @@ export function NewsDetail() {
   return (
     <>
       <Helmet>
-        <title>{post.title} - AI Hunt News</title>
+        <title>{post.title} - Internet Keeda News</title>
         <meta name="description" content={post.excerpt} />
         <meta property="og:title" content={post.title} />
         <meta property="og:description" content={post.excerpt} />

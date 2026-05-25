@@ -160,7 +160,7 @@ export default function BestAIDailyPlanningSoftware() {
   return (
     <>
       <Helmet>
-        <title>Best AI Daily Planning Software for 2025 - AI Hunt</title>
+        <title>Best AI Daily Planning Software for 2025 — Internet Keeda</title>
         <meta name="description" content="Discover the best AI-powered daily planning tools to help you organize your day, prioritize tasks, and achieve your goals more efficiently." />
       </Helmet>
 

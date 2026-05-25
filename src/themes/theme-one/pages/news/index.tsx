@@ -117,7 +117,7 @@ export function NewsIndex() {
   return (
     <>
       <Helmet>
-        <title>Latest News - AI Hunt</title>
+        <title>Latest News — Internet Keeda</title>
         <meta name="description" content="Stay updated with the latest AI news and developments" />
       </Helmet>
 
