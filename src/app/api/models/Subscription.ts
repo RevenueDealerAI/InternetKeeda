@@ -73,6 +73,14 @@ const subscriptionSchema = new mongoose.Schema<ISubscription>({
 
 subscriptionSchema.index({ status: 1, nextBillingDate: 1 });
 subscriptionSchema.index({ userId: 1, status: 1 });
+// Tool-page reads ask "is this tool actively subscribed?" via
+// findOne({ toolId, status: { $in: ['active', 'paused'] } }) — also
+// the existence check before issuing a new sub. Compound index
+// makes it a single-doc lookup rather than a toolId scan + filter.
+subscriptionSchema.index({ toolId: 1, status: 1 });
+// Revenue aggregation in /api/admin/revenue groups by status +
+// currentPeriodStart for "this month" totals.
+subscriptionSchema.index({ status: 1, currentPeriodStart: -1 });
 
 // Bust any cached model definition — schema changed from the Stripe
 // version, and `mongoose.models` would otherwise hand back the old one

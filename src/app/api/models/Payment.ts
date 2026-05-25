@@ -74,6 +74,14 @@ const paymentSchema = new mongoose.Schema<IPayment>({
 
 paymentSchema.index({ userId: 1, status: 1 });
 paymentSchema.index({ status: 1, createdAt: -1 });
+// Revenue rollup matches on { status: 'success', paidAt: { $gte } }.
+// The createdAt compound above works but paidAt is the more honest
+// signal (a payment created in March but paid in April should count
+// in April's revenue).
+paymentSchema.index({ status: 1, paidAt: -1 });
+// Boost lookups: "all successful payments for this tool" — admin
+// tool-detail page lists boost history.
+paymentSchema.index({ toolId: 1, status: 1 });
 
 // Use any existing model if hot-reload already registered one with the
 // new schema; otherwise create fresh.
