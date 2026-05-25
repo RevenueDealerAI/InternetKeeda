@@ -15,6 +15,20 @@ const badgeVariants = cva(
         destructive:
           "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
         outline: "text-foreground",
+        // TAA semantic palette — opt-in. Inline color values bypass the
+        // global remap (amber/orange → brand red) so warning actually
+        // reads as warning instead of merging with the brand.
+        success:
+          "border-transparent bg-emerald-50 text-emerald-700 hover:bg-emerald-100",
+        warning:
+          "border-transparent bg-[#FFF7ED] text-[#9A3412] hover:bg-[#FFEDD5]",
+        info:
+          "border-transparent bg-sky-50 text-sky-700 hover:bg-sky-100",
+        neutral:
+          "border-transparent bg-slate-100 text-slate-700 hover:bg-slate-200",
+        // Brand-tinted soft pill — for "Boosted", "Featured", etc.
+        keedaSoft:
+          "border-transparent bg-brand-50 text-brand-700 hover:bg-brand-100",
       },
     },
     defaultVariants: {

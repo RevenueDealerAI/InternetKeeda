@@ -18,12 +18,26 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
+        // TAA aesthetic — opt-in variants for the R4/R5 redesign.
+        // Existing consumers default to `default` and are untouched.
+        keeda:
+          "bg-brand-600 text-white shadow-sm hover:bg-brand-700 active:bg-brand-800 transition-all duration-200 ease-out",
+        keedaDark:
+          "bg-slate-900 text-white shadow-sm hover:bg-slate-800 active:bg-slate-950 transition-all duration-200 ease-out",
+        keedaGhost:
+          "text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition-all duration-200 ease-out",
+        keedaOutline:
+          "border border-slate-200 bg-white text-slate-700 shadow-sm hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 ease-out",
       },
       size: {
         default: "h-10 px-4 py-2",
         sm: "h-9 rounded-md px-3",
         lg: "h-11 rounded-md px-8",
         icon: "h-10 w-10",
+        // Tighter, TAA-style sizing for dense surfaces.
+        keedaSm: "h-8 rounded-lg px-3 text-[13px]",
+        keedaMd: "h-9 rounded-lg px-4 text-sm",
+        keedaLg: "h-11 rounded-xl px-5 text-[15px]",
       },
     },
     defaultVariants: {
