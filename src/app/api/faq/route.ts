@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
             query.category = category;
         }
 
-        const faqs = await FAQ.find(query).sort({ category: 1, order: 1, createdAt: 1 });
+        const faqs = await FAQ.find(query).sort({ category: 1, order: 1, createdAt: 1 }).lean();
 
         const groupedByCategory = faqs.reduce((acc, faq) => {
             const cat = faq.category;
@@ -51,21 +51,29 @@ export async function GET(req: NextRequest) {
             return acc;
         }, {} as Record<string, unknown[]>);
 
-        return NextResponse.json({
-            success: true,
-            data: faqs.map(faq => ({
-                _id: faq._id.toString(),
-                id: faq._id.toString(),
-                question: faq.question,
-                answer: faq.answer,
-                category: faq.category,
-                order: faq.order,
-                isActive: faq.isActive,
-                createdAt: faq.createdAt,
-                updatedAt: faq.updatedAt,
-            })),
-            grouped: groupedByCategory,
-        });
+        return NextResponse.json(
+            {
+                success: true,
+                data: faqs.map(faq => ({
+                    _id: faq._id.toString(),
+                    id: faq._id.toString(),
+                    question: faq.question,
+                    answer: faq.answer,
+                    category: faq.category,
+                    order: faq.order,
+                    isActive: faq.isActive,
+                    createdAt: faq.createdAt,
+                    updatedAt: faq.updatedAt,
+                })),
+                grouped: groupedByCategory,
+            },
+            {
+                headers: {
+                    // FAQs are essentially static editorial content.
+                    'Cache-Control': 'public, s-maxage=600, stale-while-revalidate=7200',
+                },
+            }
+        );
     } catch (error: unknown) {
         console.error('Error fetching FAQs:', error);
         return errorResponse('Failed to fetch FAQs', 500);

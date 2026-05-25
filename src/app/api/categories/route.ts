@@ -44,7 +44,11 @@ export async function GET(req: NextRequest) {
     // user's "8 generic categories" report was exactly the visible
     // top of the prepended list. The prepend is gone — DB rows
     // only.
-    const categories = await Category.find(query).sort({ name: 1 });
+    // .lean() — categories are read-only at this point, skip the
+    // mongoose hydration overhead. Returns plain JS objects directly.
+    const categories = await Category.find(query)
+      .sort({ name: 1 })
+      .lean<Array<Record<string, unknown> & { name: string }>>();
 
     let countMap = new Map<string, number>();
     if (includeToolCount) {
@@ -57,11 +61,11 @@ export async function GET(req: NextRequest) {
 
       categories.forEach(cat => {
         const count = countMap.get(cat.name) || 0;
-        (cat as unknown as { toolCount: number }).toolCount = count;
+        (cat as Record<string, unknown>).toolCount = count;
       });
     }
 
-    let allCategories = categories.map(cat => cat.toObject());
+    let allCategories = categories;
 
     // When limit is requested AND tool counts are included, return the
     // top-N by toolCount instead of alpha-sorted by name. Useful for nav
@@ -70,7 +74,7 @@ export async function GET(req: NextRequest) {
       if (includeToolCount) {
         allCategories = allCategories
           .slice()
-          .sort((a, b) => (b.toolCount || 0) - (a.toolCount || 0))
+          .sort((a, b) => (Number(b.toolCount) || 0) - (Number(a.toolCount) || 0))
           .slice(0, limit);
       } else {
         allCategories = allCategories.slice(0, limit);

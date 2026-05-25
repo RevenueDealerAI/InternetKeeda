@@ -34,9 +34,15 @@ export async function GET(req: NextRequest) {
     try {
         await connectDB();
 
-        const posts = await NewsPost.find().sort({ createdAt: -1 });
+        const posts = await NewsPost.find().sort({ createdAt: -1 }).lean();
 
-        return NextResponse.json(posts);
+        return NextResponse.json(posts, {
+            headers: {
+                // News index — 2 min fresh, 30 min stale-while-revalidate.
+                // Shorter than blog because news ages faster.
+                'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=1800',
+            },
+        });
     } catch (error: unknown) {
         console.error('Error fetching news posts:', error);
         return errorResponse('Failed to fetch news posts', 500);
