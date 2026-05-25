@@ -81,7 +81,6 @@ export const ProductCard = ({
                 fill
                 sizes="64px"
                 className="object-cover"
-                unoptimized
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.onerror = null;

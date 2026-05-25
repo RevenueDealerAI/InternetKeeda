@@ -104,12 +104,12 @@ export const SearchDialog = ({
                 <div className="flex items-start gap-4">
                   <div className="flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center relative">
                     {tool.logo ? (
-                      <Image 
-                        src={getToolLogo(tool as Tool)} 
-                        alt={tool.name} 
+                      <Image
+                        src={getToolLogo(tool as Tool)}
+                        alt={tool.name}
                         fill
+                        sizes="48px"
                         className="object-cover"
-                        unoptimized
                       />
                     ) : (
                       <div className="w-full h-full bg-green-100 text-green-800 flex items-center justify-center font-bold">

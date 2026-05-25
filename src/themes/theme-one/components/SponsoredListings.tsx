@@ -90,10 +90,10 @@ export const SponsoredListings: React.FC<SponsoredListingsProps> = ({ listings }
                         <div className="w-12 h-12 bg-white rounded-md flex items-center justify-center overflow-hidden mr-3 flex-shrink-0 relative">
                           <Image 
                             src={`https://www.google.com/s2/favicons?domain=${listing.url}&sz=128`} 
-                            alt={`${listing.name} logo`} 
+                            alt={`${listing.name} logo`}
                             fill
+                            sizes="64px"
                             className="object-contain p-1"
-                            unoptimized
                           />
                         </div>
                         <div className="flex-1 min-w-0">

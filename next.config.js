@@ -23,16 +23,19 @@ const nextConfig = {
   
   images: {
     remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: '**',
-      },
-      {
-        protocol: 'http',
-        hostname: '**',
-      }
+      { protocol: 'https', hostname: '**' },
+      { protocol: 'http', hostname: '**' },
     ],
-    unoptimized: true,
+    // Optimization on by default. Components that genuinely need raw
+    // bytes (SVGs, Clerk avatar URLs that 403 when proxied, blob URLs
+    // from uploads in progress) opt out via `unoptimized` on the
+    // <Image> itself.
+    formats: ['image/avif', 'image/webp'],
+    deviceSizes: [320, 420, 640, 768, 1024, 1280, 1536, 1920],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256],
+    // Aggressive edge cache for optimized images. 1 hour minimum;
+    // Next respects upstream Cache-Control beyond that.
+    minimumCacheTTL: 3600,
   },
   
   webpack: (config) => {

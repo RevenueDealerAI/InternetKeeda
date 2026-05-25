@@ -347,8 +347,8 @@ export const AIToolDetail = () => {
                               src={getToolLogo(tool)}
                               alt={tool.name}
                               fill
+                              sizes="128px"
                               className="object-contain sm:object-cover p-2"
-                              unoptimized
                             />
                           </div>
                           {(tool.votes || 0) >= 100 && (
