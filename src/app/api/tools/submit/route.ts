@@ -48,7 +48,7 @@ function slugify(name: string): string {
  * created with ownerUserId = auth.userId, seededTool:false, and
  * listingStatus:'unpaid-pending'. The user can immediately boost it
  * from the dashboard. Phase C expands this flow to also start a
- * Cashfree subscription (₹499/mo) before the tool publishes.
+ * Cashfree subscription ($10/mo) before the tool publishes.
  */
 export async function POST(req: NextRequest) {
   try {

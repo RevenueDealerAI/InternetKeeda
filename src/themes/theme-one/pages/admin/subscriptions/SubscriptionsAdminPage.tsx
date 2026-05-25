@@ -101,7 +101,7 @@ export default function SubscriptionsAdminPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Subscriptions</h1>
-          <p className="text-sm text-gray-500">Recurring ₹499/mo listings via Cashfree.</p>
+          <p className="text-sm text-gray-500">Recurring $10/mo listings via Cashfree.</p>
         </div>
         <Select value={status} onValueChange={(v) => setStatus(v === "all" ? "" : v)}>
           <SelectTrigger className="w-44"><SelectValue placeholder="All statuses" /></SelectTrigger>

@@ -28,7 +28,8 @@ function siteOrigin(req: NextRequest): string {
  *
  * Body: { toolId }
  *
- * Creates a Cashfree subscription for the ₹499/month listing fee.
+ * Creates a Cashfree subscription for the $10/month listing fee
+ * (PROD plan id `monthly-listing-10`, max $50/cycle headroom).
  * The flow:
  *   1. Validate user owns the tool, no active sub exists for it
  *   2. Insert Subscription row (status: 'initialized')
@@ -142,10 +143,10 @@ export async function POST(req: NextRequest) {
       _id: dbId,
       userId: auth.userId,
       toolId: tool._id,
-      planId: "monthly-listing-499",
+      planId: PRICING.MONTHLY_LISTING.planId,
       subscriptionId,
-      amount: PRICING.MONTHLY_LISTING_PAISE,
-      currency: "INR",
+      amount: PRICING.MONTHLY_LISTING.amountMinorUnit,
+      currency: PRICING.MONTHLY_LISTING.currency,
       status: "initialized",
       billingCycle: "monthly",
     });
@@ -168,13 +169,17 @@ export async function POST(req: NextRequest) {
       undefined;
 
     const origin = siteOrigin(req);
-    const planAmountRupees = PRICING.MONTHLY_LISTING_PAISE / 100;
-    const planMaxAmountRupees = planAmountRupees * 2; // headroom for future price increases
+    // Cashfree subscription_amount is in MAJOR units (dollars for USD,
+    // rupees for INR) — we divide our stored minor-unit value by 100.
+    const planAmountMajor = PRICING.MONTHLY_LISTING.amountMinorUnit / 100;
+    const planMaxAmountMajor = PRICING.MONTHLY_LISTING.maxAmountMinorUnit / 100;
 
     log("cf.about_to_call", {
       subscriptionId,
-      planAmountRupees,
-      planMaxAmountRupees,
+      planAmountMajor,
+      planMaxAmountMajor,
+      currency: PRICING.MONTHLY_LISTING.currency,
+      planId: PRICING.MONTHLY_LISTING.planId,
       customerEmail,
       customerPhonePresent: !!customerPhone,
       origin,
@@ -194,12 +199,12 @@ export async function POST(req: NextRequest) {
           ...(customerName ? { customer_name: customerName } : {}),
         },
         plan_details: {
-          plan_id: "monthly-listing-499",
+          plan_id: PRICING.MONTHLY_LISTING.planId,
           plan_name: "Monthly Tool Listing",
           plan_type: "PERIODIC",
-          plan_currency: "INR",
-          plan_amount: planAmountRupees,
-          plan_max_amount: planMaxAmountRupees,
+          plan_currency: PRICING.MONTHLY_LISTING.currency,
+          plan_amount: planAmountMajor,
+          plan_max_amount: planMaxAmountMajor,
           plan_max_cycles: 0, // 0 = unlimited
           plan_intervals: 1,
           plan_interval_type: "MONTH",
@@ -230,8 +235,8 @@ export async function POST(req: NextRequest) {
         subscriptionId,
         subscriptionDbId: String(sub._id),
         sessionId: data.subscription_session_id,
-        amount: PRICING.MONTHLY_LISTING_PAISE,
-        currency: "INR",
+        amount: PRICING.MONTHLY_LISTING.amountMinorUnit,
+        currency: PRICING.MONTHLY_LISTING.currency,
         mode: process.env.CASHFREE_MODE === "PROD" ? "production" : "sandbox",
       });
     } catch (cfErr) {

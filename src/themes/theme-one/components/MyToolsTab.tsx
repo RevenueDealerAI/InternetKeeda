@@ -328,7 +328,7 @@ export function MyToolsTab() {
                       className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white"
                     >
                       <Sparkles className="w-4 h-4 mr-1" />
-                      {sdkReady ? "Activate ₹499/mo" : "Loading…"}
+                      {sdkReady ? "Activate $10/mo" : "Loading…"}
                     </Button>
                   )}
                   {isActive && (

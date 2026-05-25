@@ -47,7 +47,8 @@ interface DashboardStats {
 
 interface RevenueSummary {
   thisMonth: {
-    totalRevenuePaise: number;
+    boostRevenuePaise: number;
+    subscriptionRevenuePaise: number; // post-migration: USD cents — same minor-unit shape, see lib/cashfree.ts PRICING
     subscriptionCount: number;
   };
   allTime: { activeSubscriptions: number };
@@ -72,7 +73,19 @@ interface PendingItem {
 
 /* ------------------------------ helpers ------------------------------- */
 
-const inr = (paise: number) =>
+// Subscriptions migrated to USD ($10/mo, plan monthly-listing-10). Boosts
+// remain INR (paise). The "MRR" tile shows recurring USD revenue only —
+// boosts are one-off, not recurring, so summing them into MRR would be
+// a category error even if the currencies matched. Use boostInr() for
+// boost-side totals elsewhere.
+const usd = (cents: number) =>
+  new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 0,
+  }).format(Math.round(cents / 100));
+
+const boostInr = (paise: number) =>
   new Intl.NumberFormat('en-IN', {
     style: 'currency',
     currency: 'INR',
@@ -259,8 +272,12 @@ export default function DashboardPage() {
         />
         <Kpi
           label="MRR (this month)"
-          value={revenue.isLoading ? '—' : inr(revenue.data?.thisMonth.totalRevenuePaise ?? 0)}
-          hint={revenue.data ? `Boosts + subs combined` : undefined}
+          value={revenue.isLoading ? '—' : usd(revenue.data?.thisMonth.subscriptionRevenuePaise ?? 0)}
+          hint={
+            revenue.data
+              ? `${boostInr(revenue.data.thisMonth.boostRevenuePaise)} boost · this month`
+              : undefined
+          }
           icon={IndianRupee}
           trend="up"
         />

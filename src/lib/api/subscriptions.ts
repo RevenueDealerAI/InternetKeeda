@@ -9,7 +9,7 @@ export interface CreateSubscriptionResponse {
    * `cashfree.subscriptionsCheckout({ subscriptionSessionId })`. */
   sessionId?: string;
   amount: number;
-  currency: "INR";
+  currency: "USD";
   mode: "sandbox" | "production";
   resumed?: boolean;
 }

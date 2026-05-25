@@ -1,13 +1,15 @@
 import mongoose, { Document, Model } from 'mongoose';
 
 /**
- * Recurring subscription record for the ₹499/month tool listing fee.
+ * Recurring subscription record for the $10/month tool listing fee
+ * (Cashfree PROD plan `monthly-listing-10`, max $50/cycle cap).
  * Created when a user submits a new tool and chooses to activate it;
  * Cashfree handles the actual billing schedule, and the webhook keeps
  * this row in sync via SUBSCRIPTION_* events.
  *
- * Amounts are stored in **paise** (INR × 100) — display layer divides
- * by 100 before rendering.
+ * Amounts are stored in **minor units** (cents for USD, paise for INR)
+ * — display layer divides by 100 before rendering. Currency lives on
+ * each row so legacy INR test data and new USD prod rows coexist.
  */
 
 export type SubscriptionStatus =
@@ -21,10 +23,10 @@ export type SubscriptionStatus =
 export interface ISubscription {
   userId: string;            // Clerk userId of the tool owner
   toolId: mongoose.Types.ObjectId;
-  planId: string;            // "monthly-listing-499" — soft reference, see lib/cashfree.ts PRICING
+  planId: string;            // "monthly-listing-10" — soft reference, see lib/cashfree.ts PRICING
   subscriptionId: string;    // Cashfree subscription_id
-  amount: number;            // paise per cycle (49900 for ₹499)
-  currency: string;          // "INR" for v1
+  amount: number;            // minor units per cycle (1000 for $10 USD; legacy 49900 for ₹499)
+  currency: string;          // "USD" going forward; legacy rows are "INR"
   status: SubscriptionStatus;
   billingCycle: 'monthly' | 'yearly';
   nextBillingDate?: Date;
@@ -48,10 +50,10 @@ export type SubscriptionDocument = Document & ISubscription;
 const subscriptionSchema = new mongoose.Schema<ISubscription>({
   userId: { type: String, required: true, index: true },
   toolId: { type: mongoose.Schema.Types.ObjectId, ref: 'Tool', required: true, index: true },
-  planId: { type: String, default: 'monthly-listing-499' },
+  planId: { type: String, default: 'monthly-listing-10' },
   subscriptionId: { type: String, required: true, unique: true, index: true },
   amount: { type: Number, required: true },
-  currency: { type: String, default: 'INR' },
+  currency: { type: String, default: 'USD' },
   status: {
     type: String,
     enum: ['initialized', 'active', 'paused', 'cancelled', 'failed', 'expired'],

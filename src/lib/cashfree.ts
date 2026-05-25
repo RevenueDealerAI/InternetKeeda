@@ -45,14 +45,25 @@ export const CASHFREE_MODE_LABEL = (): "TEST" | "PROD" =>
   readMode() === CFEnvironment.PRODUCTION ? "PROD" : "TEST";
 
 /**
- * Pricing source of truth. Amounts in **paise** (INR × 100). Display
- * layer divides by 100. Keep this aligned with whatever the admin
- * communicates to merchants.
+ * Pricing source of truth.
+ *
+ * Mixed-currency: MONTHLY_LISTING is USD (Cashfree PROD plan
+ * monthly-listing-10, $10/month with $50 max headroom); BOOST_* stay
+ * INR (paise) because they're one-off Cashfree PG orders that have
+ * always run on the India PG. Display layer divides minor → major
+ * by 100 (both USD cents and INR paise share the ×100 factor).
  */
 export const PRICING = {
-  // Recurring
-  MONTHLY_LISTING_PAISE: 49900, // ₹499 / month
-  // One-time boosts (paise + duration in days)
+  MONTHLY_LISTING: {
+    planId: "monthly-listing-10",
+    amountMinorUnit: 1000, // $10.00 in cents
+    maxAmountMinorUnit: 5000, // $50.00 cap — Cashfree plan_max_amount
+    currency: "USD",
+    displayPrice: "$10/mo",
+    interval: "month",
+  },
+  // One-time boosts (paise + duration in days). INR — boost code paths
+  // were explicitly left alone for the TEST→PROD plan migration.
   BOOST_CATEGORY_TOP: { paise: 99900, days: 7 },
   BOOST_HOME_ROTATION: { paise: 249900, days: 7 },
   BOOST_FEATURED_BADGE: { paise: 499900, days: 30 },
