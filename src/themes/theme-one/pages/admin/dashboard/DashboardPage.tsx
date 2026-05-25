@@ -47,6 +47,14 @@ interface DashboardStats {
   popularTools: Array<{ _id: string; name: string; views: number; slug?: string }>;
   statusCounts: Array<{ _id: string; count: number }>;
   pricingCounts: Array<{ _id: string; count: number }>;
+  recentSubmissions: Array<{
+    _id: string;
+    name: string;
+    category: string;
+    createdAt: string;
+    slug?: string;
+    ownerUserId?: string;
+  }>;
 }
 
 // Fetch dashboard stats
@@ -187,6 +195,79 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Pending Submissions — moderation queue surfaced on dashboard */}
+      {stats.recentSubmissions && stats.recentSubmissions.length > 0 && (
+        <Card className="hover:shadow-lg transition-all duration-200 border-blue-100 bg-blue-50/30">
+          <CardHeader className="px-3 md:px-6 py-3 md:py-4 flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="text-base md:text-xl text-gray-900 flex items-center gap-2">
+                <Clock className="h-4 w-4 md:h-5 md:w-5 text-blue-600" />
+                Pending Submissions
+                <span className="text-xs md:text-sm font-normal px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
+                  {stats.pendingSubmissions} total
+                </span>
+              </CardTitle>
+              <CardDescription className="text-xs md:text-sm mt-1">
+                Tools awaiting your review
+              </CardDescription>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-blue-700 border-blue-200 hover:bg-blue-50"
+              onClick={() => router.push('/admin/submissions')}
+            >
+              Review all
+            </Button>
+          </CardHeader>
+          <CardContent className="px-3 md:px-6 pb-4">
+            <div className="space-y-2">
+              {stats.recentSubmissions.map((sub) => (
+                <div
+                  key={sub._id}
+                  className="group p-3 rounded-xl border border-gray-100 bg-white hover:border-blue-200 hover:shadow-sm transition-all duration-200 flex items-center justify-between gap-3"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="font-semibold text-sm md:text-base text-gray-900 truncate">
+                        {sub.name}
+                      </p>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] md:text-xs font-medium bg-blue-100 text-blue-700">
+                        Pending
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 mt-1 text-xs text-gray-500 flex-wrap">
+                      {sub.category && (
+                        <span className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
+                          {sub.category}
+                        </span>
+                      )}
+                      <span className="flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        {format(new Date(sub.createdAt), 'MMM d, yyyy')}
+                      </span>
+                      {sub.ownerUserId && (
+                        <span className="truncate max-w-[180px] font-mono text-[10px]">
+                          {sub.ownerUserId.slice(0, 12)}…
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="shrink-0 text-blue-700 hover:bg-blue-50"
+                    onClick={() => router.push('/admin/submissions')}
+                  >
+                    Review
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Revenue (Cashfree) */}
       <RevenueCards />

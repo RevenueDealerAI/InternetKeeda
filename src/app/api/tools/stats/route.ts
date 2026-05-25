@@ -18,11 +18,13 @@ export async function GET(req: NextRequest) {
             Tool.find({ status: 'published' })
                 .sort({ createdAt: -1 })
                 .limit(5)
-                .select('name category createdAt slug _id'),
+                .select('name category createdAt slug _id')
+                .lean(),
             Tool.find({ status: 'published' })
                 .sort({ views: -1 })
                 .limit(5)
-                .select('name views slug _id'),
+                .select('name views slug _id')
+                .lean(),
             Tool.aggregate([
                 { $group: { _id: '$status', count: { $sum: 1 } } },
                 { $sort: { count: -1 } }
@@ -31,7 +33,15 @@ export async function GET(req: NextRequest) {
                 { $match: { status: 'published' } },
                 { $group: { _id: '$pricing.type', count: { $sum: 1 } } },
                 { $sort: { count: -1 } }
-            ])
+            ]),
+            // Recent pending submissions — surface the moderation queue
+            // directly on the admin dashboard so admins don't have to
+            // navigate to /admin/submissions to see what's waiting.
+            Tool.find({ status: 'pending' })
+                .sort({ createdAt: -1 })
+                .limit(5)
+                .select('name category createdAt slug _id ownerUserId')
+                .lean()
         ]);
 
         return NextResponse.json({
@@ -41,7 +51,8 @@ export async function GET(req: NextRequest) {
             recentTools: stats[3],
             popularTools: stats[4],
             statusCounts: stats[5],
-            pricingCounts: stats[6]
+            pricingCounts: stats[6],
+            recentSubmissions: stats[7]
         });
     } catch (error: unknown) {
         console.error('Error fetching dashboard stats:', error);
