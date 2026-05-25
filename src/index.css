@@ -252,6 +252,21 @@
     .hero-fade-up { opacity: 1; transform: none; animation: none; }
   }
 
+  /* R6 — keeda (worm) mark, gentle bob. GPU-only (transform), so it
+   * doesn't trigger layout or paint per frame. Stops on reduced-motion. */
+  .keeda-mark-bob {
+    animation: keeda-bob 4.5s ease-in-out infinite;
+    transform-origin: 50% 50%;
+    will-change: transform;
+  }
+  @keyframes keeda-bob {
+    0%,  100% { transform: translateY(0)    rotate(-1deg); }
+    50%       { transform: translateY(-4px) rotate( 2deg); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .keeda-mark-bob { animation: none; }
+  }
+
   /* Scroll-triggered card reveal. Cards start hidden + offset, and
    * the IntersectionObserver in useInViewReveal() toggles .in-view
    * when they cross the viewport edge. Opacity + transform composite
