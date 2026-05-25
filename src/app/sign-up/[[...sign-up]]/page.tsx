@@ -2,6 +2,8 @@
 
 import { useTheme } from '@/themes/ThemeContext';
 import { SignUp } from '@clerk/nextjs';
+import Link from 'next/link';
+import { SiteLogo } from '@/themes/theme-one/components/SiteLogo';
 import { THEMES, DEFAULT_THEME } from '@/themes/theme-config';
 
 export default function SignUpCatchAll() {
@@ -26,6 +28,9 @@ export default function SignUpCatchAll() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
+          <Link href="/" className="inline-flex items-center justify-center">
+            <SiteLogo variant="light" height={80} asLink={false} priority />
+          </Link>
           <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
             Create your account
           </h2>

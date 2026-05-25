@@ -35,6 +35,7 @@ import { cn } from "@/lib/utils";
 import { DemoModeBanner } from '@/components/DemoModeBanner';
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { SiteLogo } from '@/themes/theme-one/components/SiteLogo';
 import { useClerk, useUser } from '@clerk/clerk-react';
 import { useTheme } from '@/themes/ThemeContext';
 import {
@@ -167,19 +168,9 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               <Menu className="h-5 w-5" />
             </Button>
 
-            <Link href="/" className="flex items-center space-x-2">
+            <Link href="/" className="flex items-center">
               {isThemeOne ? (
-                <>
-                  <div className={`p-1.5 rounded-md ${headerBrandBox}`}>
-                    <svg className="h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                      <polyline points="9 22 9 12 15 12 15 22" />
-                    </svg>
-                  </div>
-                  <div className="text-xl font-bold text-gray-900">
-                    Internet Keeda
-                  </div>
-                </>
+                <SiteLogo variant="light" height={44} asLink={false} priority />
               ) : (
                 <Image
                   src="/theme-two/logo.svg"
