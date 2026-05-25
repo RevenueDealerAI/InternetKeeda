@@ -136,6 +136,10 @@ toolSchema.index({ rating: -1 }); // Sort by rating
 toolSchema.index({ views: -1 }); // Sort by views
 toolSchema.index({ listingStatus: 1 }); // Filter to publishable tools
 toolSchema.index({ activeBoosts: 1 }); // "give me tools with this boost" lookups
+toolSchema.index({ deletedAt: 1 }); // Public reads exclude soft-deleted
+// Compound supporting category page: filter by category + visibility,
+// sort newest first. Replaces a table scan on the category filter.
+toolSchema.index({ category: 1, status: 1, listingStatus: 1, createdAt: -1 });
 
 export const Tool = (mongoose.models.Tool || mongoose.model('Tool', toolSchema)) as unknown as Model<ToolDocument>;
 
