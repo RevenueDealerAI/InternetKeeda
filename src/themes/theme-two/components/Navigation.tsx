@@ -251,6 +251,17 @@ export const Navigation = () => {
                         </div>
                       </DropdownMenuLabel>
                       <DropdownMenuSeparator />
+                      {isAdmin && (
+                        <>
+                          <DropdownMenuItem asChild>
+                            <Link href="/admin">
+                              <Shield className="mr-2 h-4 w-4 text-red-600" />
+                              <span>Admin</span>
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                        </>
+                      )}
                       <DropdownMenuItem onClick={() => router.push("/dashboard")}>
                         <User className="mr-2 h-4 w-4" />
                         <span>Dashboard</span>
@@ -259,15 +270,6 @@ export const Navigation = () => {
                         <Settings className="mr-2 h-4 w-4" />
                         <span>Account settings</span>
                       </DropdownMenuItem>
-                      {isAdmin && (
-                        <>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={() => router.push("/admin")}>
-                            <Settings className="mr-2 h-4 w-4" />
-                            <span>Admin Dashboard</span>
-                          </DropdownMenuItem>
-                        </>
-                      )}
                       <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={handleSignOut}>
                         <LogOut className="mr-2 h-4 w-4" />

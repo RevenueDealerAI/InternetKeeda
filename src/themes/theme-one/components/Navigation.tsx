@@ -402,6 +402,21 @@ export const Navigation = () => {
                           <DropdownMenuSeparator />
                         </>
                       )}
+                      {/* Admin sits above the line so it reads as an
+                          "admin-only zone" — only renders when the
+                          signed-in user has Mongo isAdmin (mirrored to
+                          Clerk publicMetadata.isAdmin). */}
+                      {isAdmin && (
+                        <>
+                          <DropdownMenuItem asChild className="cursor-pointer">
+                            <Link href="/admin">
+                              <Shield className="mr-2 h-4 w-4 text-red-600" />
+                              Admin
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                        </>
+                      )}
                       {!isOnDashboard && (
                         <DropdownMenuItem
                           onClick={() => router.push("/dashboard")}
@@ -409,15 +424,6 @@ export const Navigation = () => {
                         >
                           <User className="mr-2 h-4 w-4" />
                           Dashboard
-                        </DropdownMenuItem>
-                      )}
-                      {isAdmin && (
-                        <DropdownMenuItem
-                          onClick={() => router.push("/admin")}
-                          className="cursor-pointer"
-                        >
-                          <Shield className="mr-2 h-4 w-4" />
-                          Admin Panel
                         </DropdownMenuItem>
                       )}
                       <DropdownMenuSeparator />

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { ChevronDown, ArrowRight, Menu, X, User, LogOut, Settings } from 'lucide-react';
+import { ChevronDown, ArrowRight, Menu, X, User, LogOut, Settings, Shield } from 'lucide-react';
 import { useUser, useClerk } from "@clerk/clerk-react";
 import { useSignOut } from "@/hooks/useSignOut";
 import { useSiteConfig } from '@/contexts/SiteConfigContext';
@@ -278,6 +278,18 @@ export const ThemeTwoNavigation: React.FC = () => {
                         </div>
                       </div>
 
+                      {isAdmin && (
+                        <>
+                          <DropdownMenuItem asChild className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-700 focus:text-red-700 focus:bg-red-50 cursor-pointer transition-colors mb-1">
+                            <Link href="/admin">
+                              <Shield className="h-4 w-4 text-red-600" />
+                              <span className="font-medium text-sm">Admin</span>
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator className="my-1 bg-gray-100" />
+                        </>
+                      )}
+
                       <DropdownMenuItem
                         onClick={() => router.push("/dashboard")}
                         className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 focus:text-purple-700 focus:bg-purple-50 cursor-pointer transition-colors mb-1"
@@ -293,21 +305,6 @@ export const ThemeTwoNavigation: React.FC = () => {
                         <Settings className="h-4 w-4" />
                         <span className="font-medium text-sm">Account Settings</span>
                       </DropdownMenuItem>
-
-                      {isAdmin && (
-                        <DropdownMenuItem
-                          onClick={() => router.push("/admin")}
-                          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 focus:text-purple-700 focus:bg-purple-50 cursor-pointer transition-colors mb-1"
-                        >
-                          <div className="h-4 w-4 flex items-center justify-center">
-                            <span className="relative flex h-2 w-2">
-                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
-                              <span className="relative inline-flex rounded-full h-2 w-2 bg-purple-500"></span>
-                            </span>
-                          </div>
-                          <span className="font-medium text-sm">Admin Dashboard</span>
-                        </DropdownMenuItem>
-                      )}
 
                       <DropdownMenuSeparator className="my-1 bg-gray-100" />
 
