@@ -1,21 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth, clerkClient } from "@clerk/nextjs/server";
+import { requireAdmin } from "@/lib/auth/admin";
 import { connectDB } from "../../lib/db";
 import { AffiliateProfile } from "../../models/AffiliateProfile";
 import { User } from "../../models/User";
 
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
     try {
-        const { userId } = await auth();
-        if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-        const client = await clerkClient();
-        const clerkUser = await client.users.getUser(userId);
-
-        // Check Admin Role
-        const isAdmin = clerkUser.publicMetadata?.role === 'admin';
-        if (!isAdmin) {
-            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        const a = await requireAdmin();
+        if (a.kind !== "ok") {
+            return NextResponse.json(
+                { error: a.kind },
+                { status: a.kind === "unauthenticated" ? 401 : 403 },
+            );
         }
 
         await connectDB();

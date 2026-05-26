@@ -73,8 +73,12 @@ export const Navigation = () => {
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
   const { config } = useSiteConfig();
 
-  // Check if user is admin
-  const isAdmin = user?.publicMetadata?.role === 'admin';
+  // Reads publicMetadata.isAdmin (mirror of Mongo User.isAdmin kept
+  // in sync by the Clerk webhook + sync-admin-to-clerk script). The
+  // legacy `role === 'admin'` mirror is accepted as a transitional
+  // fallback; remove once production is fully synced.
+  const meta = user?.publicMetadata as Record<string, unknown> | undefined;
+  const isAdmin = meta?.isAdmin === true || meta?.role === 'admin' || meta?.role === 'superadmin';
   const userEmail = user?.emailAddresses[0]?.emailAddress;
 
   

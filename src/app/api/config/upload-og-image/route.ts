@@ -1,24 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '../../lib/db';
-import { requireAuth, getAuth, errorResponse } from '../../lib/auth';
+import { errorResponse } from '../../lib/auth';
+import { requireAdmin } from '@/lib/auth/admin';
 import { SiteConfig } from '../../models/SiteConfig';
 import { handleFileUpload, validateImageType } from '../../lib/fileUpload';
 
 export async function POST(req: NextRequest) {
     try {
-        await connectDB();
-        const auth = await requireAuth();
-        
-        const user = await getAuth();
-        const isAdmin = (user?.publicMetadata as Record<string, unknown>)?.role === 'admin';
-        const userEmail = user?.emailAddresses?.[0]?.emailAddress || '';
-        const isAdminDomain = userEmail.endsWith('@internetkeeda.com');
-        
-        if (!isAdmin && !isAdminDomain) {
-            return NextResponse.json({ 
-                error: 'Not authorized to upload OG image'
-            }, { status: 403 });
+        const a = await requireAdmin();
+        if (a.kind !== 'ok') {
+            return NextResponse.json(
+                { error: a.kind },
+                { status: a.kind === 'unauthenticated' ? 401 : 403 },
+            );
         }
+        await connectDB();
         
         const formData = await req.formData();
         const ogImageFile = formData.get('ogImage') as File;

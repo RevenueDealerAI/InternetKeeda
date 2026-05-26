@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '../lib/db';
-import { requireAuth, getAuth, errorResponse } from '../lib/auth';
+import { errorResponse } from '../lib/auth';
+import { requireAdmin } from '@/lib/auth/admin';
 import { SiteConfig } from '../models/SiteConfig';
 import mongoose from 'mongoose';
 
@@ -93,20 +94,14 @@ export async function GET(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
     try {
-        await connectDB();
-        const auth = await requireAuth();
-
-        const user = await getAuth();
-        const isAdmin = (user?.publicMetadata as Record<string, unknown>)?.role === 'admin';
-        const userEmail = user?.emailAddresses?.[0]?.emailAddress || '';
-        const isAdminDomain = userEmail.endsWith('@internetkeeda.com');
-
-        if (!isAdmin && !isAdminDomain) {
-            return NextResponse.json({
-                error: 'Not authorized to update site settings',
-                details: 'User is not an admin'
-            }, { status: 403 });
+        const a = await requireAdmin();
+        if (a.kind !== 'ok') {
+            return NextResponse.json(
+                { error: a.kind },
+                { status: a.kind === 'unauthenticated' ? 401 : 403 },
+            );
         }
+        await connectDB();
 
         let config = await SiteConfig.findOne();
         if (!config) {

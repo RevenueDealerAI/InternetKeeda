@@ -20,7 +20,8 @@ const ReviewManagement: React.FC = () => {
   
   useEffect(() => {
     if (isSignedIn && user) {
-      setIsAdmin(user?.publicMetadata?.role === 'admin');
+      const meta = user.publicMetadata as Record<string, unknown> | undefined;
+      setIsAdmin(meta?.isAdmin === true || meta?.role === 'admin' || meta?.role === 'superadmin');
     }
   }, [isSignedIn, user]);
   

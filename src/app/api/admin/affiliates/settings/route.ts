@@ -1,17 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth, clerkClient } from "@clerk/nextjs/server";
+import { requireAdmin } from "@/lib/auth/admin";
 import { connectDB } from "@/app/api/lib/db";
 import { AffiliateSettings } from "@/models/AffiliateSettings";
 
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
     try {
-        const { userId } = await auth();
-        if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-        const client = await clerkClient();
-        const clerkUser = await client.users.getUser(userId);
-        const isAdmin = clerkUser.publicMetadata?.role === 'admin';
-        if (!isAdmin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        const a = await requireAdmin();
+        if (a.kind !== "ok") {
+            return NextResponse.json(
+                { error: a.kind },
+                { status: a.kind === "unauthenticated" ? 401 : 403 },
+            );
+        }
 
         await connectDB();
         const settings = await AffiliateSettings.getSettings();
@@ -24,13 +24,14 @@ export async function GET(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
     try {
-        const { userId } = await auth();
-        if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-        const client = await clerkClient();
-        const clerkUser = await client.users.getUser(userId);
-        const isAdmin = clerkUser.publicMetadata?.role === 'admin';
-        if (!isAdmin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        const a = await requireAdmin();
+        if (a.kind !== "ok") {
+            return NextResponse.json(
+                { error: a.kind },
+                { status: a.kind === "unauthenticated" ? 401 : 403 },
+            );
+        }
+        const userId = a.userId;
 
         const body = await req.json();
         const { commissionRate, minimumPayout, cookieDurationDays, termsAndConditions } = body;

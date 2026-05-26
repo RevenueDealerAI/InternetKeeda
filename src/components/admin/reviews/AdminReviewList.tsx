@@ -45,8 +45,8 @@ export function AdminReviewList({ status, toolId }: AdminReviewListProps) {
   const { isLoaded, isSignedIn, user } = useUser();
   const { getToken } = useAuth();
 
-  // Check if user is admin
-  const isAdmin = user?.publicMetadata?.role === 'admin' || user?.publicMetadata?.role === 'superadmin';
+  const meta = user?.publicMetadata as Record<string, unknown> | undefined;
+  const isAdmin = meta?.isAdmin === true || meta?.role === 'admin' || meta?.role === 'superadmin';
 
   useEffect(() => {
     const fetchReviews = async () => {

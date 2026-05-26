@@ -16,9 +16,12 @@ import type { WebhookEvent } from '@clerk/clerk-sdk-node';
  *      the user is admin (they always weren't because the row
  *      didn't exist).
  *   2. Optional admin elevation: emails on the configured domains
- *      get Clerk publicMetadata.role = "admin". The Mongo isAdmin
- *      flag is separate — flip it via scripts/seed-admin.ts for
- *      finer control.
+ *      get Mongo `User.isAdmin = true` AND a mirror in Clerk
+ *      `publicMetadata.isAdmin = true` for fast client-side reads.
+ *      Mongo is the source of truth; the Clerk mirror exists only so
+ *      navbars don't have to fetch /api/users/me on first paint. Use
+ *      scripts/grant-admin.ts or scripts/sync-admin-to-clerk.ts to
+ *      add or sync admins after sign-up.
  *
  * Signature verification via svix is REQUIRED. Without it, anyone
  * could POST a fake user.created event with email@internetkeeda.com
@@ -113,15 +116,15 @@ export async function POST(req: NextRequest) {
           { upsert: true, new: true, setDefaultsOnInsert: true },
         );
 
-        // On user.created, also push the role into Clerk's
-        // publicMetadata so other Clerk-based code (existing
-        // AdminProtectedRoute) sees it.
+        // On user.created, mirror isAdmin into Clerk publicMetadata
+        // so client navbars / AdminProtectedRoute can read the flag
+        // without hitting /api/users/me first.
         if (evt.type === 'user.created') {
           try {
             const client = await clerkClient();
             await client.users.updateUser(id, {
               publicMetadata: {
-                role: adminByDomain ? 'admin' : 'user',
+                isAdmin: adminByDomain,
                 status: 'active',
               },
             });

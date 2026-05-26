@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '../../../lib/db';
-import { requireAuth, errorResponse } from '../../../lib/auth';
+import { errorResponse } from '../../../lib/auth';
+import { requireAdmin } from '@/lib/auth/admin';
 import { Review } from '../../../models/Review';
 import { Tool } from '../../../models/Tool';
-import { clerkClient } from '@clerk/nextjs/server';
 
 async function updateToolRating(toolId: string) {
     try {
@@ -29,21 +29,19 @@ export async function PUT(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const a = await requireAdmin();
+        if (a.kind !== 'ok') {
+            return NextResponse.json(
+                { error: a.kind },
+                { status: a.kind === 'unauthenticated' ? 401 : 403 },
+            );
+        }
         await connectDB();
-        const auth = await requireAuth();
-        
+
         const { id } = await params;
         const body = await req.json();
         const { status, adminResponse } = body;
-        
-        const client = await clerkClient();
-        const user = await client.users.getUser(auth.userId);
-        const isAdmin = user?.publicMetadata?.role === 'admin';
-        
-        if (!isAdmin) {
-            return NextResponse.json({ error: 'Not authorized to moderate reviews' }, { status: 403 });
-        }
-        
+
         const review = await Review.findById(id);
         
         if (!review) {

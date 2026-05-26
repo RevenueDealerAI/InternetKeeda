@@ -3,7 +3,12 @@ import { connectDB } from '../../lib/db';
 import { requireAuth, errorResponse } from '../../lib/auth';
 import { Review } from '../../models/Review';
 import { Tool } from '../../models/Tool';
-import { clerkClient } from '@clerk/nextjs/server';
+import { User } from '../../models/User';
+
+async function isUserAdmin(clerkUserId: string): Promise<boolean> {
+    const u = await User.findOne({ clerkId: clerkUserId }).select('isAdmin').lean<{ isAdmin?: boolean }>();
+    return !!u?.isAdmin;
+}
 
 async function updateToolRating(toolId: string) {
     try {
@@ -79,13 +84,9 @@ export async function PUT(
             return NextResponse.json({ error: 'Review not found' }, { status: 404 });
         }
 
-        const client = await clerkClient();
-        const user = await client.users.getUser(auth.userId);
-        const isAdmin =
-            user?.publicMetadata?.role === 'admin' ||
-            user?.publicMetadata?.role === 'superadmin';
+        const admin = review.userId !== auth.userId ? await isUserAdmin(auth.userId) : false;
 
-        if (review.userId !== auth.userId && !isAdmin) {
+        if (review.userId !== auth.userId && !admin) {
             return NextResponse.json(
                 { error: 'Not authorized to update this review' },
                 { status: 403 }
@@ -123,11 +124,9 @@ export async function DELETE(
             return NextResponse.json({ error: 'Review not found' }, { status: 404 });
         }
         
-        const client = await clerkClient();
-        const user = await client.users.getUser(auth.userId);
-        const isAdmin = user?.publicMetadata?.role === 'admin';
-        
-        if (review.userId !== auth.userId && !isAdmin) {
+        const admin = review.userId !== auth.userId ? await isUserAdmin(auth.userId) : false;
+
+        if (review.userId !== auth.userId && !admin) {
             return NextResponse.json({ error: 'Not authorized to delete this review' }, { status: 403 });
         }
         

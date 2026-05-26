@@ -39,7 +39,8 @@ export function AdminReviewList({ status, toolId }: AdminReviewListProps) {
   const { getToken } = useAuth();
   const { blockIfDemo } = useDemoMode();
 
-  const isAdmin = user?.publicMetadata?.role === 'admin' || user?.publicMetadata?.role === 'superadmin';
+  const meta = user?.publicMetadata as Record<string, unknown> | undefined;
+  const isAdmin = meta?.isAdmin === true || meta?.role === 'admin' || meta?.role === 'superadmin';
 
   useEffect(() => {
     const fetchReviews = async () => {

@@ -1,18 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth, clerkClient } from "@clerk/nextjs/server";
+import { requireAdmin } from "@/lib/auth/admin";
 import { connectDB } from "@/app/api/lib/db"; // Updated path
 import { AffiliateProfile } from "@/app/api/models/AffiliateProfile"; // Updated path, verified?
 import { Commission } from "@/app/api/models/Commission"; // Updated path
 
 export async function POST(req: NextRequest) {
     try {
-        const { userId } = await auth();
-        if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-        const client = await clerkClient();
-        const clerkUser = await client.users.getUser(userId);
-        const isAdmin = clerkUser.publicMetadata?.role === 'admin';
-        if (!isAdmin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        const a = await requireAdmin();
+        if (a.kind !== "ok") {
+            return NextResponse.json(
+                { error: a.kind },
+                { status: a.kind === "unauthenticated" ? 401 : 403 },
+            );
+        }
+        const userId = a.userId;
 
         const { affiliateProfileId, amount, type, description } = await req.json();
 
