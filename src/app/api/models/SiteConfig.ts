@@ -13,6 +13,8 @@ export interface ISiteConfig extends mongoose.Document {
   allowUserRegistration?: boolean;
   allowUserSubmissions?: boolean;
   requireApprovalForSubmissions?: boolean;
+  requireApprovalForReviews?: boolean;
+  footerText?: string;
   contactEmail?: string;
   socialLinks?: {
     twitter?: string;
