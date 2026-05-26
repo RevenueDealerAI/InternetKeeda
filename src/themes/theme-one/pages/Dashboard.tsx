@@ -1041,14 +1041,6 @@ export default function Dashboard() {
               <Settings className="w-4 h-4" />
               Edit Profile
             </Button>
-            <Button
-              variant="outline"
-              className="gap-2 border-red-200 hover:border-red-300 text-red-600 hover:text-red-700"
-              onClick={handleSignOut}
-            >
-              <LogOut className="w-4 h-4" />
-              Sign Out
-            </Button>
           </div>
         </div>
       </div>
