@@ -37,7 +37,8 @@ import { DemoModeBanner } from '@/components/DemoModeBanner';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { SiteLogo } from '@/themes/theme-one/components/SiteLogo';
-import { useClerk, useUser } from '@clerk/clerk-react';
+import { useUser } from '@clerk/clerk-react';
+import { useSignOut } from '@/hooks/useSignOut';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -104,8 +105,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const sidebarRef = useRef<HTMLElement>(null);
   const pathname = usePathname();
   const router = useRouter();
-  const { signOut } = useClerk();
   const { user } = useUser();
+  const handleSignOut = useSignOut();
   const breadcrumbs = useBreadcrumbs(pathname);
 
   useEffect(() => {
@@ -140,11 +141,6 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isMobile, sidebarOpen]);
-
-  const handleSignOut = async () => {
-    await signOut();
-    router.push('/');
-  };
 
   const togglePermanentCollapse = () => {
     const newState = !isPermanentlyCollapsed;

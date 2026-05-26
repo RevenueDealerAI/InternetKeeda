@@ -45,6 +45,7 @@ import {
   Users,
 } from "lucide-react";
 import { useUser, useClerk, useAuth } from "@clerk/nextjs";
+import { useSignOut } from "@/hooks/useSignOut";
 import {
   Select,
   SelectContent,
@@ -416,7 +417,8 @@ function PurchasesTab({ userId }: { userId?: string }) {
 export default function Dashboard() {
   const router = useRouter();
   const { user, isSignedIn } = useUser();
-  const { signOut, openUserProfile } = useClerk();
+  const { openUserProfile } = useClerk();
+  const handleSignOut = useSignOut();
   const { getToken } = useAuth();
   const { toast } = useToast();
   const [tools, setTools] = useState<Tool[]>([]);
@@ -655,11 +657,6 @@ export default function Dashboard() {
       }
     }
   }, [savedTools, savedToolObjects, tools]);
-
-  const handleSignOut = async () => {
-    await signOut();
-    router.push("/");
-  };
 
   const handleSubmitTool = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -51,6 +51,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { useUser, useClerk, SignInButton, SignUpButton } from "@clerk/clerk-react";
+import { useSignOut } from "@/hooks/useSignOut";
 import { AuthModals } from "@/components/AuthModals";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -64,7 +65,8 @@ import { getUserDisplayName } from '@/lib/utils';
 
 export const Navigation = () => {
   const { user } = useUser();
-  const { signOut, openUserProfile } = useClerk();
+  const { openUserProfile } = useClerk();
+  const handleSignOut = useSignOut();
   const router = useRouter();
   const hasNotifications = true;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -77,11 +79,6 @@ export const Navigation = () => {
 
   
 
-  const handleSignOut = async () => {
-    await signOut();
-    router.push("/");
-    setIsMobileMenuOpen(false);
-  };
 
   return (
     <>

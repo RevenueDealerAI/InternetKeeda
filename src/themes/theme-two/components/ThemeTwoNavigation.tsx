@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { ChevronDown, ArrowRight, Menu, X, User, LogOut, Settings } from 'lucide-react';
 import { useUser, useClerk } from "@clerk/clerk-react";
+import { useSignOut } from "@/hooks/useSignOut";
 import { useSiteConfig } from '@/contexts/SiteConfigContext';
 import {
   NavigationMenu,
@@ -34,7 +35,8 @@ export const ThemeTwoNavigation: React.FC = () => {
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
   const [openMobileSubmenu, setOpenMobileSubmenu] = useState<string | null>(null);
   const { user } = useUser();
-  const { signOut, openUserProfile } = useClerk();
+  const { openUserProfile } = useClerk();
+  const handleSignOut = useSignOut();
   const router = useRouter();
   const { toast } = useToast();
   const { config } = useSiteConfig();
@@ -46,11 +48,6 @@ export const ThemeTwoNavigation: React.FC = () => {
     setOpenMobileSubmenu(openMobileSubmenu === submenu ? null : submenu);
   };
 
-  const handleSignOut = async () => {
-    await signOut();
-    router.push("/");
-    setIsMobileMenuOpen(false);
-  };
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);

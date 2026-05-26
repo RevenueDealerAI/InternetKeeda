@@ -1,37 +1,32 @@
 "use client";
 
-import { useEffect } from "react";
-import { useClerk } from "@clerk/nextjs";
-import { useRouter } from "next/navigation";
+import { useEffect, useRef } from "react";
 import { Loader2 } from "lucide-react";
+import { useSignOut } from "@/hooks/useSignOut";
 
 /**
  * One-shot sign-out page. The navbar can't call useClerk() directly
  * (the homepage tree deliberately doesn't mount ClerkProvider — it
- * was the source of an earlier crash). Instead, navbar Sign out
- * links here. This page lives under /sign-out/layout.tsx which
- * mounts ClerkRouteWrapper, so the hook works. On mount we call
- * signOut() then bounce home.
+ * was the source of an earlier crash and would also drag the Clerk
+ * SDK into the home critical path). Instead, navbar Sign out links
+ * here. This page lives under /sign-out/layout.tsx which mounts
+ * ClerkRouteWrapper, so the Clerk hook works. On mount we call the
+ * shared useSignOut() hook, which signs out + hard-navigates home.
+ *
+ * The hard-nav is load-bearing: useClerkSession() on the homepage
+ * caches its cookie read until window focus / mount, so a soft
+ * router.replace() would leave the navbar showing the signed-in
+ * dropdown. See src/hooks/useSignOut.ts.
  */
 export default function SignOutPage() {
-  const { signOut } = useClerk();
-  const router = useRouter();
+  const doSignOut = useSignOut();
+  const ran = useRef(false);
 
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        await signOut();
-      } catch {
-        // Even if signOut throws, push the user home — Clerk's
-        // cookie was probably already cleared.
-      }
-      if (!cancelled) router.replace("/");
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [signOut, router]);
+    if (ran.current) return;
+    ran.current = true;
+    doSignOut();
+  }, [doSignOut]);
 
   return (
     <main className="min-h-screen flex items-center justify-center">
