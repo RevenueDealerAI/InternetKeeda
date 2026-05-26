@@ -64,7 +64,10 @@ import { useSiteConfig } from '@/contexts/SiteConfigContext';
 import { getUserDisplayName } from '@/lib/utils';
 
 export const Navigation = () => {
-  const { user } = useUser();
+  // isLoaded gates the auth UI so signed-in users don't see Sign in /
+  // Sign up flash before Clerk hydrates. Equivalent to wrapping the
+  // auth chrome in <ClerkLoaded> but keeps the conditional inline.
+  const { user, isLoaded } = useUser();
   const { openUserProfile } = useClerk();
   const handleSignOut = useSignOut();
   const router = useRouter();
@@ -204,7 +207,12 @@ export const Navigation = () => {
                 </Button>
 
                 {/* Auth buttons or user menu */}
-                {!user ? (
+                {!isLoaded ? (
+                  <div className="hidden md:flex items-center space-x-2" aria-hidden>
+                    <div className="h-10 w-20 rounded-md bg-gray-100 animate-pulse" />
+                    <div className="h-10 w-10 rounded-full bg-gray-100 animate-pulse" />
+                  </div>
+                ) : !user ? (
                   <div className="hidden md:flex space-x-2">
                     <Button
                       variant="outline"

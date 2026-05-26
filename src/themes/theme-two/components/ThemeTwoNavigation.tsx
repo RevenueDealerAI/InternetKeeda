@@ -34,7 +34,9 @@ export const ThemeTwoNavigation: React.FC = () => {
   const [isContactSalesOpen, setIsContactSalesOpen] = useState(false);
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
   const [openMobileSubmenu, setOpenMobileSubmenu] = useState<string | null>(null);
-  const { user } = useUser();
+  // isLoaded gates the auth UI so signed-in users don't see Sign in /
+  // Talk-to-Sales flash before Clerk hydrates.
+  const { user, isLoaded } = useUser();
   const { openUserProfile } = useClerk();
   const handleSignOut = useSignOut();
   const router = useRouter();
@@ -236,7 +238,12 @@ export const ThemeTwoNavigation: React.FC = () => {
                 <div className="h-6 w-px bg-gray-300"></div>
 
                 {/* User Authentication */}
-                {user ? (
+                {!isLoaded ? (
+                  <div className="flex items-center gap-2" aria-hidden>
+                    <div className="h-10 w-20 rounded-full bg-gray-100 animate-pulse" />
+                    <div className="h-10 w-10 rounded-full bg-gray-100 animate-pulse" />
+                  </div>
+                ) : user ? (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <button className="flex items-center gap-2 p-1 pl-2 pr-1 rounded-full border border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 outline-none focus:ring-2 focus:ring-purple-100">

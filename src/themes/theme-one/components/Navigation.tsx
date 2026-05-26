@@ -73,7 +73,7 @@ export const Navigation = () => {
   // because of this. Users who want to see their email/name/avatar
   // or sign out land on /dashboard, which has its own ClerkProvider
   // in /app/dashboard/layout.tsx and the full Clerk SDK.
-  const { isSignedIn } = useClerkSession();
+  const { isSignedIn, isLoaded: clerkSessionLoaded } = useClerkSession();
   const router = useRouter();
   const hasNotifications = true;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -334,8 +334,18 @@ export const Navigation = () => {
                   * (each has its own ClerkProvider per-route layout).
                   * Signed in: avatar that links to /dashboard, where
                   * the full Clerk SDK is loaded and account actions
-                  * (profile, sign-out, admin) live. */}
-                {!isSignedIn ? (
+                  * (profile, sign-out, admin) live.
+                  *
+                  * Skeleton during !clerkSessionLoaded prevents the
+                  * SSR → cookie-read flicker where signed-in users
+                  * would briefly see Sign-in / Sign-up before the
+                  * avatar swaps in. */}
+                {!clerkSessionLoaded ? (
+                  <div className="hidden md:flex items-center space-x-2" aria-hidden>
+                    <div className="h-10 w-20 rounded-md bg-gray-100 animate-pulse" />
+                    <div className="h-10 w-20 rounded-md bg-gray-100 animate-pulse" />
+                  </div>
+                ) : !isSignedIn ? (
                   <div className="hidden md:flex space-x-2">
                     <Button
                       variant="outline"
