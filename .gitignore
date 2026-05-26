@@ -142,3 +142,6 @@ extracted/
 
 # Raw brand asset drop folder (canonical files live in public/brand/)
 Transparent/
+test-results/
+playwright-report/
+
