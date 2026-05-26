@@ -383,7 +383,7 @@ export const Navigation = () => {
                         </Avatar>
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuContent align="end" sideOffset={8} className="w-56">
                       {userEmail && (
                         <>
                           <DropdownMenuLabel className="font-normal text-xs text-gray-500 truncate">
