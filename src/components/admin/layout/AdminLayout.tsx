@@ -270,21 +270,40 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           'md:translate-x-0'
         )}
       >
-        {/* Logo header */}
+        {/* Logo header — taller container so the 56px logo (which
+            already contains the "Internet Keeda" wordmark in the
+            light PNG) sits with proper breathing room. Collapsed mode
+            swaps to the square symbol-only favicon source so the rail
+            stays visually balanced. */}
         <div
           className={cn(
-            'flex items-center border-b border-slate-200',
-            isPermanentlyCollapsed ? 'h-14 justify-center' : 'h-14 justify-between px-4'
+            'relative flex items-center border-b border-slate-200',
+            isPermanentlyCollapsed ? 'h-20 justify-center' : 'h-20 justify-between px-4 py-3'
           )}
         >
           {!isPermanentlyCollapsed && (
             <Link href="/admin" className="flex items-center" aria-label="Admin home">
-              <SiteLogo variant="light" height={28} asLink={false} priority />
+              <SiteLogo variant="light" height={56} asLink={false} priority />
+            </Link>
+          )}
+          {isPermanentlyCollapsed && (
+            <Link href="/admin" className="flex items-center" aria-label="Admin home">
+              <Image
+                src="/branding/favicon-source-512.png"
+                width={44}
+                height={44}
+                alt="Internet Keeda"
+                priority
+                className="rounded-md"
+              />
             </Link>
           )}
           <button
             onClick={togglePermanentCollapse}
-            className="hidden md:flex items-center justify-center h-7 w-7 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors duration-200"
+            className={cn(
+              'hidden md:flex items-center justify-center h-7 w-7 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors duration-200',
+              isPermanentlyCollapsed && 'absolute top-2 right-2'
+            )}
             title={isPermanentlyCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
             {isPermanentlyCollapsed ? <ChevronRight size={16} /> : <ChevronsLeft size={16} />}
