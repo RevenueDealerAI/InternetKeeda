@@ -1,15 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '../../lib/db';
-import { requireAuth, errorResponse } from '../../lib/auth';
+import { errorResponse } from '../../lib/auth';
+import { requireUser } from '@/lib/auth/user';
 import { User } from '../../models/User';
 import { z } from 'zod';
 
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
     try {
+        const a = await requireUser();
+        if (a.kind !== 'ok') {
+            return NextResponse.json({ error: 'unauthenticated' }, { status: 401 });
+        }
         await connectDB();
-        const auth = await requireAuth();
 
-        const user = await User.findOne({ clerkId: auth.userId });
+        const user = await User.findOne({ clerkId: a.userId });
 
         if (!user) {
             return NextResponse.json({ error: 'User not found' }, { status: 404 });
@@ -24,8 +28,12 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
     try {
+        const a = await requireUser();
+        if (a.kind !== 'ok') {
+            return NextResponse.json({ error: 'unauthenticated' }, { status: 401 });
+        }
+        const auth = { userId: a.userId };
         await connectDB();
-        const auth = await requireAuth();
 
         const body = await req.json();
         const profileData = z.object({
