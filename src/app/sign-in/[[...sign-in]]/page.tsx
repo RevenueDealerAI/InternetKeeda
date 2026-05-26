@@ -25,8 +25,8 @@ export default function SignInCatchAll() {
   const shouldShowThemeOne = safeTheme.id === 'theme-one';
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
+      <div className="w-full max-w-md flex flex-col items-center space-y-8">
         <div className="text-center">
           <Link href="/" className="inline-flex items-center justify-center">
             <SiteLogo variant="light" height={80} asLink={false} priority />
@@ -38,8 +38,8 @@ export default function SignInCatchAll() {
             Welcome back! Please sign in to continue.
           </p>
         </div>
-        <div className="mt-8">
-          <SignIn 
+        <div className="mt-8 w-full flex justify-center">
+          <SignIn
             appearance={{
               variables: {
                 colorPrimary: shouldShowThemeOne ? '#10b981' : '#7D37FF',
