@@ -128,7 +128,7 @@ export const Navigation = () => {
   const ddCatHover = 'hover:bg-orange-50/60';
   const ddCatText = 'text-gray-800';
   const ddCatCount = 'text-gray-400';
-  void pathname; // pathname retained for future use; no longer needed for theme switching
+  const isOnDashboard = pathname?.startsWith("/dashboard") ?? false;
 
   // Nav dropdown only shows top 30 — pass limit so the API returns
   // ~12 KB instead of ~227 KB.
@@ -392,13 +392,15 @@ export const Navigation = () => {
                           <DropdownMenuSeparator />
                         </>
                       )}
-                      <DropdownMenuItem
-                        onClick={() => router.push("/dashboard")}
-                        className="cursor-pointer"
-                      >
-                        <User className="mr-2 h-4 w-4" />
-                        Dashboard
-                      </DropdownMenuItem>
+                      {!isOnDashboard && (
+                        <DropdownMenuItem
+                          onClick={() => router.push("/dashboard")}
+                          className="cursor-pointer"
+                        >
+                          <User className="mr-2 h-4 w-4" />
+                          Dashboard
+                        </DropdownMenuItem>
+                      )}
                       {isAdmin && (
                         <DropdownMenuItem
                           onClick={() => router.push("/admin")}
