@@ -111,13 +111,16 @@ function Kpi({
   trend?: 'up' | 'flat' | 'down';
 }) {
   return (
-    <Card surface="clean" className="p-5">
+    <Card
+      surface="clean"
+      className="p-5 transition-transform duration-200 ease-out hover:-translate-y-0.5"
+    >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
             {label}
           </div>
-          <div className="mt-2 text-[28px] font-extrabold tracking-tight text-slate-900 leading-none">
+          <div className="mt-2 text-[34px] md:text-[36px] font-semibold tracking-tight text-slate-900 leading-none">
             {value}
           </div>
           {hint && (
@@ -127,8 +130,8 @@ function Kpi({
             </div>
           )}
         </div>
-        <div className="shrink-0 h-9 w-9 rounded-lg bg-brand-50 flex items-center justify-center">
-          <Icon className="w-4 h-4 text-brand-700" />
+        <div className="shrink-0 h-10 w-10 rounded-lg bg-red-50 flex items-center justify-center">
+          <Icon className="w-4 h-4 text-red-600" />
         </div>
       </div>
     </Card>
@@ -218,7 +221,7 @@ export default function DashboardPage() {
   }, [series.data]);
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-7xl mx-auto space-y-8">
       {/* Page header */}
       <div className="flex items-center justify-between">
         <div>
@@ -295,7 +298,7 @@ export default function DashboardPage() {
         <Card surface="clean" className="p-0 overflow-hidden">
           <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
             <div>
-              <h2 className="text-[15px] font-semibold text-slate-900">Recent submissions</h2>
+              <h2 className="text-lg font-semibold text-slate-900">Recent submissions</h2>
               <p className="text-[12px] text-slate-500 mt-0.5">
                 Latest tool submissions from creators.
               </p>
@@ -344,7 +347,7 @@ export default function DashboardPage() {
         <Card surface="clean" className="p-5">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-[15px] font-semibold text-slate-900">Revenue · last 30 days</h2>
+              <h2 className="text-lg font-semibold text-slate-900">Revenue · last 30 days</h2>
               <p className="text-[12px] text-slate-500 mt-0.5">
                 Successful payments per day, ₹ value.
               </p>
@@ -361,20 +364,20 @@ export default function DashboardPage() {
                 <AreaChart data={chartData}>
                   <defs>
                     <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#DC2626" stopOpacity={0.35} />
+                      <stop offset="0%" stopColor="#DC2626" stopOpacity={0.12} />
                       <stop offset="100%" stopColor="#DC2626" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid stroke="#F1F5F9" vertical={false} />
+                  <CartesianGrid stroke="#F1F5F9" strokeDasharray="4 4" vertical={false} />
                   <XAxis
                     dataKey="date"
-                    tick={{ fill: '#94A3B8', fontSize: 10 }}
+                    tick={{ fill: '#94A3B8', fontSize: 12 }}
                     axisLine={false}
                     tickLine={false}
                     interval="preserveStartEnd"
                   />
                   <YAxis
-                    tick={{ fill: '#94A3B8', fontSize: 10 }}
+                    tick={{ fill: '#94A3B8', fontSize: 12 }}
                     axisLine={false}
                     tickLine={false}
                     width={50}
@@ -407,7 +410,7 @@ export default function DashboardPage() {
       <Card surface="clean" className="p-0 overflow-hidden">
         <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
           <div>
-            <h2 className="text-[15px] font-semibold text-slate-900">
+            <h2 className="text-lg font-semibold text-slate-900">
               Pending review queue
               {pending.data && pending.data.total > 0 && (
                 <Badge variant="keedaSoft" className="ml-2 align-middle">
