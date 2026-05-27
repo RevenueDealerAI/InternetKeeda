@@ -126,10 +126,30 @@ export async function GET(req: NextRequest) {
             [key: string]: 1 | -1;
         }
 
-        const sortOptions: SortOptions = {};
+        // Catalog default sort is a multi-key "featured" order so
+        // boosted tools surface above unboosted, then by votes, then
+        // views, then recency. Without this, a brand-new submission
+        // with 0 upvotes lands at the top of /category/* and buries
+        // the actual top tools — defeats the boost product entirely.
+        //
+        // `activeBoosts.0` reads the first element of the array; a
+        // non-empty array sorts above an empty array under desc.
+        //
+        // Explicit ?sortBy=<field> still wins — admin pages and the
+        // search path use it to override. Search has its own sort
+        // path below (name asc + views desc) and is unaffected.
         const validSortFields = ['createdAt', 'updatedAt', 'name', 'views', 'votes', 'rating'];
-        const sortField = validSortFields.includes(sortBy) ? sortBy : 'createdAt';
-        sortOptions[sortField] = sortOrder === 'asc' ? 1 : -1;
+        const explicitSort = searchParams.get('sortBy');
+        const sortOptions: SortOptions =
+            explicitSort && validSortFields.includes(explicitSort)
+                ? { [explicitSort]: sortOrder === 'asc' ? 1 : -1 }
+                : {
+                    'activeBoosts.0': -1,
+                    votes: -1,
+                    views: -1,
+                    createdAt: -1,
+                };
+        void sortBy; // retained for backwards-compat read above
 
         if (search && search.trim()) {
             const searchRegex = new RegExp(search.trim(), 'i');

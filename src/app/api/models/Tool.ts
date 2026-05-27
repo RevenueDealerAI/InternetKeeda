@@ -144,6 +144,18 @@ toolSchema.index({ deletedAt: 1 }); // Public reads exclude soft-deleted
 // Compound supporting category page: filter by category + visibility,
 // sort newest first. Replaces a table scan on the category filter.
 toolSchema.index({ category: 1, status: 1, listingStatus: 1, createdAt: -1 });
+// Compound supporting the public-catalog default "featured" sort:
+// boosted tools first, then by votes/views. The trailing votes key
+// is the dominant tiebreak; views + createdAt get sorted in memory
+// against the already-narrow result set. Without this, /category/*
+// scans then sorts which is wasteful at catalog scale.
+toolSchema.index({
+  category: 1,
+  listingStatus: 1,
+  status: 1,
+  'activeBoosts.0': -1,
+  votes: -1,
+});
 
 export const Tool = (mongoose.models.Tool || mongoose.model('Tool', toolSchema)) as unknown as Model<ToolDocument>;
 
