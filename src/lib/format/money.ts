@@ -33,3 +33,24 @@ export function formatMoney(amountMinorUnit: number, currency: string): string {
 export function formatUsd(amountUsdMinor: number): string {
   return `$${(amountUsdMinor / 100).toFixed(2)}`;
 }
+
+/**
+ * Fixed USD price anchors for user-facing surfaces. These are
+ * INTENTIONALLY decoupled from the Subscription/Payment doc fields
+ * — a Cashfree row stores ₹830 in paise, a PayPal row stores
+ * $10 in cents, but the UI consistently reads "$10/mo" for either
+ * by pulling from this constant. Cashfree's hosted checkout shows
+ * ₹830 at payment time; that's outside our control and expected
+ * for Indian buyers.
+ *
+ * Boost prices mirror BOOST_TIERS.priceUsd for the three slots —
+ * exposed here so non-tier callers (success copy, marketing
+ * copy, future help text) don't have to import BOOST_TIERS just
+ * to render a price string.
+ */
+export const USER_FACING_PRICES = {
+  MONTHLY_LISTING: "$10/mo",
+  BOOST_CATEGORY_TOP: "$12",
+  BOOST_HOME_ROTATION: "$30",
+  BOOST_FEATURED_BADGE: "$60",
+} as const;
