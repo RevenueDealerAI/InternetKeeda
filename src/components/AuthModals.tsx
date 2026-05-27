@@ -83,7 +83,7 @@ export function AuthModals({ children, mode = "login", className, onSuccess, onF
               {mode === "submit" && "Submit a Tool"}
             </DialogTitle>
             <DialogDescription className="text-sm text-gray-500">
-              {mode === "login" && "Enter your email to sign in to your account"}
+              {mode === "login" && "Enter your email to login to your account"}
               {mode === "signup" && "Enter your email below to create your account"}
               {mode === "submit" && "Share an amazing tool with the community"}
             </DialogDescription>
@@ -245,7 +245,7 @@ export function AuthModals({ children, mode = "login", className, onSuccess, onF
                     className="w-full bg-white text-gray-800 border border-gray-200 hover:bg-gray-50 h-10 font-normal flex items-center justify-center gap-2"
                   >
                     <Icons.google className="h-4 w-4" />
-                    {mode === "login" ? "Sign in with Google" : "Sign up with Google"}
+                    {mode === "login" ? "Login with Google" : "Sign up with Google"}
                   </Button>
                   <Button
                     type="button"
@@ -253,7 +253,7 @@ export function AuthModals({ children, mode = "login", className, onSuccess, onF
                     className="w-full bg-gray-900 text-white hover:bg-gray-800 h-10 font-normal flex items-center justify-center gap-2"
                   >
                     <Icons.gitHub className="h-4 w-4" />
-                    {mode === "login" ? "Sign in with GitHub" : "Sign up with GitHub"}
+                    {mode === "login" ? "Login with GitHub" : "Sign up with GitHub"}
                   </Button>
                   
                   <div className="relative my-4">
@@ -276,13 +276,13 @@ export function AuthModals({ children, mode = "login", className, onSuccess, onF
                 {isLoading ? (
                   <>
                     <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-                    {mode === "login" && "Signing in..."}
+                    {mode === "login" && "Logging in..."}
                     {mode === "signup" && "Signing up..."}
                     {mode === "submit" && "Submitting..."}
                   </>
                 ) : (
                   <>
-                    {mode === "login" && "Sign in"}
+                    {mode === "login" && "Login"}
                     {mode === "signup" && "Sign up"}
                     {mode === "submit" && "Submit Tool"}
                   </>
@@ -311,7 +311,7 @@ export function AuthModals({ children, mode = "login", className, onSuccess, onF
                         onClick={() => openModal('login')}
                         className="text-green-600 hover:text-green-700 font-medium"
                       >
-                        Sign in
+                        Login
                       </button>
                     </div>
                   )}

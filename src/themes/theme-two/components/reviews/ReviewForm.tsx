@@ -128,7 +128,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ toolId, onSuccess }) => {
         if (responseData && responseData.error) {
           setError(responseData.error);
         } else if (statusCode === 401) {
-          setError('You are not authorized. Please sign in again.');
+          setError('You are not authorized. Please login again.');
         } else if (statusCode === 403) {
           setError('You do not have permission to submit a review.');
         } else {
@@ -177,7 +177,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ toolId, onSuccess }) => {
     return (
       <div className="rounded-md bg-blue-50 p-4 dark:bg-blue-900">
         <p className="text-sm text-blue-700 dark:text-blue-200">
-          Please sign in to leave a review.
+          Please login to leave a review.
         </p>
       </div>
     );

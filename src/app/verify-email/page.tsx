@@ -57,7 +57,7 @@ export default function VerifyEmailPage() {
             onClick={() => router.push('/sign-in')}
             className="text-sm text-gray-600 hover:text-gray-900 underline"
           >
-            Back to sign in
+            Back to login
           </button>
         </div>
       </div>

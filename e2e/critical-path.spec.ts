@@ -103,13 +103,13 @@ test.describe("sign-out flow", () => {
     // Sign-out route bounces through /sign-out (own ClerkProvider)
     // and lands on /.
     await page.waitForURL("/", { timeout: 10_000 });
-    await expect(page.getByRole("button", { name: /sign in/i }).first()).toBeVisible({
+    await expect(page.getByRole("button", { name: /login|sign in/i }).first()).toBeVisible({
       timeout: 5_000,
     });
 
     // Reload — still signed out.
     await page.reload();
-    await expect(page.getByRole("button", { name: /sign in/i }).first()).toBeVisible({
+    await expect(page.getByRole("button", { name: /login|sign in/i }).first()).toBeVisible({
       timeout: 5_000,
     });
   });

@@ -219,7 +219,7 @@ export const Navigation = () => {
                       onClick={() => router.push("/sign-in")}
                       className="border-gray-200 hover:border-gray-300 text-gray-700 h-10"
                     >
-                      Sign in
+                      Login
                     </Button>
                     <Button
                       onClick={() => router.push("/sign-up")}
@@ -480,7 +480,7 @@ export const Navigation = () => {
                       }}
                       className="border-gray-200 hover:border-gray-300 text-gray-700 w-full"
                     >
-                      Sign in
+                      Login
                     </Button>
                     <Button
                       onClick={() => {
@@ -571,7 +571,7 @@ export const Navigation = () => {
           </Link>
           <Link href={user ? "/dashboard" : "/sign-in"} className="flex flex-col items-center justify-center text-xs font-medium text-gray-600 active-scale">
             <User className="h-5 w-5 mb-1" />
-            <span>{user ? "Account" : "Sign In"}</span>
+            <span>{user ? "Account" : "Login"}</span>
           </Link>
         </div>
       </div>

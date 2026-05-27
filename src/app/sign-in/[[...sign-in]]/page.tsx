@@ -32,10 +32,10 @@ export default function SignInCatchAll() {
             <SiteLogo variant="light" height={80} asLink={false} priority />
           </Link>
           <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-            Sign in to your account
+            Login to your account
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            Welcome back! Please sign in to continue.
+            Welcome back! Please login to continue.
           </p>
         </div>
         <div className="mt-8 w-full flex justify-center">
