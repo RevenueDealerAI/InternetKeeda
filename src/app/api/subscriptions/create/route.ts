@@ -113,12 +113,18 @@ export async function POST(req: NextRequest) {
 
     if (existingInitialized) {
       const ageMs = Date.now() - new Date(existingInitialized.createdAt).getTime();
+      const sameProvider = (existingInitialized.provider ?? "cashfree") === "cashfree";
       log("existing.initialized", {
         dbId: String(existingInitialized._id),
         subscriptionId: existingInitialized.subscriptionId,
+        provider: existingInitialized.provider,
         ageMs,
       });
-      if (ageMs < RESUME_WINDOW_MS) {
+      // Only resume same-provider rows. If the user previously
+      // tried PayPal and is now retrying with Cashfree (or vice
+      // versa), the stashed session id from the other provider is
+      // useless — delete and create fresh.
+      if (sameProvider && ageMs < RESUME_WINDOW_MS) {
         const stashed = (existingInitialized.metadata as Record<string, unknown>)
           ?.createResponse as
           | { subscription_session_id?: string }
@@ -133,9 +139,14 @@ export async function POST(req: NextRequest) {
           resumed: true,
         });
       }
-      // Stale orphan — wipe it and continue.
+      // Stale same-provider orphan, OR cross-provider switch — wipe
+      // and continue. The user gets a clean retry that respects
+      // whichever gateway they just picked.
       await Subscription.deleteOne({ _id: existingInitialized._id });
-      log("existing.initialized.deleted", { dbId: String(existingInitialized._id) });
+      log("existing.initialized.deleted", {
+        dbId: String(existingInitialized._id),
+        reason: sameProvider ? "stale" : "cross-provider",
+      });
     }
 
     // Pre-generate the ObjectId so subscription_id is unique on

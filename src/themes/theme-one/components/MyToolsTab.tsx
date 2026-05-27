@@ -319,10 +319,20 @@ export function MyToolsTab() {
           const sub = subsByTool.get(t.id);
           const isRejected = t.status === "rejected";
           const isPendingReview = t.status === "pending";
-          // Don't show Activate while the tool is in admin review or
-          // rejected — paying before approval is wasteful for the user.
+          // Don't show Activate / Retry while the tool is in admin
+          // review or rejected — paying before approval is wasteful.
+          const blockedByModeration = isRejected || isPendingReview;
+          // First-time Activate: never tried paying yet.
           const needsActivation =
-            t.listingStatus === "unpaid-pending" && !sub && !isRejected && !isPendingReview;
+            t.listingStatus === "unpaid-pending" && !sub && !blockedByModeration;
+          // Retry: there's an initialized sub row (or failed renewal)
+          // but no successful charge. Same handler — the API cleans
+          // the abandoned row and creates fresh for whichever provider
+          // the user picks in the picker.
+          const needsRetry =
+            t.listingStatus === "unpaid-pending" &&
+            (sub?.status === "initialized" || sub?.status === "failed") &&
+            !blockedByModeration;
           const isActive = t.listingStatus === "paid-active" && sub?.status === "active";
           const reasonOpen = !!expandedReason[t.id];
 
@@ -379,6 +389,17 @@ export function MyToolsTab() {
                     >
                       <Sparkles className="w-4 h-4 mr-1" />
                       {sdkReady ? "Activate $10/mo" : "Loading…"}
+                    </Button>
+                  )}
+                  {needsRetry && (
+                    <Button
+                      size="sm"
+                      onClick={() => handleActivate(t)}
+                      disabled={createSub.isPending || !sdkReady}
+                      className="bg-gradient-to-r from-orange-500 to-red-600 text-white"
+                    >
+                      <Sparkles className="w-4 h-4 mr-1" />
+                      {sdkReady ? "Retry Payment" : "Loading…"}
                     </Button>
                   )}
                   {isActive && (

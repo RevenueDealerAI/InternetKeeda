@@ -77,6 +77,26 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Retry flow: if the user has an initialized subscription for
+    // this tool (either provider — they may be switching from
+    // Cashfree to PayPal after abandoning checkout), delete it and
+    // create fresh. PayPal's approval URL is single-use; reusing
+    // the stale Mongo row would mean issuing a new approval link
+    // anyway, and PayPal subs that never reach ACTIVE expire on
+    // their side.
+    const abandoned = await Subscription.deleteMany({
+      toolId: tool._id,
+      userId: auth.userId,
+      status: "initialized",
+    });
+    if (abandoned.deletedCount > 0) {
+      console.log("[paypal-sub-create] cleaned abandoned initialized rows", {
+        toolId: String(tool._id),
+        userId: auth.userId,
+        count: abandoned.deletedCount,
+      });
+    }
+
     // Pre-generate an ObjectId so the placeholder subscriptionId is
     // unique on insert. Replaced with PayPal's I-XXXX after the
     // createSubscription call returns.
