@@ -4,6 +4,7 @@ import { requireAuth, errorResponse } from "@/app/api/lib/auth";
 import { Subscription } from "@/app/api/models/Subscription";
 import { markSubscriptionActive } from "@/app/api/lib/subscription-state";
 import { getCashfreeClient } from "@/lib/cashfree";
+import { getSubscription as getPayPalSubscription, PayPalError } from "@/lib/paypal";
 
 /**
  * GET /api/subscriptions/status?subscriptionId=XXX
@@ -41,7 +42,57 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    if (sub.status === "initialized") {
+    if (sub.status === "initialized" && sub.provider === "paypal") {
+      try {
+        const ppSub = await getPayPalSubscription(subId);
+        sub.metadata = {
+          ...(sub.metadata || {}),
+          lastFetch: { at: new Date().toISOString(), data: ppSub as unknown as Record<string, unknown> },
+        };
+        const isActiveOnPp = ppSub.status === "ACTIVE";
+        const isCancelledOnPp =
+          ppSub.status === "CANCELLED" || ppSub.status === "EXPIRED";
+
+        if (isActiveOnPp) {
+          console.log("[subscription-status] paypal self-heal triggered", {
+            subscriptionId: subId,
+            ppStatus: ppSub.status,
+          });
+          const { applied } = await markSubscriptionActive(subId, {
+            source: "polling-fallback",
+            authorizationStatus: ppSub.status,
+            nextChargeDate: ppSub.billing_info?.next_billing_time,
+          });
+          if (applied) {
+            sub = await Subscription.findOne({ subscriptionId: subId });
+          }
+        } else if (isCancelledOnPp) {
+          console.log("[subscription-status] paypal cancellation detected by poll", {
+            subscriptionId: subId,
+            ppStatus: ppSub.status,
+          });
+          const cancelled = await Subscription.findOneAndUpdate(
+            { subscriptionId: subId, status: { $in: ["initialized", "active", "paused"] } },
+            { $set: { status: "cancelled", cancelledAt: new Date() } },
+            { new: true },
+          );
+          if (cancelled) sub = cancelled;
+        } else if (sub) {
+          sub.authorizationStatus = ppSub.status;
+          await sub.save();
+        }
+      } catch (err) {
+        if (err instanceof PayPalError) {
+          console.warn("[subscription-status] paypal fetch failed", {
+            httpStatus: err.httpStatus,
+            paypalCode: err.paypalCode,
+            message: err.message,
+          });
+        } else {
+          console.warn("[subscription-status] paypal fetch failed", err);
+        }
+      }
+    } else if (sub.status === "initialized") {
       try {
         const cf = getCashfreeClient();
         const resp = await cf.SubsFetchSubscription(subId);

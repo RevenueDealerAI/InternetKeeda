@@ -20,11 +20,24 @@ export type SubscriptionStatus =
   | 'failed'         // 3 consecutive failed renewals
   | 'expired';       // plan_max_cycles reached (we use unlimited so rare)
 
+export type SubscriptionProvider = "cashfree" | "paypal";
+
 export interface ISubscription {
   userId: string;            // Clerk userId of the tool owner
   toolId: mongoose.Types.ObjectId;
-  planId: string;            // "monthly-listing-10" — soft reference, see lib/cashfree.ts PRICING
-  subscriptionId: string;    // Cashfree subscription_id
+  /** Which payment provider owns the recurring billing. Default
+   * 'cashfree' for backwards-compat with legacy rows; new rows pick
+   * 'paypal' or 'cashfree' explicitly. */
+  provider: SubscriptionProvider;
+  planId: string;            // "monthly-listing-10" / PAYPAL_PLAN_ID — soft reference
+  /** Canonical primary id this sub is known by. For Cashfree rows
+   * it's the Cashfree subscription_id we generate; for PayPal rows
+   * it's PayPal's I-XXXX. Status polling looks rows up by this. */
+  subscriptionId: string;
+  /** Mirror of subscriptionId when provider === 'paypal'. Stored
+   * separately so admin queries can find PayPal rows even if the
+   * canonical field ever drifts. */
+  paypalSubscriptionId?: string;
   amount: number;            // minor units per cycle (1000 for $10 USD; legacy 49900 for ₹499)
   currency: string;          // "USD" going forward; legacy rows are "INR"
   status: SubscriptionStatus;
@@ -50,8 +63,15 @@ export type SubscriptionDocument = Document & ISubscription;
 const subscriptionSchema = new mongoose.Schema<ISubscription>({
   userId: { type: String, required: true, index: true },
   toolId: { type: mongoose.Schema.Types.ObjectId, ref: 'Tool', required: true, index: true },
+  provider: {
+    type: String,
+    enum: ['cashfree', 'paypal'],
+    default: 'cashfree',
+    index: true,
+  },
   planId: { type: String, default: 'monthly-listing-10' },
   subscriptionId: { type: String, required: true, unique: true, index: true },
+  paypalSubscriptionId: { type: String, index: true, sparse: true },
   amount: { type: Number, required: true },
   currency: { type: String, default: 'USD' },
   status: {
