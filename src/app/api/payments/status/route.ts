@@ -4,6 +4,7 @@ import { requireAuth, errorResponse } from "@/app/api/lib/auth";
 import { Payment } from "@/app/api/models/Payment";
 import { markBoostPaid, markBoostFailed } from "@/app/api/lib/boost-state";
 import { getCashfreeClient } from "@/lib/cashfree";
+import { getOrder as getPayPalOrder, PayPalError } from "@/lib/paypal";
 
 /**
  * GET /api/payments/status?orderId=XXX
@@ -41,7 +42,51 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    if (payment.status === "pending") {
+    if (payment.status === "pending" && payment.provider === "paypal") {
+      try {
+        const ppOrder = await getPayPalOrder(orderId);
+        if (ppOrder.status === "COMPLETED") {
+          console.log("[payment-status] paypal self-heal triggered", {
+            orderId,
+            productType: payment.productType,
+          });
+          const captureId =
+            ppOrder.purchase_units?.[0]?.payments?.captures?.[0]?.id;
+          const { applied } = await markBoostPaid(orderId, {
+            source: "polling-fallback",
+            cashfreePaymentId: captureId,
+          });
+          if (applied) {
+            const updated = await Payment.findOne({ orderId });
+            if (updated && captureId) {
+              updated.paypalCaptureId = captureId;
+              await updated.save();
+            }
+            payment = updated ?? payment;
+          }
+        } else if (ppOrder.status === "VOIDED") {
+          const { applied } = await markBoostFailed(orderId, {
+            source: "polling-fallback",
+            reason: "dropped",
+          });
+          if (applied) payment = (await Payment.findOne({ orderId })) ?? payment;
+        } else if (payment) {
+          // Non-terminal — stash the raw PayPal status for visibility.
+          payment.cashfreeOrderStatus = ppOrder.status;
+          await payment.save();
+        }
+      } catch (err) {
+        if (err instanceof PayPalError) {
+          console.warn("[payment-status] paypal fetch failed", {
+            httpStatus: err.httpStatus,
+            paypalCode: err.paypalCode,
+            message: err.message,
+          });
+        } else {
+          console.warn("[payment-status] paypal fetch failed", err);
+        }
+      }
+    } else if (payment.status === "pending") {
       try {
         const cf = getCashfreeClient();
         const resp = await cf.PGFetchOrder(orderId);

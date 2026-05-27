@@ -16,13 +16,22 @@ export type BoostProductType =
   | 'boost-home-rotation'
   | 'boost-featured-badge';
 
+export type PaymentProvider = 'cashfree' | 'paypal';
+
 export interface IPayment {
   userId: string;
   toolId: mongoose.Types.ObjectId;
-  orderId: string;             // Cashfree order_id we generate
+  /** Which provider holds the order. Default 'cashfree' for backwards-
+   * compat. PayPal rows store PayPal's order id (e.g. 8XJ12345AB67890C)
+   * in `orderId` AND in `paypalOrderId` so lookups via either key
+   * succeed. */
+  provider: PaymentProvider;
+  orderId: string;             // Cashfree order_id we generate, or PayPal order id (8XJ…)
   paymentSessionId?: string;   // Returned by Cashfree on order create — front-end uses this with their SDK
-  amount: number;              // paise
-  currency: string;            // "INR"
+  paypalOrderId?: string;      // Mirror of orderId for PayPal rows
+  paypalCaptureId?: string;    // Filled by the capture call / webhook
+  amount: number;              // Cashfree rows: paise (INR ×100). PayPal rows: cents (USD ×100).
+  currency: string;            // "INR" for Cashfree boosts, "USD" for PayPal boosts
   productType: BoostProductType;
   boostDurationDays: number;
   status: PaymentStatus;
@@ -46,8 +55,16 @@ export type PaymentDocument = Document & IPayment;
 const paymentSchema = new mongoose.Schema<IPayment>({
   userId: { type: String, required: true, index: true },
   toolId: { type: mongoose.Schema.Types.ObjectId, ref: 'Tool', required: true, index: true },
+  provider: {
+    type: String,
+    enum: ['cashfree', 'paypal'],
+    default: 'cashfree',
+    index: true,
+  },
   orderId: { type: String, required: true, unique: true, index: true },
   paymentSessionId: { type: String },
+  paypalOrderId: { type: String, index: true, sparse: true },
+  paypalCaptureId: { type: String, index: true, sparse: true },
   amount: { type: Number, required: true },
   currency: { type: String, default: 'INR' },
   productType: {
