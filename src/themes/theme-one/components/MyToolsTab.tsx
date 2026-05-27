@@ -6,7 +6,7 @@ import Link from "next/link";
 import Script from "next/script";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Rocket, Plus, Sparkles, XCircle, Edit, ChevronDown, ChevronUp } from "lucide-react";
+import { Rocket, Plus, Sparkles, XCircle, Edit, ChevronDown, ChevronUp, Trash2 } from "lucide-react";
 import { BoostModal } from "./BoostModal";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCreateSubscription, useMySubscriptions, useCancelSubscription } from "@/lib/api/subscriptions";
@@ -69,6 +69,37 @@ export function MyToolsTab() {
   const qc = useQueryClient();
   const { data: catData } = useCategories();
   const categories = catData?.data ?? [];
+
+  const deleteToolMut = useMutation({
+    mutationFn: async (toolId: string) => {
+      const r = await fetch(`/api/tools/${toolId}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!r.ok) {
+        const body = await r.json().catch(() => ({}));
+        throw new Error(body.error || "Delete failed");
+      }
+      return r.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Tool deleted" });
+      qc.invalidateQueries({ queryKey: ["my-tools"] });
+      qc.invalidateQueries({ queryKey: ["my-subscriptions"] });
+    },
+    onError: (err) => {
+      toast({
+        title: "Delete failed",
+        description: err instanceof Error ? err.message : "Unknown error",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleDelete = (tool: MyTool) => {
+    if (!confirm(`Delete "${tool.name}"? This cannot be undone.`)) return;
+    deleteToolMut.mutate(tool.id);
+  };
 
   const resubmitMut = useMutation({
     mutationFn: async ({
@@ -334,6 +365,12 @@ export function MyToolsTab() {
             (sub?.status === "initialized" || sub?.status === "failed") &&
             !blockedByModeration;
           const isActive = t.listingStatus === "paid-active" && sub?.status === "active";
+          // Owner can soft-delete tools that aren't currently live.
+          // Seeded directory rows + paid-active rows are excluded —
+          // those go through admin or subscription-cancel respectively.
+          const canDelete =
+            t.listingStatus !== "paid-active" &&
+            t.listingStatus !== "free-seeded";
           const reasonOpen = !!expandedReason[t.id];
 
           return (
@@ -423,6 +460,19 @@ export function MyToolsTab() {
                   )}
                   {t.listingStatus === "free-seeded" && (
                     <span className="text-xs text-gray-400">Grandfathered free</span>
+                  )}
+                  {canDelete && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleDelete(t)}
+                      disabled={deleteToolMut.isPending}
+                      aria-label={`Delete ${t.name}`}
+                      title="Delete tool"
+                      className="text-slate-400 hover:text-red-600 hover:bg-red-50"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
                   )}
                 </div>
               </div>

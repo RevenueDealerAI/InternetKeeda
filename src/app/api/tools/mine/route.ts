@@ -14,7 +14,13 @@ export async function GET(req: NextRequest) {
     await connectDB();
     const auth = await requireAuth(req);
 
-    const tools = await Tool.find({ ownerUserId: auth.userId })
+    // Exclude soft-deleted rows — once the owner deletes a pending
+    // tool it should disappear from My Tools immediately. Admin can
+    // still see them via /api/admin/tools?includeDeleted=true.
+    const tools = await Tool.find({
+      ownerUserId: auth.userId,
+      $or: [{ deletedAt: null }, { deletedAt: { $exists: false } }],
+    })
       .sort({ createdAt: -1 })
       .lean();
 
