@@ -12,17 +12,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/use-toast";
 import { ExternalLink, Check, X } from "lucide-react";
 import { useCategories } from "@/hooks/useCategories";
+import { RejectToolDialog } from "@/components/admin/moderation/RejectToolDialog";
 
 interface PendingTool {
   id: string;
@@ -52,7 +46,6 @@ export default function ModerationPage() {
   const qc = useQueryClient();
   const [page] = useState(1);
   const [rejectTarget, setRejectTarget] = useState<PendingTool | null>(null);
-  const [rejectReason, setRejectReason] = useState("");
   // Per-row category overrides — only set when an admin changes the
   // dropdown before clicking Approve. Tool.id → slug.
   const [categoryOverride, setCategoryOverride] = useState<Record<string, string>>({});
@@ -99,12 +92,12 @@ export default function ModerationPage() {
   });
 
   const rejectMut = useMutation({
-    mutationFn: async ({ id, reason }: { id: string; reason: string }) => {
+    mutationFn: async ({ id, reason }: { id: string; reason: string | null }) => {
       const r = await fetch(`/api/admin/tools/${id}/reject`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ reason }),
+        body: JSON.stringify(reason ? { reason } : {}),
       });
       if (!r.ok) {
         const body = await r.json().catch(() => ({}));
@@ -113,17 +106,17 @@ export default function ModerationPage() {
       return r.json();
     },
     onSuccess: () => {
-      toast({ title: "Rejected" });
-      setRejectTarget(null);
-      setRejectReason("");
+      toast({ title: "Tool rejected" });
       qc.invalidateQueries({ queryKey: ["admin-pending-tools"] });
     },
     onError: (err) => {
+      // Re-throw so the dialog can surface the error and stay open.
       toast({
         title: "Reject failed",
         description: err instanceof Error ? err.message : "Unknown error",
         variant: "destructive",
       });
+      throw err;
     },
   });
 
@@ -227,10 +220,7 @@ export default function ModerationPage() {
                         size="sm"
                         variant="outline"
                         disabled={rejectMut.isPending}
-                        onClick={() => {
-                          setRejectTarget(t);
-                          setRejectReason("");
-                        }}
+                        onClick={() => setRejectTarget(t)}
                         className="text-red-600 border-red-200 hover:bg-red-50 flex-1"
                       >
                         <X className="w-4 h-4 mr-1" />
@@ -245,38 +235,15 @@ export default function ModerationPage() {
         </div>
       )}
 
-      <Dialog open={!!rejectTarget} onOpenChange={(o) => !o && setRejectTarget(null)}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Reject {rejectTarget?.name}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3">
-            <Label htmlFor="reject-reason">Reason (shown to the submitter)</Label>
-            <Textarea
-              id="reject-reason"
-              rows={5}
-              value={rejectReason}
-              onChange={(e) => setRejectReason(e.target.value)}
-              placeholder="e.g. The description doesn't explain what the tool does, please add more detail."
-            />
-            <div className="flex justify-end gap-2 pt-2">
-              <Button variant="ghost" onClick={() => setRejectTarget(null)}>
-                Cancel
-              </Button>
-              <Button
-                disabled={rejectReason.trim().length < 5 || rejectMut.isPending}
-                onClick={() =>
-                  rejectTarget &&
-                  rejectMut.mutate({ id: rejectTarget.id, reason: rejectReason.trim() })
-                }
-                className="bg-red-600 hover:bg-red-700 text-white"
-              >
-                Reject
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <RejectToolDialog
+        tool={rejectTarget ? { id: rejectTarget.id, name: rejectTarget.name } : null}
+        open={!!rejectTarget}
+        onOpenChange={(o) => !o && setRejectTarget(null)}
+        onConfirm={async (reason) => {
+          if (!rejectTarget) return;
+          await rejectMut.mutateAsync({ id: rejectTarget.id, reason });
+        }}
+      />
     </div>
   );
 }

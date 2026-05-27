@@ -29,6 +29,7 @@ import {
   AreaChart,
 } from 'recharts';
 import { toast } from '@/components/ui/use-toast';
+import { RejectToolDialog } from '@/components/admin/moderation/RejectToolDialog';
 
 /* ------------------------------- types -------------------------------- */
 
@@ -181,24 +182,53 @@ export default function DashboardPage() {
   });
 
   const [actingId, setActingId] = useState<string | null>(null);
+  const [rejectTarget, setRejectTarget] = useState<{ id: string; name: string } | null>(null);
 
-  const decide = useMutation({
-    mutationFn: async ({ id, action }: { id: string; action: 'approve' | 'reject' }) => {
+  const approve = useMutation({
+    mutationFn: async ({ id }: { id: string }) => {
       setActingId(id);
-      const r = await fetch(`/api/admin/tools/${id}/${action}`, {
+      const r = await fetch(`/api/admin/tools/${id}/approve`, {
         method: 'POST',
         credentials: 'include',
       });
-      if (!r.ok) throw new Error(`Failed to ${action}`);
+      if (!r.ok) throw new Error('Failed to approve');
       return r.json();
     },
-    onSuccess: (_, vars) => {
-      toast({ title: vars.action === 'approve' ? 'Approved' : 'Rejected' });
+    onSuccess: () => {
+      toast({ title: 'Approved' });
       qc.invalidateQueries({ queryKey: ['admin-pending-tools'] });
       qc.invalidateQueries({ queryKey: ['dashboard-stats'] });
     },
     onError: (err: Error) => {
       toast({ title: 'Failed', description: err.message, variant: 'destructive' });
+    },
+    onSettled: () => setActingId(null),
+  });
+
+  const reject = useMutation({
+    mutationFn: async ({ id, reason }: { id: string; reason: string | null }) => {
+      setActingId(id);
+      const r = await fetch(`/api/admin/tools/${id}/reject`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(reason ? { reason } : {}),
+      });
+      if (!r.ok) {
+        const body = await r.json().catch(() => ({}));
+        throw new Error(body.error || 'Failed to reject');
+      }
+      return r.json();
+    },
+    onSuccess: () => {
+      toast({ title: 'Tool rejected' });
+      qc.invalidateQueries({ queryKey: ['admin-pending-tools'] });
+      qc.invalidateQueries({ queryKey: ['dashboard-stats'] });
+    },
+    onError: (err: Error) => {
+      // Re-throw so the dialog can surface the error inline and stay open.
+      toast({ title: 'Reject failed', description: err.message, variant: 'destructive' });
+      throw err;
     },
     onSettled: () => setActingId(null),
   });
@@ -449,7 +479,7 @@ export default function DashboardPage() {
             </div>
           )}
           {pending.data?.items.map((t) => {
-            const busy = actingId === t.id && decide.isPending;
+            const busy = actingId === t.id && (approve.isPending || reject.isPending);
             return (
               <div
                 key={t.id}
@@ -499,7 +529,7 @@ export default function DashboardPage() {
                   <Button
                     variant="keedaOutline"
                     size="keedaSm"
-                    onClick={() => decide.mutate({ id: t.id, action: 'reject' })}
+                    onClick={() => setRejectTarget({ id: t.id, name: t.name })}
                     disabled={busy}
                     className="text-red-600 hover:bg-red-50 hover:border-red-200 hover:text-red-700"
                   >
@@ -509,7 +539,7 @@ export default function DashboardPage() {
                   <Button
                     variant="keeda"
                     size="keedaSm"
-                    onClick={() => decide.mutate({ id: t.id, action: 'approve' })}
+                    onClick={() => approve.mutate({ id: t.id })}
                     disabled={busy}
                   >
                     {busy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
@@ -521,6 +551,16 @@ export default function DashboardPage() {
           })}
         </div>
       </Card>
+
+      <RejectToolDialog
+        tool={rejectTarget}
+        open={!!rejectTarget}
+        onOpenChange={(o) => !o && setRejectTarget(null)}
+        onConfirm={async (reason) => {
+          if (!rejectTarget) return;
+          await reject.mutateAsync({ id: rejectTarget.id, reason });
+        }}
+      />
     </div>
   );
 }
