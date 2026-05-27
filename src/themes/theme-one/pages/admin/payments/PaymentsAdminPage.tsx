@@ -15,6 +15,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/components/ui/use-toast";
+import { formatMoney } from "@/lib/format/money";
 
 interface AdminPayment {
   id: string;
@@ -125,7 +126,7 @@ export default function PaymentsAdminPage() {
                       : <span className="text-gray-400">(deleted)</span>}
                   </TableCell>
                   <TableCell className="text-xs">{p.productType.replace(/^boost-/, "")} · {p.boostDurationDays}d</TableCell>
-                  <TableCell>₹{(p.amount / 100).toLocaleString("en-IN")}</TableCell>
+                  <TableCell>{formatMoney(p.amount, p.currency)}</TableCell>
                   <TableCell>
                     <Badge className={`ring-1 ${STATUS_STYLES[p.status] || ""}`}>{p.status}</Badge>
                   </TableCell>
@@ -139,7 +140,7 @@ export default function PaymentsAdminPage() {
                         variant="outline"
                         disabled={refundMut.isPending}
                         onClick={() => {
-                          if (confirm(`Refund ₹${p.amount / 100}?`)) refundMut.mutate(p.id);
+                          if (confirm(`Refund ${formatMoney(p.amount, p.currency)}?`)) refundMut.mutate(p.id);
                         }}
                       >
                         Refund

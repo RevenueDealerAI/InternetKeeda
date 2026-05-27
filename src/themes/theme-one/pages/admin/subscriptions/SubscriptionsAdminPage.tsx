@@ -8,6 +8,7 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/components/ui/use-toast";
+import { formatMoney } from "@/lib/format/money";
 
 interface AdminSub {
   id: string;
@@ -138,7 +139,7 @@ export default function SubscriptionsAdminPage() {
               (data?.items ?? []).map((s) => (
                 <TableRow key={s.id}>
                   <TableCell>{typeof s.toolId === "object" && s.toolId ? s.toolId.name : <span className="text-gray-400">(deleted)</span>}</TableCell>
-                  <TableCell>₹{(s.amount / 100).toLocaleString("en-IN")}</TableCell>
+                  <TableCell>{formatMoney(s.amount, s.currency)}</TableCell>
                   <TableCell>
                     <Badge className={`ring-1 ${STATUS_STYLES[s.status] || ""}`}>{s.status}</Badge>
                   </TableCell>

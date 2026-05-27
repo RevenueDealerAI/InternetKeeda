@@ -6,6 +6,8 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Check, AlertCircle, Loader2 } from "lucide-react";
 import { usePaymentStatus } from "@/lib/api/payments";
+import { BOOST_TIERS, type BoostProductType } from "@/lib/pricing/boost";
+import { formatUsd } from "@/lib/format/money";
 
 export default function PaymentReturnPage() {
   const params = useSearchParams();
@@ -92,7 +94,7 @@ export default function PaymentReturnPage() {
             orderId={orderId}
           />
         ) : data?.status === "success" ? (
-          <Success amount={data.amount} productType={data.productType} />
+          <Success productType={data.productType} />
         ) : data?.status === "refunded" ? (
           <Failure
             title="This order was refunded"
@@ -145,16 +147,13 @@ function Pending({ orderId }: { orderId: string }) {
   );
 }
 
-function Success({
-  amount,
-  productType,
-}: {
-  amount: number;
-  productType: string;
-}) {
-  const rupees = (amount / 100).toLocaleString("en-IN", {
-    minimumFractionDigits: 0,
-  });
+function Success({ productType }: { productType: string }) {
+  // Display the tier's canonical USD price rather than the raw doc
+  // amount — Cashfree-paid boosts have currency:'INR' + amount:99900,
+  // which we never want to leak into the user-facing message. The
+  // tier lookup gives "$12" regardless of which provider settled it.
+  const tier = BOOST_TIERS.find((t) => t.productType === (productType as BoostProductType));
+  const priceLabel = tier ? formatUsd(tier.priceUsdMinor) : "";
   return (
     <>
       <div className="w-12 h-12 mx-auto rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 grid place-items-center">
@@ -162,7 +161,8 @@ function Success({
       </div>
       <h1 className="mt-3 text-lg font-semibold text-gray-900">Boost activated</h1>
       <p className="mt-2 text-sm text-gray-600">
-        ₹{rupees} captured. Your <code className="text-orange-600">{productType.replace(/^boost-/, "")}</code> boost is live now.
+        {priceLabel ? `${priceLabel} captured. ` : ""}
+        Your <code className="text-orange-600">{productType.replace(/^boost-/, "")}</code> boost is live now.
       </p>
       <p className="mt-3 text-[11px] text-gray-400">Redirecting to your dashboard…</p>
       <div className="mt-5">
