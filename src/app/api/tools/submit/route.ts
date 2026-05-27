@@ -41,6 +41,8 @@ function slugify(name: string): string {
     .slice(0, 80);
 }
 
+const FORTY_EIGHT_HOURS_MS = 48 * 60 * 60 * 1000;
+
 /**
  * POST /api/tools/submit
  *
@@ -49,6 +51,12 @@ function slugify(name: string): string {
  * listingStatus:'unpaid-pending'. The user can immediately boost it
  * from the dashboard. Phase C expands this flow to also start a
  * Cashfree subscription ($10/mo) before the tool publishes.
+ *
+ * Cooldown guard: when the same submitter has had a tool rejected
+ * with matching name OR websiteUrl in the last 48 hours, returns 429
+ * with `canResubmitAt` so the client can show a friendly countdown
+ * banner. Per-tool, not per-user — submitting a *different* tool
+ * after a rejection is fine.
  */
 export async function POST(req: NextRequest) {
   try {
@@ -56,6 +64,35 @@ export async function POST(req: NextRequest) {
     const auth = await requireAuth(req);
     const body = await req.json();
     const data = submitSchema.parse(body);
+
+    const cooldownCutoff = new Date(Date.now() - FORTY_EIGHT_HOURS_MS);
+    const recentRejection = await Tool.findOne({
+      ownerUserId: auth.userId,
+      status: "rejected",
+      rejectedAt: { $gte: cooldownCutoff },
+      $or: [{ name: data.name }, { websiteUrl: data.websiteUrl }],
+    })
+      .select("name websiteUrl rejectedAt")
+      .lean();
+
+    if (recentRejection?.rejectedAt) {
+      const canResubmitAt = new Date(
+        recentRejection.rejectedAt.getTime() + FORTY_EIGHT_HOURS_MS,
+      );
+      const hoursLeft = Math.max(
+        1,
+        Math.ceil((canResubmitAt.getTime() - Date.now()) / (60 * 60 * 1000)),
+      );
+      return NextResponse.json(
+        {
+          error: "Recently rejected",
+          message: `A tool with the same name or website was rejected less than 48 hours ago. You can resubmit in ~${hoursLeft} hour${hoursLeft === 1 ? "" : "s"}.`,
+          canResubmitAt: canResubmitAt.toISOString(),
+          hoursLeft,
+        },
+        { status: 429 },
+      );
+    }
 
     const cat = await validateCategorySlug(data.category);
     if (!cat.name) {

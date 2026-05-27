@@ -29,6 +29,11 @@ export function SubmitToolForm() {
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
   const [busy, setBusy] = useState(false);
+  // Persistent 429 from /api/tools/submit when the same submitter tried
+  // to re-list a recently-rejected tool. Cleared the moment the user
+  // edits name or websiteUrl so they can't get permanently stuck on
+  // the banner.
+  const [cooldownBanner, setCooldownBanner] = useState<string | null>(null);
   const {
     data: catData,
     isLoading: catLoading,
@@ -51,10 +56,19 @@ export function SubmitToolForm() {
         credentials: "include",
         body: JSON.stringify({ name, websiteUrl, description, category }),
       });
+      if (res.status === 429) {
+        const body = await res.json().catch(() => ({}));
+        setCooldownBanner(
+          body.message ||
+            "This tool was recently rejected. Wait 48 hours from the rejection to resubmit.",
+        );
+        return;
+      }
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         throw new Error(body.error || "Failed to submit");
       }
+      setCooldownBanner(null);
       toast({
         title: "Tool submitted",
         description: "Your tool is in review. Boost it from the dashboard to feature it.",
@@ -79,14 +93,44 @@ export function SubmitToolForm() {
           Listings go live after a quick review. Boost slots are available once it&apos;s published.
         </p>
 
+        {cooldownBanner && (
+          <div className="mt-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+            <div className="font-medium">Recently rejected</div>
+            <div className="mt-0.5 text-red-700">{cooldownBanner}</div>
+            <div className="mt-1.5 text-xs text-red-600/80">
+              Change the name or website above to submit a different tool right now.
+            </div>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div>
             <Label htmlFor="name">Tool name</Label>
-            <Input id="name" required minLength={2} value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. ScribbleAI" />
+            <Input
+              id="name"
+              required
+              minLength={2}
+              value={name}
+              onChange={(e) => {
+                setName(e.target.value);
+                if (cooldownBanner) setCooldownBanner(null);
+              }}
+              placeholder="e.g. ScribbleAI"
+            />
           </div>
           <div>
             <Label htmlFor="url">Website</Label>
-            <Input id="url" required type="url" value={websiteUrl} onChange={(e) => setWebsiteUrl(e.target.value)} placeholder="https://example.com" />
+            <Input
+              id="url"
+              required
+              type="url"
+              value={websiteUrl}
+              onChange={(e) => {
+                setWebsiteUrl(e.target.value);
+                if (cooldownBanner) setCooldownBanner(null);
+              }}
+              placeholder="https://example.com"
+            />
           </div>
           <div>
             <Label htmlFor="category">Category</Label>
