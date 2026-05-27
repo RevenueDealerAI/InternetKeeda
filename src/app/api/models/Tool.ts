@@ -54,9 +54,12 @@ export interface ITool {
   ownerUserId?: string;
   /** Set when an admin rejects the submission via /admin/moderation.
    * Surfaces back to the owner on the dashboard so they can edit
-   * and resubmit. Cleared on resubmit. */
+   * and resubmit. Cleared on resubmit. `rejectedBy` is the Clerk
+   * userId of the admin who rejected (parity with `ownerUserId`),
+   * shown on the admin rejected-tools view. */
   rejectionReason?: string;
   rejectedAt?: Date;
+  rejectedBy?: string;
   /** Soft-delete marker. Public listings filter out non-null
    * deletedAt; admin views can opt in via ?includeDeleted=true.
    * Payment/subscription history stays intact (Cashfree audit
@@ -118,6 +121,7 @@ const toolSchema = new mongoose.Schema<ITool>({
   ownerUserId: { type: String, index: true },
   rejectionReason: { type: String },
   rejectedAt: { type: Date },
+  rejectedBy: { type: String, index: true },
   deletedAt: { type: Date, index: true },
 }, {
   timestamps: true // This will add createdAt and updatedAt fields automatically

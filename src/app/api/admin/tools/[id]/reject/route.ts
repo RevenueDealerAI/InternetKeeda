@@ -6,14 +6,26 @@ import { errorResponse } from "@/app/api/lib/auth";
 import { Tool } from "@/app/api/models/Tool";
 
 const bodySchema = z.object({
-  reason: z.string().min(5, "Give the submitter a useful reason.").max(2000),
+  // Reason is now optional — admins can reject without one, and the
+  // dialog only requires it when it's user-friendly to do so. Trimmed
+  // empty strings normalize to undefined so we don't write "" into
+  // the doc.
+  reason: z
+    .string()
+    .max(2000)
+    .optional()
+    .transform((s) => {
+      const t = s?.trim();
+      return t && t.length > 0 ? t : undefined;
+    }),
 });
 
 /**
  * POST /api/admin/tools/[id]/reject
  *
- * Sets status = "rejected" and stamps rejectionReason + rejectedAt.
- * The owner sees this on /dashboard → My Tools and can edit + resubmit.
+ * Sets status = "rejected" and stamps rejectionReason + rejectedAt +
+ * rejectedBy. The owner sees the reason (if any) on /dashboard →
+ * My Tools and can edit + resubmit after a 48h cooldown.
  */
 export async function POST(
   req: NextRequest,
@@ -21,18 +33,24 @@ export async function POST(
 ) {
   try {
     await connectDB();
-    await requireAdmin(req);
+    const adminAuth = await requireAdmin(req);
     const { id } = await params;
-    const { reason } = bodySchema.parse(await req.json());
+    const parsed = bodySchema.parse(await req.json().catch(() => ({})));
 
     const tool = await Tool.findOneAndUpdate(
       { _id: id, status: "pending" },
       {
         $set: {
           status: "rejected",
-          rejectionReason: reason,
           rejectedAt: new Date(),
+          rejectedBy: adminAuth.userId,
+          ...(parsed.reason
+            ? { rejectionReason: parsed.reason }
+            : {}),
         },
+        ...(parsed.reason
+          ? {}
+          : { $unset: { rejectionReason: "" } }),
       },
       { new: true },
     );
