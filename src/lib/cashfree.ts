@@ -47,12 +47,23 @@ export const CASHFREE_MODE_LABEL = (): "TEST" | "PROD" =>
 /**
  * Pricing source of truth.
  *
- * Mixed-currency: MONTHLY_LISTING is USD (Cashfree PROD plan
- * monthly-listing-10, $10/month with $50 max headroom); BOOST_* stay
- * INR (paise) because they're one-off Cashfree PG orders that have
- * always run on the India PG. Display layer divides minor → major
- * by 100 (both USD cents and INR paise share the ×100 factor).
+ * MONTHLY_LISTING is USD (Cashfree PROD plan monthly-listing-10,
+ * $10/month with $50 max headroom).
+ *
+ * BOOST tiers moved to src/lib/pricing/boost.ts so they're shared
+ * with the PayPal flow. The PRICING.BOOST_* / getBoostPricing /
+ * boostSlotFor / BoostProductType exports here are thin compat
+ * shims so older import sites (admin tables, the Cashfree boost-
+ * create route) keep working — flip them over when convenient.
  */
+import {
+  BOOST_TIERS,
+  getBoostTier,
+  boostSlotForProduct,
+  type BoostProductType as PricingBoostProductType,
+  type BoostSlot,
+} from "./pricing/boost";
+
 export const PRICING = {
   MONTHLY_LISTING: {
     planId: "monthly-listing-10",
@@ -62,39 +73,34 @@ export const PRICING = {
     displayPrice: "$10/mo",
     interval: "month",
   },
-  // One-time boosts (paise + duration in days). INR — boost code paths
-  // were explicitly left alone for the TEST→PROD plan migration.
-  BOOST_CATEGORY_TOP: { paise: 99900, days: 7 },
-  BOOST_HOME_ROTATION: { paise: 249900, days: 7 },
-  BOOST_FEATURED_BADGE: { paise: 499900, days: 30 },
+  // Compat re-exports — derived from BOOST_TIERS so price changes
+  // happen in exactly one place.
+  BOOST_CATEGORY_TOP: {
+    paise: getBoostTier("boost-category-top").priceInrMinor,
+    days: getBoostTier("boost-category-top").durationDays,
+  },
+  BOOST_HOME_ROTATION: {
+    paise: getBoostTier("boost-home-rotation").priceInrMinor,
+    days: getBoostTier("boost-home-rotation").durationDays,
+  },
+  BOOST_FEATURED_BADGE: {
+    paise: getBoostTier("boost-featured-badge").priceInrMinor,
+    days: getBoostTier("boost-featured-badge").durationDays,
+  },
 } as const;
 
-export type BoostProductType =
-  | "boost-category-top"
-  | "boost-home-rotation"
-  | "boost-featured-badge";
+export type BoostProductType = PricingBoostProductType;
 
 export function getBoostPricing(productType: BoostProductType): {
   paise: number;
   days: number;
 } {
-  switch (productType) {
-    case "boost-category-top":
-      return PRICING.BOOST_CATEGORY_TOP;
-    case "boost-home-rotation":
-      return PRICING.BOOST_HOME_ROTATION;
-    case "boost-featured-badge":
-      return PRICING.BOOST_FEATURED_BADGE;
-  }
+  const t = getBoostTier(productType);
+  return { paise: t.priceInrMinor, days: t.durationDays };
 }
 
-/** Map our internal product type to the Tool.activeBoosts string. */
-export function boostSlotFor(productType: BoostProductType):
-  | "category-top"
-  | "home-rotation"
-  | "featured-badge" {
-  return productType.replace(/^boost-/, "") as
-    | "category-top"
-    | "home-rotation"
-    | "featured-badge";
+export function boostSlotFor(productType: BoostProductType): BoostSlot {
+  return boostSlotForProduct(productType);
 }
+
+export { BOOST_TIERS };

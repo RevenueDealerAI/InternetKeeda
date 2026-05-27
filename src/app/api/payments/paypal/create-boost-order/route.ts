@@ -7,6 +7,7 @@ import { requireUser } from "@/lib/auth/user";
 import { Tool } from "@/app/api/models/Tool";
 import { Payment } from "@/app/api/models/Payment";
 import { createOneTimeOrder, PayPalError } from "@/lib/paypal";
+import { getBoostTier } from "@/lib/pricing/boost";
 
 const bodySchema = z.object({
   toolId: z.string().min(1, "toolId is required"),
@@ -16,25 +17,6 @@ const bodySchema = z.object({
     "boost-featured-badge",
   ]),
 });
-
-/**
- * USD pricing for PayPal boost orders.
- *
- * Cashfree boosts run on INR (999 / 2499 / 4999 ₹). The PayPal flow
- * is for international buyers paying in USD; rather than apply a
- * volatile FX rate, USD prices are picked to roughly track the INR
- * tier ratio (1 : 2.5 : 5) while staying memorable. Update here if
- * the user changes the dollar pricing — the Cashfree paise constants
- * in lib/cashfree.ts stay independent.
- */
-const PAYPAL_BOOST_PRICING: Record<
-  "boost-category-top" | "boost-home-rotation" | "boost-featured-badge",
-  { amountUsd: number; days: number; label: string }
-> = {
-  "boost-category-top": { amountUsd: 12, days: 7, label: "Category Top boost" },
-  "boost-home-rotation": { amountUsd: 30, days: 7, label: "Home Rotation boost" },
-  "boost-featured-badge": { amountUsd: 60, days: 30, label: "Featured Badge boost" },
-};
 
 function siteOrigin(req: NextRequest): string {
   const env =
@@ -64,7 +46,7 @@ export async function POST(req: NextRequest) {
     }
     const body = await req.json();
     const { toolId, productType } = bodySchema.parse(body);
-    const pricing = PAYPAL_BOOST_PRICING[productType];
+    const tier = getBoostTier(productType);
 
     const tool = await Tool.findById(toolId);
     if (!tool) {
@@ -96,18 +78,18 @@ export async function POST(req: NextRequest) {
       toolId: tool._id,
       provider: "paypal",
       orderId: placeholder,
-      amount: pricing.amountUsd * 100, // store as cents
+      amount: tier.priceUsdMinor, // cents
       currency: "USD",
       productType,
-      boostDurationDays: pricing.days,
+      boostDurationDays: tier.durationDays,
       status: "pending",
     });
 
     const origin = siteOrigin(req);
     try {
       const created = await createOneTimeOrder({
-        amountUsd: pricing.amountUsd,
-        description: `${pricing.label} for ${tool.name}`,
+        amountUsd: tier.priceUsd,
+        description: `${tier.name} boost for ${tool.name}`,
         customId: String(payment._id),
         referenceId: productType,
         returnUrl: `${origin}/payment/return?provider=paypal&payment_db_id=${String(payment._id)}`,
@@ -123,10 +105,10 @@ export async function POST(req: NextRequest) {
         orderId: created.id,
         paymentDbId: String(payment._id),
         approveUrl: created.approveUrl,
-        amount: pricing.amountUsd * 100,
+        amount: tier.priceUsdMinor,
         currency: "USD",
         productType,
-        boostDurationDays: pricing.days,
+        boostDurationDays: tier.durationDays,
         provider: "paypal",
       });
     } catch (err) {
