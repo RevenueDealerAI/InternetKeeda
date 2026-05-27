@@ -9,6 +9,8 @@ import { useCreateBoost, type BoostProductType } from "@/lib/api/payments";
 import { toast } from "@/components/ui/use-toast";
 import { PaymentMethodPicker } from "@/components/payment/PaymentMethodPicker";
 import { enabledProviders, type PaymentProvider } from "@/lib/payment/providers";
+import { BOOST_TIERS } from "@/lib/pricing/boost";
+import { formatUsd } from "@/lib/format/money";
 
 // Cashfree's hosted-checkout JS SDK is loaded once at the parent
 // (MyToolsTab) level via next/script — Next dedupes <Script> elements
@@ -29,41 +31,11 @@ interface BoostModalProps {
   sdkReady: boolean;
 }
 
-interface BoostOption {
-  productType: BoostProductType;
-  label: string;
-  description: string;
-  priceLabel: string;
-  durationLabel: string;
-  icon: React.ComponentType<{ className?: string }>;
-}
-
-const OPTIONS: BoostOption[] = [
-  {
-    productType: "boost-category-top",
-    label: "Category Top",
-    description: "Pin your tool to the #1 spot in its category page for 7 days.",
-    priceLabel: "₹999",
-    durationLabel: "7 days",
-    icon: TrendingUp,
-  },
-  {
-    productType: "boost-home-rotation",
-    label: "Home Rotation",
-    description: "Get your tool into the home page featured rotation for 7 days.",
-    priceLabel: "₹2,499",
-    durationLabel: "7 days",
-    icon: Home,
-  },
-  {
-    productType: "boost-featured-badge",
-    label: "Featured Badge",
-    description: "A red-gradient Featured badge on every card for 30 days.",
-    priceLabel: "₹4,999",
-    durationLabel: "30 days",
-    icon: Award,
-  },
-];
+const ICONS: Record<"TrendingUp" | "Home" | "Award", React.ComponentType<{ className?: string }>> = {
+  TrendingUp,
+  Home,
+  Award,
+};
 
 export function BoostModal({ open, onOpenChange, toolId, toolName, sdkReady }: BoostModalProps) {
   const [selected, setSelected] = useState<BoostProductType | null>(null);
@@ -71,7 +43,7 @@ export function BoostModal({ open, onOpenChange, toolId, toolName, sdkReady }: B
   const router = useRouter();
   const createBoost = useCreateBoost();
 
-  const selectedOpt = selected ? OPTIONS.find((o) => o.productType === selected) : null;
+  const selectedTier = selected ? BOOST_TIERS.find((t) => t.productType === selected) ?? null : null;
 
   // Click on Pay: when one provider is enabled, fire directly; when
   // two+, open the picker and let the user choose.
@@ -168,19 +140,19 @@ export function BoostModal({ open, onOpenChange, toolId, toolName, sdkReady }: B
           <DialogHeader>
             <DialogTitle>Boost {toolName}</DialogTitle>
             <p className="text-sm text-gray-500 mt-1">
-              One-time payment via Cashfree. Boosts start the moment payment confirms.
+              One-time payment. Boosts start the moment payment confirms.
             </p>
           </DialogHeader>
 
           <div className="grid gap-3 mt-2">
-            {OPTIONS.map((opt) => {
-              const Icon = opt.icon;
-              const active = selected === opt.productType;
+            {BOOST_TIERS.map((tier) => {
+              const Icon = ICONS[tier.icon];
+              const active = selected === tier.productType;
               return (
                 <button
-                  key={opt.productType}
+                  key={tier.productType}
                   type="button"
-                  onClick={() => setSelected(opt.productType)}
+                  onClick={() => setSelected(tier.productType)}
                   className={`text-left rounded-xl border p-4 transition-all ${
                     active
                       ? "border-orange-400 bg-orange-50/40 ring-2 ring-orange-500/30"
@@ -193,11 +165,15 @@ export function BoostModal({ open, onOpenChange, toolId, toolName, sdkReady }: B
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-3">
-                        <h3 className="text-sm font-semibold text-gray-900">{opt.label}</h3>
-                        <span className="text-sm font-bold text-orange-600">{opt.priceLabel}</span>
+                        <h3 className="text-sm font-semibold text-gray-900">{tier.name}</h3>
+                        <span className="text-sm font-bold text-orange-600">
+                          {formatUsd(tier.priceUsdMinor)}
+                        </span>
                       </div>
-                      <p className="text-xs text-gray-600 mt-1 leading-relaxed">{opt.description}</p>
-                      <p className="text-[11px] text-gray-400 mt-1">Duration: {opt.durationLabel}</p>
+                      <p className="text-xs text-gray-600 mt-1 leading-relaxed">
+                        {tier.description} for {tier.durationDays} days.
+                      </p>
+                      <p className="text-[11px] text-gray-400 mt-1">Duration: {tier.durationDays} days</p>
                     </div>
                   </div>
                 </button>
@@ -216,7 +192,7 @@ export function BoostModal({ open, onOpenChange, toolId, toolName, sdkReady }: B
             >
               {createBoost.isPending ? "Starting…" : !sdkReady ? "Loading SDK…" : (
                 <>
-                  Pay {selected ? OPTIONS.find((o) => o.productType === selected)?.priceLabel : ""}
+                  Pay {selectedTier ? formatUsd(selectedTier.priceUsdMinor) : ""}
                   <ArrowRight className="w-4 h-4 ml-1" />
                 </>
               )}
@@ -225,13 +201,13 @@ export function BoostModal({ open, onOpenChange, toolId, toolName, sdkReady }: B
         </DialogContent>
       </Dialog>
 
-      {pickerOpen && selectedOpt && (
+      {pickerOpen && selectedTier && (
         <PaymentMethodPicker
           open={pickerOpen}
           orderType="boost"
-          amount={parseFloat(selectedOpt.priceLabel.replace(/[^\d.]/g, "")) || 0}
-          currency={selectedOpt.priceLabel.startsWith("₹") ? "INR" : "USD"}
-          productLabel={`${selectedOpt.label} · ${toolName}`}
+          amount={selectedTier.priceUsd}
+          currency="USD"
+          productLabel={`${selectedTier.name} · ${toolName}`}
           onSelect={handlePayWithProvider}
           onCancel={() => setPickerOpen(false)}
         />
