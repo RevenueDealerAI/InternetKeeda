@@ -74,13 +74,18 @@ export function PaymentMethodPicker({
                 )}
               >
                 <div className="flex items-center gap-3 w-full">
-                  <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg">
+                  {/* h-10 fixed height, w-24 budget so both wordmarks
+                   * (PayPal + Cashfree) render at the same visible
+                   * height. SVGs share a 200x80 viewBox so object-
+                   * contain settles them at ~96x38 inside this slot
+                   * for visual parity. */}
+                  <div className="relative h-10 w-24 shrink-0">
                     <Image
                       src={p.logoSrc}
                       alt={p.label}
                       fill
-                      sizes="48px"
-                      className="object-contain"
+                      sizes="96px"
+                      className="object-contain object-left"
                     />
                   </div>
                   <div className="min-w-0 flex-1">
