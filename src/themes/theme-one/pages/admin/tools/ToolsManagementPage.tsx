@@ -188,11 +188,26 @@ export default function ToolsManagementPage() {
         return 'bg-green-50 text-green-700 border-green-200';
       case 'draft':
         return 'bg-yellow-50 text-yellow-700 border-yellow-200';
+      case 'pending':
+        return 'bg-amber-50 text-amber-700 border-amber-200';
+      case 'rejected':
+        return 'bg-red-50 text-red-700 border-red-200';
       case 'archived':
         return 'bg-gray-50 text-gray-700 border-gray-200';
       default:
         return 'bg-gray-50 text-gray-700 border-gray-200';
     }
+  };
+
+  const formatRelative = (iso?: string) => {
+    if (!iso) return null;
+    const ms = Date.now() - new Date(iso).getTime();
+    const hours = Math.floor(ms / (60 * 60 * 1000));
+    if (hours < 1) return 'just now';
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    if (days < 30) return `${days}d ago`;
+    return new Date(iso).toLocaleDateString();
   };
 
   const getPricingColor = (type: Tool['pricing']['type']) => {
@@ -263,6 +278,7 @@ export default function ToolsManagementPage() {
                 <SelectItem value="published">Published</SelectItem>
                 <SelectItem value="draft">Draft</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="rejected">Rejected</SelectItem>
                 <SelectItem value="archived">Archived</SelectItem>
               </SelectContent>
             </Select>
@@ -303,7 +319,11 @@ export default function ToolsManagementPage() {
                   <TableHead>Category</TableHead>
                   <TableHead>Pricing</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Updated</TableHead>
+                  {statusFilter === 'rejected' ? (
+                    <TableHead>Rejection</TableHead>
+                  ) : (
+                    <TableHead>Updated</TableHead>
+                  )}
                   <TableHead className="w-[70px]"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -350,11 +370,38 @@ export default function ToolsManagementPage() {
                         </Badge>
                       )}
                     </TableCell>
-                    <TableCell>
-                      <div className="text-sm text-gray-500">
-                        {new Date(tool.updatedAt).toLocaleDateString()}
-                      </div>
-                    </TableCell>
+                    {statusFilter === 'rejected' ? (
+                      <TableCell>
+                        <div className="max-w-[260px]">
+                          <div
+                            className="text-sm text-gray-700 truncate"
+                            title={tool.rejectionReason || 'No reason provided'}
+                          >
+                            {tool.rejectionReason ? (
+                              tool.rejectionReason.length > 60
+                                ? tool.rejectionReason.slice(0, 60) + '…'
+                                : tool.rejectionReason
+                            ) : (
+                              <span className="italic text-gray-400">No reason provided</span>
+                            )}
+                          </div>
+                          <div className="text-xs text-gray-500 mt-0.5">
+                            {formatRelative(tool.rejectedAt) || '—'}
+                            {tool.rejectedBy && (
+                              <>
+                                {' '}· by <span className="font-mono">{tool.rejectedBy.slice(0, 12)}…</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </TableCell>
+                    ) : (
+                      <TableCell>
+                        <div className="text-sm text-gray-500">
+                          {new Date(tool.updatedAt).toLocaleDateString()}
+                        </div>
+                      </TableCell>
+                    )}
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>

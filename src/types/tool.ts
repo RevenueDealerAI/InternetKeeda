@@ -37,4 +37,11 @@ export interface Tool {
     | 'unpaid-hidden';
   seededTool?: boolean;
   deletedAt?: string | null;
+  /** Rejection metadata — populated when status === 'rejected'.
+   * Surfaced in the admin Rejected view and the owner-facing
+   * dashboard. */
+  rejectionReason?: string;
+  rejectedAt?: string;
+  rejectedBy?: string;
+  ownerUserId?: string;
 }
