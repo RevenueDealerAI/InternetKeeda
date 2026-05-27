@@ -45,13 +45,48 @@ interface MyTool {
   createdAt: string;
 }
 
-const STATUS_BADGE: Record<string, { label: string; className: string }> = {
-  "free-seeded": { label: "Free Seeded", className: "bg-emerald-50 text-emerald-700 ring-emerald-200/60" },
-  "paid-active": { label: "Live", className: "bg-emerald-50 text-emerald-700 ring-emerald-200/60" },
-  "paid-expired": { label: "Expired", className: "bg-amber-50 text-amber-700 ring-amber-200/60" },
-  "unpaid-pending": { label: "Awaiting Payment", className: "bg-orange-50 text-orange-700 ring-orange-200/60" },
-  "unpaid-hidden": { label: "Hidden", className: "bg-red-50 text-red-700 ring-red-200/60" },
-};
+/**
+ * Derived status pill per row. Single source of truth for what the
+ * user sees — collapses (toolStatus, listingStatus, sub.status) into
+ * one badge so the row never renders the old "Awaiting Payment +
+ * Awaiting authorization" double-pill that confused users.
+ */
+function pillFor(
+  toolStatus: string,
+  listingStatus: string,
+  subStatus: string | undefined,
+): { label: string; className: string } {
+  if (toolStatus === "rejected") {
+    return { label: "Rejected", className: "bg-slate-100 text-slate-700 ring-slate-200/60" };
+  }
+  if (toolStatus === "pending") {
+    return { label: "In review", className: "bg-amber-50 text-amber-700 ring-amber-200/60" };
+  }
+  if (listingStatus === "paid-active") {
+    return { label: "Live", className: "bg-emerald-50 text-emerald-700 ring-emerald-200/60" };
+  }
+  if (listingStatus === "paid-expired") {
+    return { label: "Expired", className: "bg-amber-50 text-amber-700 ring-amber-200/60" };
+  }
+  if (listingStatus === "unpaid-hidden") {
+    return { label: "Hidden", className: "bg-red-50 text-red-700 ring-red-200/60" };
+  }
+  if (listingStatus === "free-seeded") {
+    return { label: "Free Seeded", className: "bg-emerald-50 text-emerald-700 ring-emerald-200/60" };
+  }
+  // unpaid-pending: branch on the Subscription state so the user
+  // gets one of the two payment-flow pills instead of both at once.
+  if (subStatus === "initialized") {
+    return {
+      label: "Authorizing Payment…",
+      className: "bg-amber-50 text-amber-700 ring-amber-200/60",
+    };
+  }
+  return {
+    label: "Payment Required",
+    className: "bg-red-50 text-red-700 ring-red-200/60",
+  };
+}
 
 export function MyToolsTab() {
   const [boostTarget, setBoostTarget] = useState<MyTool | null>(null);
@@ -343,11 +378,8 @@ export function MyToolsTab() {
 
       <div className="grid gap-3">
         {tools.map((t) => {
-          const statusMeta = STATUS_BADGE[t.listingStatus] || {
-            label: t.listingStatus,
-            className: "bg-gray-100 text-gray-700 ring-gray-200/60",
-          };
           const sub = subsByTool.get(t.id);
+          const statusPill = pillFor(t.status, t.listingStatus, sub?.status);
           const isRejected = t.status === "rejected";
           const isPendingReview = t.status === "pending";
           // Don't show Activate / Retry while the tool is in admin
@@ -388,21 +420,12 @@ export function MyToolsTab() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <h3 className="text-sm font-semibold text-gray-900 truncate">{t.name}</h3>
-                    {isRejected ? (
-                      <Badge className="ring-1 bg-red-50 text-red-700 ring-red-200/60">Rejected</Badge>
-                    ) : isPendingReview ? (
-                      <Badge className="ring-1 bg-amber-50 text-amber-700 ring-amber-200/60">In review</Badge>
-                    ) : (
-                      <Badge className={`ring-1 ${statusMeta.className}`}>{statusMeta.label}</Badge>
-                    )}
+                    <Badge className={`ring-1 ${statusPill.className}`}>{statusPill.label}</Badge>
                     {t.activeBoosts.map((b) => (
                       <Badge key={b} className="bg-gradient-to-r from-orange-500 to-red-600 text-white ring-0">
                         {b.replace(/-/g, " ")}
                       </Badge>
                     ))}
-                    {sub?.status === "initialized" && (
-                      <Badge className="bg-amber-50 text-amber-700 ring-1 ring-amber-200/60">Awaiting authorization</Badge>
-                    )}
                   </div>
                   <p className="text-xs text-gray-500 truncate">{t.category}</p>
                 </div>
