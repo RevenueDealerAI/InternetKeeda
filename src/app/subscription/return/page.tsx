@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Check, AlertCircle, Loader2 } from "lucide-react";
-import { formatMoney } from "@/lib/format/money";
+import { USER_FACING_PRICES } from "@/lib/format/money";
 
 interface Status {
   subscriptionId: string;
@@ -93,7 +93,7 @@ export default function SubscriptionReturnPage() {
         ) : error ? (
           <Failure title="Unable to verify your subscription" subId={subscriptionId} />
         ) : data?.status === "active" ? (
-          <Success amount={data.amount} currency={data.currency} />
+          <Success />
         ) : data?.status === "cancelled" ? (
           <Failure title="Subscription was cancelled" subId={subscriptionId} />
         ) : (
@@ -142,7 +142,7 @@ function Pending({ subscriptionId }: { subscriptionId: string }) {
   );
 }
 
-function Success({ amount, currency }: { amount: number; currency: string }) {
+function Success() {
   return (
     <>
       <div className="w-12 h-12 mx-auto rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 grid place-items-center">
@@ -150,7 +150,7 @@ function Success({ amount, currency }: { amount: number; currency: string }) {
       </div>
       <h1 className="mt-3 text-lg font-semibold text-gray-900">Listing activated</h1>
       <p className="mt-2 text-sm text-gray-600">
-        {formatMoney(amount, currency)}/month authorized. Your tool is now publicly visible.
+        {USER_FACING_PRICES.MONTHLY_LISTING.replace("/mo", "/month")} authorized. Your tool is now publicly visible.
       </p>
       <p className="mt-3 text-[11px] text-gray-400">Redirecting to your dashboard…</p>
       <div className="mt-5">
