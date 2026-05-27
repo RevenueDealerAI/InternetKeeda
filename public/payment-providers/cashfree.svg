@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80" aria-label="Cashfree">
+  <rect width="80" height="80" rx="16" fill="#6938EF"/>
+  <text x="40" y="34" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="14" font-weight="700" fill="#FFFFFF" text-anchor="middle">CASH</text>
+  <text x="40" y="52" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="14" font-weight="700" fill="#FFFFFF" text-anchor="middle">FREE</text>
+</svg>

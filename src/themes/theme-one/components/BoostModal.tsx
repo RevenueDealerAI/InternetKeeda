@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, TrendingUp, Home, Award } from "lucide-react";
 import { useCreateBoost, type BoostProductType } from "@/lib/api/payments";
 import { toast } from "@/components/ui/use-toast";
+import { PaymentMethodPicker } from "@/components/payment/PaymentMethodPicker";
+import { enabledProviders, type PaymentProvider } from "@/lib/payment/providers";
 
 // Cashfree's hosted-checkout JS SDK is loaded once at the parent
 // (MyToolsTab) level via next/script — Next dedupes <Script> elements
@@ -65,11 +67,35 @@ const OPTIONS: BoostOption[] = [
 
 export function BoostModal({ open, onOpenChange, toolId, toolName, sdkReady }: BoostModalProps) {
   const [selected, setSelected] = useState<BoostProductType | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const router = useRouter();
   const createBoost = useCreateBoost();
 
-  const handlePay = async () => {
+  const selectedOpt = selected ? OPTIONS.find((o) => o.productType === selected) : null;
+
+  // Click on Pay: when one provider is enabled, fire directly; when
+  // two+, open the picker and let the user choose.
+  const handlePay = () => {
     if (!selected) return;
+    const enabled = enabledProviders();
+    if (enabled.length <= 1) {
+      handlePayWithProvider(enabled[0]?.id ?? "cashfree");
+    } else {
+      setPickerOpen(true);
+    }
+  };
+
+  const handlePayWithProvider = async (provider: PaymentProvider) => {
+    setPickerOpen(false);
+    if (!selected) return;
+    if (provider === "paypal") {
+      toast({
+        title: "PayPal coming soon",
+        description: "PayPal checkout isn't wired yet — use Card / UPI for now.",
+      });
+      return;
+    }
+    // provider === 'cashfree' — existing flow.
     let session;
     try {
       session = await createBoost.mutateAsync({ toolId, productType: selected });
@@ -181,6 +207,18 @@ export function BoostModal({ open, onOpenChange, toolId, toolName, sdkReady }: B
           </div>
         </DialogContent>
       </Dialog>
+
+      {pickerOpen && selectedOpt && (
+        <PaymentMethodPicker
+          open={pickerOpen}
+          orderType="boost"
+          amount={parseFloat(selectedOpt.priceLabel.replace(/[^\d.]/g, "")) || 0}
+          currency={selectedOpt.priceLabel.startsWith("₹") ? "INR" : "USD"}
+          productLabel={`${selectedOpt.label} · ${toolName}`}
+          onSelect={handlePayWithProvider}
+          onCancel={() => setPickerOpen(false)}
+        />
+      )}
     </>
   );
 }

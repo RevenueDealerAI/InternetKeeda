@@ -11,6 +11,8 @@ import { BoostModal } from "./BoostModal";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCreateSubscription, useMySubscriptions, useCancelSubscription } from "@/lib/api/subscriptions";
 import { toast } from "@/components/ui/use-toast";
+import { PaymentMethodPicker } from "@/components/payment/PaymentMethodPicker";
+import { enabledProviders, type PaymentProvider } from "@/lib/payment/providers";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -56,6 +58,11 @@ export function MyToolsTab() {
   const [editTarget, setEditTarget] = useState<MyTool | null>(null);
   const [expandedReason, setExpandedReason] = useState<Record<string, boolean>>({});
   const [sdkReady, setSdkReady] = useState(false);
+  // When more than one provider is enabled, clicking Activate opens
+  // this picker first. With only Cashfree enabled today, the picker
+  // is auto-skipped and we go straight to the Cashfree flow — see
+  // handleActivate.
+  const [pickerTarget, setPickerTarget] = useState<MyTool | null>(null);
   const createSub = useCreateSubscription();
   const cancelSub = useCancelSubscription();
   const { data: subData } = useMySubscriptions();
@@ -116,7 +123,33 @@ export function MyToolsTab() {
     }
   }
 
-  const handleActivate = async (tool: MyTool) => {
+  // Click handler on the per-row Activate button. With one enabled
+  // provider, dispatch immediately. With two+, open the picker and
+  // let the user choose; the picker fires handleActivateWithProvider
+  // for the chosen one.
+  const handleActivate = (tool: MyTool) => {
+    const enabled = enabledProviders();
+    if (enabled.length <= 1) {
+      const only = enabled[0]?.id ?? "cashfree";
+      handleActivateWithProvider(tool, only);
+    } else {
+      setPickerTarget(tool);
+    }
+  };
+
+  const handleActivateWithProvider = async (
+    tool: MyTool,
+    provider: PaymentProvider,
+  ) => {
+    setPickerTarget(null);
+    if (provider === "paypal") {
+      toast({
+        title: "PayPal coming soon",
+        description: "PayPal checkout isn't wired yet — use Card / UPI for now.",
+      });
+      return;
+    }
+    // provider === 'cashfree' — existing flow.
     let session;
     try {
       session = await createSub.mutateAsync({ toolId: tool.id });
@@ -414,6 +447,18 @@ export function MyToolsTab() {
           toolId={boostTarget.id}
           toolName={boostTarget.name}
           sdkReady={sdkReady}
+        />
+      )}
+
+      {pickerTarget && (
+        <PaymentMethodPicker
+          open={!!pickerTarget}
+          orderType="subscription"
+          amount={10}
+          currency="USD"
+          productLabel={`Listing for ${pickerTarget.name}`}
+          onSelect={(provider) => handleActivateWithProvider(pickerTarget, provider)}
+          onCancel={() => setPickerTarget(null)}
         />
       )}
       </div>
