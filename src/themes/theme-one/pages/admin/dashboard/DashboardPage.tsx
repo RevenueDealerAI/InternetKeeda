@@ -74,11 +74,13 @@ interface PendingItem {
 
 /* ------------------------------ helpers ------------------------------- */
 
-// Subscriptions migrated to USD ($10/mo, plan monthly-listing-10). Boosts
-// remain INR (paise). The "MRR" tile shows recurring USD revenue only —
-// boosts are one-off, not recurring, so summing them into MRR would be
-// a category error even if the currencies matched. Use boostInr() for
-// boost-side totals elsewhere.
+// Subscription pricing is mixed-gateway: Cashfree on plan
+// `monthly-listing-inr-830` (INR ₹830/mo, paise minor units),
+// PayPal on PAYPAL_PLAN_ID (USD $10/mo, cents minor units). The
+// "MRR" tile aggregates the USD-denominated subscriptionRevenue
+// returned by /api/admin/revenue; the API does the per-row
+// currency conversion server-side. Boosts are one-off and aren't
+// part of MRR. Use boostInr() for boost-side INR totals.
 const usd = (cents: number) =>
   new Intl.NumberFormat('en-US', {
     style: 'currency',

@@ -1,15 +1,22 @@
 import mongoose, { Document, Model } from 'mongoose';
 
 /**
- * Recurring subscription record for the $10/month tool listing fee
- * (Cashfree PROD plan `monthly-listing-10`, max $50/cycle cap).
+ * Recurring subscription record for the monthly tool listing fee.
  * Created when a user submits a new tool and chooses to activate it;
- * Cashfree handles the actual billing schedule, and the webhook keeps
- * this row in sync via SUBSCRIPTION_* events.
+ * the relevant gateway webhook keeps this row in sync via the
+ * matching SUBSCRIPTION_* / BILLING.SUBSCRIPTION.* events.
  *
- * Amounts are stored in **minor units** (cents for USD, paise for INR)
- * — display layer divides by 100 before rendering. Currency lives on
- * each row so legacy INR test data and new USD prod rows coexist.
+ * Per-row currency:
+ *   - Cashfree rows: INR / 83000 paise (₹830) under plan
+ *     `monthly-listing-inr-830`
+ *   - PayPal rows: USD / 1000 cents ($10) under PAYPAL_PLAN_ID
+ *
+ * User-facing UI shows "$10/mo" anchor pricing regardless of which
+ * gateway charged the user; Cashfree's hosted checkout shows ₹830
+ * at payment time (expected by Indian buyers, outside our control).
+ *
+ * Amounts are stored in minor units (cents for USD, paise for INR);
+ * display layer divides by 100 before rendering.
  */
 
 export type SubscriptionStatus =
@@ -29,7 +36,7 @@ export interface ISubscription {
    * 'cashfree' for backwards-compat with legacy rows; new rows pick
    * 'paypal' or 'cashfree' explicitly. */
   provider: SubscriptionProvider;
-  planId: string;            // "monthly-listing-10" / PAYPAL_PLAN_ID — soft reference
+  planId: string;            // "monthly-listing-inr-830" / PAYPAL_PLAN_ID — soft reference
   /** Canonical primary id this sub is known by. For Cashfree rows
    * it's the Cashfree subscription_id we generate; for PayPal rows
    * it's PayPal's I-XXXX. Status polling looks rows up by this. */
@@ -69,7 +76,7 @@ const subscriptionSchema = new mongoose.Schema<ISubscription>({
     default: 'cashfree',
     index: true,
   },
-  planId: { type: String, default: 'monthly-listing-10' },
+  planId: { type: String, default: 'monthly-listing-inr-830' },
   subscriptionId: { type: String, required: true, unique: true, index: true },
   paypalSubscriptionId: { type: String, index: true, sparse: true },
   amount: { type: Number, required: true },

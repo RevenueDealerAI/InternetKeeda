@@ -28,8 +28,12 @@ function siteOrigin(req: NextRequest): string {
  *
  * Body: { toolId }
  *
- * Creates a Cashfree subscription for the $10/month listing fee
- * (PROD plan id `monthly-listing-10`, max $50/cycle headroom).
+ * Creates a Cashfree subscription for the monthly listing fee
+ * (PROD plan id `monthly-listing-inr-830`, ₹830/mo with a ₹2,490
+ * max-amount headroom). User-facing UI elsewhere displays "$10/mo"
+ * via USER_FACING_PRICES; Cashfree's checkout shows ₹830 at
+ * payment time, which is expected for Indian buyers.
+ *
  * The flow:
  *   1. Validate user owns the tool, no active sub exists for it
  *   2. Insert Subscription row (status: 'initialized')

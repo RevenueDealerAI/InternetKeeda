@@ -45,10 +45,15 @@ export const CASHFREE_MODE_LABEL = (): "TEST" | "PROD" =>
   readMode() === CFEnvironment.PRODUCTION ? "PROD" : "TEST";
 
 /**
- * Pricing source of truth.
+ * Pricing source of truth (Cashfree-side amounts).
  *
- * MONTHLY_LISTING is USD (Cashfree PROD plan monthly-listing-10,
- * $10/month with $50 max headroom).
+ * MONTHLY_LISTING is the INR plan `monthly-listing-inr-830` —
+ * ₹830/month with a ₹2,490 max-amount headroom (3× the recurring
+ * to absorb Cashfree's auth-then-debit dance and any future
+ * surcharges). Cashfree's hosted checkout shows the rupee amount
+ * to the buyer; UI elsewhere on the site uses the fixed
+ * USER_FACING_PRICES.MONTHLY_LISTING anchor ("$10/mo") so the
+ * displayed price is consistent with the PayPal $10/mo plan.
  *
  * BOOST tiers moved to src/lib/pricing/boost.ts so they're shared
  * with the PayPal flow. The PRICING.BOOST_* / getBoostPricing /
@@ -66,11 +71,15 @@ import {
 
 export const PRICING = {
   MONTHLY_LISTING: {
-    planId: "monthly-listing-10",
-    amountMinorUnit: 1000, // $10.00 in cents
-    maxAmountMinorUnit: 5000, // $50.00 cap — Cashfree plan_max_amount
-    currency: "USD",
-    displayPrice: "$10/mo",
+    planId: "monthly-listing-inr-830",
+    amountMinorUnit: 83000, // ₹830 in paise
+    maxAmountMinorUnit: 249000, // ₹2,490 cap — Cashfree plan_max_amount
+    currency: "INR",
+    /** Back-office reference. User-facing surfaces should read
+     * USER_FACING_PRICES.MONTHLY_LISTING ("$10/mo") instead so the
+     * UI matches the PayPal $10 plan regardless of which gateway
+     * actually settles the charge. */
+    displayPrice: "₹830/mo",
     interval: "month",
   },
   // Compat re-exports — derived from BOOST_TIERS so price changes
