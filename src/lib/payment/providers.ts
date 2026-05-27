@@ -33,7 +33,7 @@ export const PAYMENT_PROVIDERS: PaymentProviderConfig[] = [
     label: "PayPal",
     description: "PayPal account or card",
     logoSrc: "/payment-providers/paypal.svg",
-    enabled: false,
+    enabled: true,
   },
 ];
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams, useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Check, AlertCircle, Loader2 } from "lucide-react";
@@ -9,8 +9,51 @@ import { usePaymentStatus } from "@/lib/api/payments";
 
 export default function PaymentReturnPage() {
   const params = useSearchParams();
-  const orderId = params.get("order_id") || undefined;
   const router = useRouter();
+
+  // Cashfree path: ?order_id=…
+  // PayPal path: ?provider=paypal&token=<order-id>&PayerID=…
+  //   (PayPal calls the order id "token" in return-url query params)
+  const provider = params.get("provider");
+  const isPayPal = provider === "paypal";
+  const orderId = (isPayPal ? params.get("token") : params.get("order_id")) || undefined;
+  const cancelled = params.get("cancelled") === "1";
+
+  // PayPal needs an explicit /capture call before its status moves to
+  // COMPLETED. Fire that once on mount with the token, then let the
+  // existing status-polling hook take over (it handles both providers
+  // via Payment.provider). Idempotent on the server.
+  const [captureRunning, setCaptureRunning] = useState(isPayPal && !cancelled && !!orderId);
+  const [captureError, setCaptureError] = useState<string | null>(null);
+  useEffect(() => {
+    if (!isPayPal || cancelled || !orderId) {
+      setCaptureRunning(false);
+      return;
+    }
+    let active = true;
+    (async () => {
+      try {
+        const r = await fetch("/api/payments/paypal/capture-boost-order", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ orderId }),
+        });
+        if (!r.ok) {
+          const body = await r.json().catch(() => ({}));
+          if (active) setCaptureError(body.error || "PayPal capture failed");
+        }
+      } catch (err) {
+        if (active) setCaptureError(err instanceof Error ? err.message : "Network error");
+      } finally {
+        if (active) setCaptureRunning(false);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [isPayPal, cancelled, orderId]);
+
   const { data, isLoading, error } = usePaymentStatus(orderId);
 
   // Once we hit a terminal success, give the user a beat to see the
@@ -28,8 +71,20 @@ export default function PaymentReturnPage() {
       <div className="max-w-md w-full bg-white rounded-2xl border border-gray-200 shadow-[0_8px_30px_-10px_rgba(15,23,42,0.12)] p-8 text-center">
         {!orderId ? (
           <MissingOrderId />
-        ) : isLoading || data?.status === "pending" ? (
+        ) : cancelled ? (
+          <Failure
+            title="Payment cancelled"
+            description="You cancelled before paying. No charge."
+            orderId={orderId}
+          />
+        ) : captureRunning || isLoading || data?.status === "pending" ? (
           <Pending orderId={orderId} />
+        ) : captureError && !data ? (
+          <Failure
+            title="Unable to capture your PayPal payment"
+            description={captureError}
+            orderId={orderId}
+          />
         ) : error ? (
           <Failure
             title="Unable to verify your payment"

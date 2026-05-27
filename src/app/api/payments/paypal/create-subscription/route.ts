@@ -101,7 +101,12 @@ export async function POST(req: NextRequest) {
       const created = await createSubscription({
         userId: auth.userId,
         customId: String(sub._id),
-        returnUrl: `${origin}/subscription/return?provider=paypal&subscription_id={subscription_id}`,
+        // PayPal automatically appends ?subscription_id=I-XXX&ba_token=…
+        // &token=… to the return_url on approval, so we don't add our
+        // own subscription_id template (which PayPal wouldn't
+        // substitute anyway). The existing /subscription/return page
+        // reads `subscription_id`.
+        returnUrl: `${origin}/subscription/return?provider=paypal`,
         cancelUrl: `${origin}/subscription/cancel?provider=paypal`,
       });
 

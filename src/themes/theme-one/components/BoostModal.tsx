@@ -89,10 +89,27 @@ export function BoostModal({ open, onOpenChange, toolId, toolName, sdkReady }: B
     setPickerOpen(false);
     if (!selected) return;
     if (provider === "paypal") {
-      toast({
-        title: "PayPal coming soon",
-        description: "PayPal checkout isn't wired yet — use Card / UPI for now.",
-      });
+      try {
+        const r = await fetch("/api/payments/paypal/create-boost-order", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ toolId, productType: selected }),
+        });
+        if (!r.ok) {
+          const body = await r.json().catch(() => ({}));
+          throw new Error(body.error || "Failed to start PayPal order");
+        }
+        const { approveUrl } = (await r.json()) as { approveUrl: string };
+        if (!approveUrl) throw new Error("PayPal did not return an approve URL");
+        window.location.href = approveUrl;
+      } catch (err) {
+        toast({
+          title: "Could not start PayPal",
+          description: err instanceof Error ? err.message : "Unknown error",
+          variant: "destructive",
+        });
+      }
       return;
     }
     // provider === 'cashfree' — existing flow.
