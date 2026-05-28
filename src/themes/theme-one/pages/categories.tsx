@@ -200,19 +200,41 @@ export default function Categories() {
 
 function CategoryTile({ cat }: { cat: { name: string; slug: string; toolCount: number } }) {
   return (
-    <Link href={`/category/${cat.slug}`} className="block group">
-      <Card className="border border-gray-100 hover:border-[#DC2626]/40 hover:shadow-sm transition-all duration-150 h-full">
+    <Link
+      href={`/category/${cat.slug}`}
+      className="ik-cat-tile group block h-full rounded-2xl"
+      style={{
+        background: 'var(--bg-2)',
+        border: '1px solid var(--rule)',
+        boxShadow: 'var(--shadow-sm)',
+        transition:
+          'transform 240ms cubic-bezier(0.22, 1, 0.36, 1), ' +
+          'box-shadow 240ms cubic-bezier(0.22, 1, 0.36, 1), ' +
+          'border-color 240ms cubic-bezier(0.22, 1, 0.36, 1)',
+        willChange: 'transform',
+      }}
+    >
+      <Card
+        className="h-full border-0 bg-transparent"
+        style={{ boxShadow: 'none', background: 'transparent' }}
+      >
         <CardHeader className="pb-2">
-          <CardTitle className="text-base font-semibold text-gray-900 group-hover:text-[#DC2626] transition-colors line-clamp-2">
+          <CardTitle
+            className="text-base font-semibold line-clamp-2 transition-colors"
+            style={{ color: 'var(--ink)' }}
+          >
             {cat.name}
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-0">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-gray-500">
-              {cat.toolCount} {cat.toolCount === 1 ? "tool" : "tools"}
+            <span className="text-xs" style={{ color: 'var(--ink-soft)' }}>
+              {cat.toolCount} {cat.toolCount === 1 ? 'tool' : 'tools'}
             </span>
-            <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-[#DC2626] group-hover:translate-x-0.5 transition-all" />
+            <ArrowRight
+              className="w-4 h-4 transition-all"
+              style={{ color: 'var(--ink-dim)' }}
+            />
           </div>
         </CardContent>
       </Card>

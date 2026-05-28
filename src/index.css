@@ -893,6 +893,34 @@
 }
 .ik-marquee { animation: ik-marquee 40s linear infinite; will-change: transform; }
 
+/* Category tile pop-on-hover — lift, scale, accent border + glow,
+   inside arrow slides forward and tints accent. Used on the /categories
+   page CategoryTile to make each tile read like a button you want to
+   click. */
+.ik-cat-tile:hover {
+  transform: translateY(-6px) scale(1.025);
+  border-color: var(--accent) !important;
+  box-shadow: var(--shadow-accent) !important;
+  z-index: 1;
+}
+.ik-cat-tile:hover [class*="CardTitle"],
+.ik-cat-tile:hover h3,
+.ik-cat-tile:hover .text-base {
+  color: var(--accent) !important;
+}
+.ik-cat-tile:hover svg {
+  color: var(--accent) !important;
+  transform: translateX(3px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .ik-cat-tile,
+  .ik-cat-tile:hover {
+    transform: none !important;
+    transition: border-color 200ms ease, box-shadow 200ms ease !important;
+  }
+  .ik-cat-tile:hover svg { transform: none !important; }
+}
+
 /* Nexus pulse — dot + orb */
 @keyframes ik-pulse-dot {
   0%, 100% { transform: scale(1); opacity: 1; box-shadow: 0 0 12px var(--accent-glow); }
