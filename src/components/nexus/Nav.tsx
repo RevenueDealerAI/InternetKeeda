@@ -27,37 +27,28 @@ export function Nav() {
         }}
         aria-label="Primary"
       >
-        {/* Brand */}
-        <Link href="/" className="flex items-center gap-2.5 py-0.5">
-          <span
+        {/* Brand — replace text wordmark with the actual logo PNG.
+            Light + dark variants swap via the .ik-logo-* CSS rules. */}
+        <Link
+          href="/"
+          aria-label="Internet Keeda — home"
+          className="relative flex h-10 w-[170px] shrink-0 items-center sm:w-[200px]"
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/branding/logo-light.png"
+            alt="Internet Keeda"
+            className="ik-logo-light block h-full w-auto object-contain"
+            draggable={false}
+          />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/branding/logo-dark.png"
+            alt=""
             aria-hidden="true"
-            className="grid h-9 w-9 place-items-center rounded-full"
-            style={{
-              background: 'linear-gradient(135deg, var(--accent), var(--accent-2))',
-              color: 'var(--on-accent)',
-              boxShadow: 'var(--shadow-accent)',
-              fontFamily: 'var(--sans)',
-              fontWeight: 700,
-              fontSize: 16,
-              letterSpacing: '-0.02em',
-            }}
-          >
-            K
-          </span>
-          <span className="leading-tight">
-            <span
-              className="block text-[15px] font-semibold tracking-tight"
-              style={{ color: 'var(--ink)' }}
-            >
-              Internet Keeda
-            </span>
-            <span
-              className="mt-0.5 block text-[9px] uppercase tracking-[0.22em]"
-              style={{ color: 'var(--ink-soft)', fontFamily: 'var(--mono)' }}
-            >
-              everything ai
-            </span>
-          </span>
+            className="ik-logo-dark absolute left-0 top-1/2 hidden h-full w-auto -translate-y-1/2 object-contain"
+            draggable={false}
+          />
         </Link>
 
         {/* Center links — desktop */}

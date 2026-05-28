@@ -47,36 +47,29 @@ export function Footer() {
         className="mx-auto grid max-w-[1320px] grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr]"
       >
         <div>
-          <div className="flex items-center gap-3.5">
-            <span
+          {/* Brand logo — image, theme-aware */}
+          <div className="relative h-14 w-[230px]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/branding/logo-light.png"
+              alt="Internet Keeda"
+              className="ik-logo-light block h-full w-auto object-contain"
+              draggable={false}
+            />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/branding/logo-dark.png"
+              alt=""
               aria-hidden="true"
-              className="grid h-11 w-11 place-items-center rounded-full"
-              style={{
-                background: 'linear-gradient(135deg, var(--accent), var(--accent-2))',
-                color: 'var(--on-accent)',
-                boxShadow: 'var(--shadow-accent)',
-                fontFamily: 'var(--sans)',
-                fontWeight: 700,
-                fontSize: 22,
-                letterSpacing: '-0.02em',
-              }}
-            >
-              K
-            </span>
-            <div>
-              <div
-                className="text-[20px] font-semibold leading-none tracking-tight"
-                style={{ color: 'var(--ink)' }}
-              >
-                Internet Keeda
-              </div>
-              <div
-                className="mt-1.5 text-[9px] uppercase tracking-[0.22em]"
-                style={{ color: 'var(--ink-soft)', fontFamily: 'var(--mono)' }}
-              >
-                everything ai · since 2026
-              </div>
-            </div>
+              className="ik-logo-dark absolute left-0 top-0 hidden h-full w-auto object-contain"
+              draggable={false}
+            />
+          </div>
+          <div
+            className="mt-3 text-[9px] uppercase tracking-[0.22em]"
+            style={{ color: 'var(--ink-soft)', fontFamily: 'var(--mono)' }}
+          >
+            everything ai · since 2026
           </div>
           <p
             className="m-0 mt-5 max-w-[400px] text-[14px] leading-[1.55]"

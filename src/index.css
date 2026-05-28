@@ -1046,7 +1046,12 @@
 :root[data-theme="dark"] .bg-zinc-50,
 :root[data-theme="dark"] .bg-stone-50 {
   background-color: var(--card-strong) !important;
-  color: hsl(var(--foreground));
+  color: var(--ink);
+}
+/* bg-white/<alpha> variants (admin uses bg-white/85, bg-white/95) */
+:root[data-theme="dark"] [class*="bg-white/"] {
+  background-color: color-mix(in oklab, var(--bg-2) 80%, transparent) !important;
+  color: var(--ink);
 }
 :root[data-theme="dark"] .bg-gray-50,
 :root[data-theme="dark"] .bg-gray-100,
@@ -1054,34 +1059,66 @@
 :root[data-theme="dark"] .bg-neutral-100,
 :root[data-theme="dark"] .bg-orange-50,
 :root[data-theme="dark"] .bg-orange-100 {
-  background-color: var(--bg-elev) !important;
-  color: hsl(var(--foreground));
+  background-color: var(--bg-2) !important;
+  color: var(--ink);
+}
+:root[data-theme="dark"] .bg-slate-200,
+:root[data-theme="dark"] .bg-neutral-200,
+:root[data-theme="dark"] .bg-gray-200 {
+  background-color: var(--surface-2) !important;
 }
 :root[data-theme="dark"] .text-black,
 :root[data-theme="dark"] .text-gray-900,
 :root[data-theme="dark"] .text-gray-800,
 :root[data-theme="dark"] .text-slate-900,
+:root[data-theme="dark"] .text-slate-800,
 :root[data-theme="dark"] .text-neutral-900 {
-  color: hsl(var(--foreground)) !important;
+  color: var(--ink) !important;
 }
 :root[data-theme="dark"] .text-gray-700,
 :root[data-theme="dark"] .text-gray-600,
 :root[data-theme="dark"] .text-slate-700,
-:root[data-theme="dark"] .text-slate-600 {
-  color: var(--fg-dim) !important;
+:root[data-theme="dark"] .text-slate-600,
+:root[data-theme="dark"] .text-neutral-700,
+:root[data-theme="dark"] .text-neutral-600 {
+  color: var(--ink-2) !important;
 }
 :root[data-theme="dark"] .text-gray-500,
 :root[data-theme="dark"] .text-gray-400,
+:root[data-theme="dark"] .text-gray-300,
 :root[data-theme="dark"] .text-slate-500,
-:root[data-theme="dark"] .text-slate-400 {
-  color: var(--muted-color) !important;
+:root[data-theme="dark"] .text-slate-400,
+:root[data-theme="dark"] .text-slate-300,
+:root[data-theme="dark"] .text-neutral-500,
+:root[data-theme="dark"] .text-neutral-400 {
+  color: var(--ink-soft) !important;
 }
 :root[data-theme="dark"] .border-gray-100,
 :root[data-theme="dark"] .border-gray-200,
 :root[data-theme="dark"] .border-gray-300,
 :root[data-theme="dark"] .border-slate-100,
-:root[data-theme="dark"] .border-slate-200 {
-  border-color: var(--border-color) !important;
+:root[data-theme="dark"] .border-slate-200,
+:root[data-theme="dark"] .border-slate-300,
+:root[data-theme="dark"] .border-slate-400,
+:root[data-theme="dark"] .border-neutral-200,
+:root[data-theme="dark"] .border-neutral-300 {
+  border-color: var(--rule) !important;
+}
+/* Hover bg variants — match admin sidebar nav items */
+:root[data-theme="dark"] .hover\:bg-slate-50:hover,
+:root[data-theme="dark"] .hover\:bg-slate-100:hover,
+:root[data-theme="dark"] .hover\:bg-gray-50:hover,
+:root[data-theme="dark"] .hover\:bg-gray-100:hover,
+:root[data-theme="dark"] .hover\:bg-neutral-50:hover,
+:root[data-theme="dark"] .hover\:bg-neutral-100:hover {
+  background-color: var(--surface) !important;
+}
+/* Backdrop overlays — keep their dark scrim translucent */
+:root[data-theme="dark"] .bg-slate-900\/40,
+:root[data-theme="dark"] .bg-slate-900\/50,
+:root[data-theme="dark"] .bg-black\/40,
+:root[data-theme="dark"] .bg-black\/50 {
+  background-color: rgba(0, 0, 0, 0.6) !important;
 }
 /* Gradient backgrounds in BackgroundAnimation-style components
    (from-white via-orange-50/30 to-white). Hide on dark. */
