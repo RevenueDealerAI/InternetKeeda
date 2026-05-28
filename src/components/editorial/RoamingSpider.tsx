@@ -4,7 +4,7 @@
 // Asset: drop a photoreal transparent-bg PNG at /public/spider.png to
 // override the bundled SVG silhouette fallback.
 
-const SPIDER_SRC = '/spider.svg';
+const SPIDER_SRC = '/spider.png';
 
 export function RoamingSpider() {
   return (

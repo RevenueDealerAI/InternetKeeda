@@ -158,7 +158,7 @@ function HangingSpider({ toolCount, categoryCount }: { toolCount: number; catego
         <div className="ik-leg-wiggle" style={{ animationDuration: '0.55s' }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/spider.svg"
+            src="/spider.png"
             alt="Keeda, the Internet Keeda mascot"
             width={420}
             height={420}
