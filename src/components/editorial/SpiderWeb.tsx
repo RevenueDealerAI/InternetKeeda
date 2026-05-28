@@ -216,7 +216,8 @@ function AccentSpider({
           display: 'block',
           width: size,
           height: size,
-          filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.25))',
+          filter:
+            'drop-shadow(0 0 6px rgba(229, 9, 20, 0.5)) drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6))',
         }}
         draggable={false}
       />

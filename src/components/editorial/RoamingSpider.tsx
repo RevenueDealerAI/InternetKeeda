@@ -19,7 +19,13 @@ export function RoamingSpider() {
         className="absolute left-1/2 -translate-x-1/2 ik-thread"
         style={{ width: 1, height: 64, bottom: '100%' }}
       />
-      <div className="ik-leg-wiggle" style={{ filter: 'drop-shadow(0 8px 14px rgba(0,0,0,0.18))' }}>
+      <div
+        className="ik-leg-wiggle"
+        style={{
+          filter:
+            'drop-shadow(0 0 12px rgba(229, 9, 20, 0.45)) drop-shadow(0 8px 14px rgba(0, 0, 0, 0.55))',
+        }}
+      >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={SPIDER_SRC}

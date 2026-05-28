@@ -66,7 +66,7 @@ export function Sections() {
           marker="§ 02 — the rooms"
           title={
             <>
-              Six <span className="font-display italic">corridors</span> into the web.
+              Six <span className="font-display italic text-blood">corridors</span> into the web.
             </>
           }
         />
@@ -99,7 +99,7 @@ function CorridorCell({ corridor }: { corridor: Corridor }) {
       <div className="flex items-start justify-between gap-3">
         <span
           aria-hidden="true"
-          className="flex h-11 w-11 items-center justify-center rounded-full bg-foreground text-background"
+          className="bg-gradient-blood shadow-blood flex h-11 w-11 items-center justify-center rounded-full text-white"
         >
           <span className="font-display text-xl italic leading-none">{corridor.icon}</span>
         </span>
@@ -114,12 +114,12 @@ function CorridorCell({ corridor }: { corridor: Corridor }) {
       <div className="ik-hairline mt-7 h-px w-full" />
 
       <div className="mt-4 flex items-center gap-2">
-        <span className="font-mono-display text-[11px] uppercase tracking-[0.22em] text-foreground/70 transition-colors group-hover:text-foreground">
+        <span className="font-mono-display text-[11px] uppercase tracking-[0.22em] text-foreground/70 transition-colors group-hover:text-blood">
           enter
         </span>
         <span
           aria-hidden="true"
-          className="font-mono-display inline-block translate-x-0 text-foreground/70 transition-transform duration-300 group-hover:translate-x-1 group-hover:text-foreground"
+          className="font-mono-display inline-block translate-x-0 text-foreground/70 transition-all duration-300 group-hover:translate-x-1 group-hover:text-blood"
         >
           →
         </span>

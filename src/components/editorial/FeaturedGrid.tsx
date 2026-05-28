@@ -75,7 +75,7 @@ export function FeaturedGrid() {
           marker="§ 01 — boosted this week"
           title={
             <>
-              The <span className="font-display italic">featured</span> grid
+              The <span className="font-display italic text-blood">featured</span> grid
             </>
           }
           rightLink={{

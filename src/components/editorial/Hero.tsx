@@ -58,16 +58,16 @@ export function Hero({
             </span>
           </div>
 
-          {/* H1 — Geist + italic Instrument Serif accents */}
+          {/* H1 — Geist + italic Instrument Serif accents in blood red */}
           <h1 className="mt-8 text-5xl font-medium tracking-tight leading-[0.95] sm:text-7xl md:text-[5.5rem] lg:text-[7rem]">
             <span className="block">
-              <span className="font-display italic">Discover.</span>{' '}
-              <span className="font-display italic">Learn.</span>{' '}
+              <span className="font-display italic text-blood">Discover.</span>{' '}
+              <span className="font-display italic text-blood">Learn.</span>{' '}
               <span>Earn.</span>
             </span>
             <span className="block text-foreground/85">
-              <span className="font-display italic">Everything</span>{' '}
-              <span className="font-display italic">AI.</span>
+              <span className="font-display italic text-blood">Everything</span>{' '}
+              <span className="font-display italic text-blood">AI.</span>
             </span>
           </h1>
 
@@ -94,7 +94,7 @@ export function Hero({
                 <button
                   type="submit"
                   disabled={!query.trim() || aiLoading}
-                  className="font-mono-display rounded-full bg-foreground px-3.5 py-1.5 text-[10px] uppercase tracking-[0.2em] text-background transition-opacity hover:opacity-90 disabled:opacity-40"
+                  className="font-mono-display bg-gradient-blood shadow-blood rounded-full px-3.5 py-1.5 text-[10px] uppercase tracking-[0.2em] text-white transition-transform hover:-translate-y-0.5 disabled:opacity-40 disabled:translate-y-0"
                 >
                   {aiLoading ? 'Searching…' : 'Ask →'}
                 </button>
@@ -105,13 +105,13 @@ export function Hero({
           <div className="mt-6 flex flex-col items-center gap-3 sm:flex-row">
             <Link
               href="/trending"
-              className="font-mono-display rounded-full bg-foreground px-6 py-3 text-[11px] uppercase tracking-[0.2em] text-background transition-opacity hover:opacity-90"
+              className="font-mono-display bg-gradient-blood shadow-blood rounded-full px-6 py-3 text-[11px] uppercase tracking-[0.2em] text-white transition-transform hover:-translate-y-0.5"
             >
               Enter the web →
             </Link>
             <Link
               href="/categories"
-              className="ik-pill font-mono-display rounded-full px-6 py-3 text-[11px] uppercase tracking-[0.2em] text-foreground transition-colors hover:bg-muted"
+              className="ik-pill font-mono-display rounded-full px-6 py-3 text-[11px] uppercase tracking-[0.2em] text-foreground transition-colors hover:bg-white/[0.06]"
             >
               Browse catalog
             </Link>
@@ -129,11 +129,11 @@ export function Hero({
 
       {/* Category marquee */}
       <div className="ik-marquee-mask mt-20 overflow-hidden">
-        <div className="ik-marquee flex w-max items-center gap-10 whitespace-nowrap text-3xl text-foreground/35 sm:text-4xl md:text-5xl">
+        <div className="ik-marquee flex w-max items-center gap-10 whitespace-nowrap text-3xl text-foreground/45 sm:text-4xl md:text-5xl">
           {marqueeItems.map((c, i) => (
             <span key={i} className="flex items-center gap-10">
               <span className="font-display italic">{c.toLowerCase()}</span>
-              <span aria-hidden="true" className="text-foreground/20">✦</span>
+              <span aria-hidden="true" className="text-blood/60">✦</span>
             </span>
           ))}
         </div>
@@ -163,7 +163,12 @@ function HangingSpider({ toolCount, categoryCount }: { toolCount: number; catego
             width={420}
             height={420}
             className="block h-[18rem] w-[18rem] sm:h-[24rem] sm:w-[24rem] md:h-[28rem] md:w-[28rem]"
-            style={{ filter: 'drop-shadow(0 24px 32px rgba(0,0,0,0.16))' }}
+            style={{
+              // Backlit blood-red glow so the matte-black silhouette reads
+              // against the dark cinematic background.
+              filter:
+                'drop-shadow(0 0 28px rgba(229, 9, 20, 0.55)) drop-shadow(0 24px 36px rgba(0, 0, 0, 0.55))',
+            }}
             draggable={false}
           />
         </div>

@@ -64,7 +64,7 @@ export function Pricing() {
           marker="§ 03 — pricing"
           title={
             <>
-              Pay to <span className="font-display italic">be seen.</span>
+              Pay to <span className="font-display italic text-blood">be seen.</span>
             </>
           }
         />
@@ -84,30 +84,28 @@ export function Pricing() {
 }
 
 function PlanCard({ plan }: { plan: Plan }) {
-  const inverted = !!plan.highlight;
+  const highlight = !!plan.highlight;
 
-  const cardClasses = inverted
-    ? 'bg-foreground text-background'
-    : 'bg-card text-foreground';
+  // Highlight card → blood-gradient w/ red glow. Others → glass.
+  const cardSurface = highlight
+    ? 'bg-gradient-blood shadow-blood text-white border-transparent'
+    : 'glass text-foreground';
 
-  const borderColor = inverted ? 'hsl(var(--foreground))' : 'hsl(var(--border))';
-
-  const mutedText = inverted ? 'text-background/60' : 'text-muted-foreground';
-  const hairline = inverted ? 'bg-background/15' : 'bg-foreground/12';
+  const mutedText = highlight ? 'text-white/70' : 'text-muted-foreground';
+  const hairline = highlight ? 'bg-white/20' : 'bg-foreground/12';
 
   return (
     <div className="relative flex flex-col">
-      {inverted && (
+      {highlight && (
         <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
-          <span className="ik-pill font-mono-display rounded-full px-3 py-1 text-[10px] uppercase tracking-[0.22em] text-foreground">
+          <span className="glass font-mono-display rounded-full px-3 py-1 text-[10px] uppercase tracking-[0.22em] text-foreground">
             most picked
           </span>
         </div>
       )}
 
       <div
-        className={`ik-card flex h-full flex-col overflow-hidden rounded-2xl border p-8 ${cardClasses}`}
-        style={{ borderColor }}
+        className={`ik-card flex h-full flex-col overflow-hidden rounded-2xl border p-8 ${cardSurface}`}
       >
         <div className="font-mono-display text-[10px] uppercase tracking-[0.25em]">
           <span className={mutedText}>plan</span>{' '}
@@ -130,9 +128,9 @@ function PlanCard({ plan }: { plan: Plan }) {
             <li key={f} className="flex items-start gap-3 text-sm leading-relaxed">
               <span
                 aria-hidden="true"
-                className={`mt-[0.55rem] h-[3px] w-[3px] shrink-0 rounded-full ${inverted ? 'bg-background' : 'bg-foreground'}`}
+                className={`mt-[0.55rem] h-[3px] w-[3px] shrink-0 rounded-full ${highlight ? 'bg-white' : 'bg-blood'}`}
               />
-              <span className={inverted ? 'text-background/85' : 'text-foreground/85'}>{f}</span>
+              <span className={highlight ? 'text-white/90' : 'text-foreground/85'}>{f}</span>
             </li>
           ))}
         </ul>
@@ -140,9 +138,9 @@ function PlanCard({ plan }: { plan: Plan }) {
         <Link
           href={plan.cta.href}
           className={
-            inverted
-              ? 'font-mono-display mt-8 inline-flex items-center justify-center rounded-full bg-background px-5 py-3 text-[11px] uppercase tracking-[0.2em] text-foreground transition-opacity hover:opacity-90'
-              : 'font-mono-display mt-8 inline-flex items-center justify-center rounded-full bg-foreground px-5 py-3 text-[11px] uppercase tracking-[0.2em] text-background transition-opacity hover:opacity-90'
+            highlight
+              ? 'font-mono-display mt-8 inline-flex items-center justify-center rounded-full bg-white px-5 py-3 text-[11px] uppercase tracking-[0.2em] text-black transition-transform hover:-translate-y-0.5'
+              : 'font-mono-display bg-gradient-blood shadow-blood mt-8 inline-flex items-center justify-center rounded-full px-5 py-3 text-[11px] uppercase tracking-[0.2em] text-white transition-transform hover:-translate-y-0.5'
           }
         >
           {plan.cta.label}
