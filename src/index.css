@@ -68,7 +68,8 @@
     --shadow-blood: 0 0 0 1px oklch(0.55 0.23 27 / 0.30), 0 18px 50px -20px oklch(0.55 0.23 27 / 0.40);
 
     --grain-opacity: 0;
-    --grid-line:    oklch(0.16 0.012 25 / 0.06);
+    --grid-line:    oklch(0.16 0.012 25 / 0.10);
+    --grid-spot:    oklch(0.55 0.23 27 / 0.10);
     --grain:        oklch(0.16 0.012 25 / 0.04);
     --vignette-1:   oklch(0.55 0.23 27 / 0.10);
     --vignette-2:   oklch(0.46 0.21 22 / 0.08);
@@ -138,7 +139,8 @@
     --shadow-blood: 0 0 0 1px oklch(0.62 0.245 27 / 0.35), 0 20px 60px -20px oklch(0.62 0.245 27 / 0.55);
 
     --grain-opacity: 0.18;
-    --grid-line:    oklch(1 0 0 / 0.045);
+    --grid-line:    oklch(1 0 0 / 0.10);
+    --grid-spot:    oklch(0.62 0.245 27 / 0.30);
     --grain:        oklch(1 0 0 / 0.04);
     --vignette-1:   oklch(0.62 0.245 27 / 0.18);
     --vignette-2:   oklch(0.5 0.22 22 / 0.14);
@@ -328,12 +330,15 @@
      last layer is var(--bg) so even if some legacy global background
      animation tries to paint over the body, the .ik-backdrop layer
      itself carries the canvas color and the theme's dark/light bg
-     wins. */
+     wins. perspective on this container enables real 3D for the
+     lifted grid tile that sits inside the same stacking context. */
   .ik-backdrop {
     position: fixed;
     inset: 0;
     z-index: -6;
     pointer-events: none;
+    perspective: 600px;
+    perspective-origin: 50% 30%;
     background:
       radial-gradient(ellipse 50% 40% at 15% 15%, var(--vignette-1), transparent 60%),
       radial-gradient(ellipse 45% 35% at 85% 10%, var(--vignette-2), transparent 65%),
@@ -341,17 +346,58 @@
       var(--bg);
     background-attachment: fixed;
   }
+  /* Grid lines + mouse spotlight. Spotlight is a soft radial gradient
+     anchored at (--mx, --my) which MouseGrid3D updates on every frame
+     of mousemove via rAF. Spotlight brightens the grid around the
+     cursor while the rest stays dim. */
   .ik-backdrop::before {
     content: "";
     position: absolute;
     inset: 0;
     background-image:
+      radial-gradient(circle 240px at var(--mx, 50%) var(--my, -200px), var(--grid-spot), transparent 70%),
       linear-gradient(var(--grid-line) 1px, transparent 1px),
       linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
-    background-size: 56px 56px;
-    -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, #000 30%, transparent 80%);
-    mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, #000 30%, transparent 80%);
-    opacity: 0.9;
+    background-size: 100% 100%, 56px 56px, 56px 56px;
+    -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, #000 30%, transparent 85%);
+    mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, #000 30%, transparent 85%);
+    opacity: 1;
+  }
+
+  /* The 3D lifted tile that snaps to the grid cell under the cursor.
+     MouseGrid3D positions/rotates it via inline transform every rAF.
+     Border + inner glow + box-shadow make it look like a panel that
+     has popped up out of the surface. */
+  .ik-grid-tile {
+    background:
+      linear-gradient(
+        135deg,
+        hsl(var(--blood) / 0.18),
+        hsl(var(--blood) / 0.05) 60%,
+        transparent
+      );
+    border: 1px solid hsl(var(--blood) / 0.55);
+    border-radius: 4px;
+    box-shadow:
+      0 0 0 1px hsl(var(--blood) / 0.18),
+      0 12px 28px -8px hsl(var(--blood) / 0.5),
+      inset 0 0 16px hsl(var(--blood) / 0.18);
+    backface-visibility: hidden;
+  }
+  /* Light theme — tone the lifted tile down so the paper canvas still
+     reads cleanly. Soft black border + faint blood wash. */
+  :root:not([data-theme="dark"]) .ik-grid-tile {
+    background:
+      linear-gradient(
+        135deg,
+        hsl(var(--blood) / 0.10),
+        hsl(var(--blood) / 0.02) 60%,
+        transparent
+      );
+    border-color: hsl(var(--blood) / 0.35);
+    box-shadow:
+      0 0 0 1px hsl(var(--blood) / 0.12),
+      0 8px 20px -8px hsl(var(--blood) / 0.30);
   }
 
   /* Editorial Nav surface */

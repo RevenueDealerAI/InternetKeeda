@@ -3,6 +3,7 @@
 import { Geist, Geist_Mono, Instrument_Serif, JetBrains_Mono } from 'next/font/google';
 import { SpiderWeb } from '@/components/editorial/SpiderWeb';
 import { RoamingSpider } from '@/components/editorial/RoamingSpider';
+import { MouseGrid3D } from '@/components/editorial/MouseGrid3D';
 
 // No-FOUC theme init — runs BEFORE React hydrates so the page paints
 // with the user's preferred theme on the first frame, no flash.
@@ -156,6 +157,7 @@ export default function RootLayout({
             (light theme has --vignette-* near-zero alpha so it's clean). */}
         <div className="ik-backdrop" aria-hidden="true" />
         <div className="ik-film-grain" aria-hidden="true" />
+        <MouseGrid3D />
         <SpiderWeb />
         <RoamingSpider />
         <HelmetProvider>
