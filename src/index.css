@@ -4,31 +4,38 @@
 
 @layer base {
   :root {
-    /* Editorial Web — ivory canvas, black ink. Black is the brand. */
-    --background: 48 30% 97%;
-    --foreground: 0 0% 8%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 8%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 8%;
-    --primary: 0 0% 8%;
-    --primary-foreground: 0 0% 99%;
-    --secondary: 48 14% 94%;
-    --secondary-foreground: 0 0% 8%;
-    --muted: 48 14% 94%;
-    --muted-foreground: 0 0% 45%;
-    --accent: 48 14% 94%;
-    --accent-foreground: 0 0% 8%;
-    --destructive: 0 70% 45%;
-    --destructive-foreground: 0 0% 99%;
-    --border: 0 0% 89%;
-    --input: 0 0% 88%;
-    --ring: 0 0% 8%;
-    --radius: 0.75rem;
+    /* Dark Cinematic — near-black w/ red undertone, blood-red brand.
+       HSL approximations of the oklch spec for consumer compatibility. */
+    --background: 6 12% 9%;             /* near-black, faint red */
+    --foreground: 60 6% 96%;            /* warm off-white */
+    --card: 6 10% 13%;                  /* slightly lifted */
+    --card-foreground: 60 6% 96%;
+    --popover: 6 10% 13%;
+    --popover-foreground: 60 6% 96%;
+    --primary: 60 6% 96%;               /* light-on-dark */
+    --primary-foreground: 6 12% 9%;
+    --secondary: 6 10% 17%;
+    --secondary-foreground: 60 6% 96%;
+    --muted: 6 10% 17%;
+    --muted-foreground: 60 5% 70%;
+    --accent: 6 10% 19%;
+    --accent-foreground: 60 6% 96%;
 
-    /* Editorial shadows — soft paper lift, no glow */
-    --shadow-soft: 0 1px 2px hsl(0 0% 0% / 0.04), 0 8px 24px -8px hsl(0 0% 0% / 0.08);
-    --shadow-card: 0 1px 0 hsl(0 0% 0% / 0.04), 0 20px 50px -20px hsl(0 0% 0% / 0.12);
+    /* Blood red — #E50914 (Netflix red) */
+    --blood: 358 92% 47%;
+    --blood-glow: 358 95% 53%;
+    --destructive: 358 92% 47%;
+    --destructive-foreground: 0 0% 99%;
+
+    --border: 0 0% 100% / 0.10;
+    --input: 0 0% 100% / 0.12;
+    --ring: 358 92% 47%;
+    --radius: 0.875rem;
+
+    /* Cinematic shadows — deep ink + blood-red glow */
+    --shadow-soft: 0 1px 2px hsl(0 0% 0% / 0.4), 0 8px 24px -8px hsl(0 0% 0% / 0.5);
+    --shadow-card: 0 1px 0 hsl(0 0% 100% / 0.04) inset, 0 24px 60px -24px hsl(0 0% 0% / 0.7);
+    --shadow-blood: 0 0 0 1px hsl(358 92% 47% / 0.35), 0 20px 60px -20px hsl(358 92% 47% / 0.55);
   }
 
   .dark {
@@ -69,6 +76,19 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    /* Cinematic aurora — three blood-red radial blobs over the
+       near-black canvas. Fixed attachment so the glow stays in place
+       while the page scrolls. */
+    background-image:
+      radial-gradient(900px 600px at 12% -10%, hsl(358 92% 47% / 0.18), transparent 60%),
+      radial-gradient(800px 500px at 95% 8%,  hsl(355 85% 40% / 0.12), transparent 60%),
+      radial-gradient(1200px 700px at 50% 110%, hsl(358 92% 47% / 0.12), transparent 60%);
+    background-attachment: fixed;
+  }
+
+  ::selection {
+    background: hsl(358 92% 47% / 0.6);
+    color: hsl(60 6% 96%);
   }
 
   /* Editorial typography utilities — the emotional + data voices */
@@ -533,33 +553,76 @@ section:not(.ad-container):not(.ad-slot) [class*="ad-"] {
   background-image: linear-gradient(to bottom, transparent 0%, hsl(var(--foreground) / 0.3) 100%);
 }
 
-/* Hairline divider — 1px foreground at 10% opacity */
-.ik-hairline { background-color: hsl(var(--foreground) / 0.12); }
+/* Hairline divider — visible on dark via low-alpha foreground */
+.ik-hairline { background-color: hsl(var(--foreground) / 0.10); }
 
-/* Editorial-card hover lift */
+/* Glassmorphism — primary card surface in the cinematic theme */
+.glass {
+  background: linear-gradient(180deg, hsl(0 0% 100% / 0.04), hsl(0 0% 100% / 0.015));
+  border: 1px solid hsl(0 0% 100% / 0.08);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+}
+.glass-strong {
+  background: linear-gradient(180deg, hsl(0 0% 100% / 0.07), hsl(0 0% 100% / 0.02));
+  border: 1px solid hsl(0 0% 100% / 0.10);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+}
+
+/* Blood-red brand utilities */
+.text-blood { color: hsl(var(--blood)); }
+.bg-blood { background-color: hsl(var(--blood)); }
+.bg-gradient-blood {
+  background-image: linear-gradient(135deg, hsl(var(--blood)), hsl(355 85% 40%));
+}
+.shadow-blood { box-shadow: var(--shadow-blood); }
+
+/* Card hover lift — soft baseline → blood-glow on hover */
 .ik-card {
   transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 500ms cubic-bezier(0.22, 1, 0.36, 1);
+  background: linear-gradient(180deg, hsl(0 0% 100% / 0.035), hsl(0 0% 100% / 0.012));
+  border: 1px solid hsl(0 0% 100% / 0.08);
+  backdrop-filter: blur(16px) saturate(130%);
+  -webkit-backdrop-filter: blur(16px) saturate(130%);
   box-shadow: var(--shadow-soft);
 }
 .ik-card:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-card);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-blood);
+  border-color: hsl(var(--blood) / 0.35);
 }
 
-/* Paper-pill (rounded-full chips on paper bg) */
+/* Glass-pill chips — replaces the old paper-pill */
 .ik-pill {
-  background: hsl(var(--card));
-  border: 1px solid hsl(var(--border));
-  box-shadow: var(--shadow-soft);
+  background: linear-gradient(180deg, hsl(0 0% 100% / 0.06), hsl(0 0% 100% / 0.02));
+  border: 1px solid hsl(0 0% 100% / 0.10);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  color: hsl(var(--foreground));
 }
 
-/* Editorial big-letter ghost preview inside FeaturedGrid thumbs */
+/* Ghost letter — now a faint warm-cream wash visible on dark thumbs */
 .ik-ghost-letter {
   font-family: var(--font-instrument-serif), "Instrument Serif", serif;
   font-style: italic;
-  color: hsl(var(--foreground) / 0.08);
+  color: hsl(var(--foreground) / 0.06);
   line-height: 0.85;
   user-select: none;
+}
+
+/* Cinematic film grain — fixed overlay layer, scaled SVG noise.
+   Sits between body bg and content; mix-blend-overlay so it adds
+   texture without dimming the underlying colors. */
+.ik-film-grain {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -5;
+  opacity: 0.15;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.7 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  background-size: 240px 240px;
 }
 
 /* Reduced-motion — kill all editorial loops */

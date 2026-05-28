@@ -106,6 +106,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable} ${jetbrainsMono.variable}`}>
       <body className="font-sans antialiased bg-background text-foreground">
+        <div className="ik-film-grain" aria-hidden="true" />
         <SpiderWeb />
         <RoamingSpider />
         <HelmetProvider>
