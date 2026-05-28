@@ -151,17 +151,22 @@ function HangingSpider({ toolCount, categoryCount }: { toolCount: number; catego
         style={{ width: 1, height: '60%' }}
       />
 
-      <div className="absolute left-1/2 top-[40%] -translate-x-1/2 ik-float-y">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/spider.svg"
-          alt="Keeda, the Internet Keeda mascot"
-          width={420}
-          height={420}
-          className="block h-[18rem] w-[18rem] sm:h-[24rem] sm:w-[24rem] md:h-[28rem] md:w-[28rem]"
-          style={{ filter: 'drop-shadow(0 24px 32px rgba(0,0,0,0.16))' }}
-          draggable={false}
-        />
+      {/* Outer rig — dangles on the thread (combined X/Y/rotate sway).
+          Inner wrapper — fast leg-wiggle so legs ripple while the
+          whole spider drifts. */}
+      <div className="absolute left-1/2 top-[40%] -translate-x-1/2 ik-dangle">
+        <div className="ik-leg-wiggle" style={{ animationDuration: '0.55s' }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/spider.svg"
+            alt="Keeda, the Internet Keeda mascot"
+            width={420}
+            height={420}
+            className="block h-[18rem] w-[18rem] sm:h-[24rem] sm:w-[24rem] md:h-[28rem] md:w-[28rem]"
+            style={{ filter: 'drop-shadow(0 24px 32px rgba(0,0,0,0.16))' }}
+            draggable={false}
+          />
+        </div>
       </div>
 
       {/* Only real-data chips. The "crawled / latency" pair was invented;

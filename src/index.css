@@ -469,6 +469,23 @@ section:not(.ad-container):not(.ad-slot) [class*="ad-"] {
 .ik-float-y-slow { animation: ik-float-y 8s ease-in-out infinite; will-change: transform; }
 .ik-float-y-fast { animation: ik-float-y 5s ease-in-out infinite; will-change: transform; }
 
+/* Big hero spider — actually dangles like it's on a thread.
+   Combines vertical bob (thread length), horizontal sway, and
+   rotation, all offset so it feels organic instead of pendulum-y. */
+@keyframes ik-dangle {
+  0%   { transform: translate3d(0, 0, 0) rotate(-3deg); }
+  20%  { transform: translate3d(18px, -10px, 0) rotate(4deg); }
+  40%  { transform: translate3d(8px, -22px, 0) rotate(-2deg); }
+  55%  { transform: translate3d(-14px, -8px, 0) rotate(5deg); }
+  75%  { transform: translate3d(-20px, -18px, 0) rotate(-4deg); }
+  100% { transform: translate3d(0, 0, 0) rotate(-3deg); }
+}
+.ik-dangle {
+  animation: ik-dangle 9s ease-in-out infinite;
+  transform-origin: 50% 0%;
+  will-change: transform;
+}
+
 /* Corner webs — barely-there sway, as if disturbed by air */
 @keyframes ik-web-sway {
   0%, 100% { transform: translate(0, 0) rotate(0deg); }
@@ -548,6 +565,7 @@ section:not(.ad-container):not(.ad-slot) [class*="ad-"] {
 /* Reduced-motion — kill all editorial loops */
 @media (prefers-reduced-motion: reduce) {
   .ik-float-y, .ik-float-y-slow, .ik-float-y-fast,
+  .ik-dangle,
   .ik-web-sway, .ik-web-sway-2, .ik-web-sway-3, .ik-web-sway-4,
   .ik-crawl, .ik-leg-wiggle, .ik-marquee {
     animation: none !important;
