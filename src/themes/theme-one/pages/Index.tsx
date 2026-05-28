@@ -11,6 +11,7 @@ import { Launches } from '@/components/nexus/Launches';
 import { AgentSection } from '@/components/nexus/AgentSection';
 import { Pricing } from '@/components/nexus/Pricing';
 import { CtaCard } from '@/components/nexus/CtaCard';
+import { ToolLogo } from '@/components/nexus/ToolLogo';
 // Nav + Footer are mounted globally in NextRouterAdapter.
 
 const GLYPHS: Record<string, string> = {
@@ -223,26 +224,33 @@ function AiResults({
                   boxShadow: 'var(--shadow-sm)',
                 }}
               >
-                <div
-                  className="text-[15px] font-semibold"
-                  style={{ color: 'var(--ink)' }}
-                >
-                  {t.name}
-                </div>
-                <div
-                  className="mt-1"
-                  style={{
-                    fontFamily: 'var(--mono)',
-                    fontSize: 10,
-                    letterSpacing: '0.12em',
-                    textTransform: 'uppercase',
-                    color: 'var(--ink-soft)',
-                  }}
-                >
-                  /category/{(t.category || 'all').toLowerCase()}{' '}
-                  <span style={{ color: 'var(--ink-dim)' }}>
-                    · #{String(i + 1).padStart(3, '0')}
-                  </span>
+                <div className="flex items-start gap-4">
+                  <div className="shrink-0">
+                    <ToolLogo tool={t} size={44} radius={10} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div
+                      className="truncate text-[15px] font-semibold"
+                      style={{ color: 'var(--ink)' }}
+                    >
+                      {t.name}
+                    </div>
+                    <div
+                      className="mt-1"
+                      style={{
+                        fontFamily: 'var(--mono)',
+                        fontSize: 10,
+                        letterSpacing: '0.12em',
+                        textTransform: 'uppercase',
+                        color: 'var(--ink-soft)',
+                      }}
+                    >
+                      /category/{(t.category || 'all').toLowerCase()}{' '}
+                      <span style={{ color: 'var(--ink-dim)' }}>
+                        · #{String(i + 1).padStart(3, '0')}
+                      </span>
+                    </div>
+                  </div>
                 </div>
                 <p
                   className="mt-3 line-clamp-2 text-[13px] leading-[1.55]"

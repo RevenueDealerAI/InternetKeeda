@@ -1,15 +1,16 @@
 'use client';
 
 import Link from 'next/link';
-import { ChevronDown, Plus, User } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
+import { NavAccount } from './NavAccount';
 
 const LINKS = [
-  { label: 'Launches', href: '#launches', caret: true },
-  { label: 'Categories', href: '/categories', caret: true },
-  { label: 'Products', href: '/top-products', caret: true },
-  { label: 'News', href: '/latest-news', caret: true },
-  { label: 'Advertise', href: '/advertise', caret: false },
+  { label: 'Launches', href: '/latest-launches' },
+  { label: 'Categories', href: '/categories' },
+  { label: 'Products', href: '/top-products' },
+  { label: 'News', href: '/latest-news' },
+  { label: 'Advertise', href: '/advertise' },
 ];
 
 export function Nav() {
@@ -51,13 +52,14 @@ export function Nav() {
           />
         </Link>
 
-        {/* Center links — desktop */}
+        {/* Center links — desktop. No carets: every link is a direct
+            page navigation; there are no dropdown menus. */}
         <ul className="hidden list-none items-center gap-0.5 p-0 lg:flex">
           {LINKS.map((l) => (
             <li key={l.label} className="list-none">
-              <a
+              <Link
                 href={l.href}
-                className="inline-flex items-center gap-1 rounded-full px-3.5 py-2 text-[13px] font-medium transition-colors"
+                className="inline-flex items-center rounded-full px-3.5 py-2 text-[13px] font-medium transition-colors"
                 style={{ color: 'var(--ink-2)' }}
                 onMouseEnter={(e) => {
                   (e.currentTarget as HTMLElement).style.color = 'var(--accent)';
@@ -69,8 +71,7 @@ export function Nav() {
                 }}
               >
                 {l.label}
-                {l.caret && <ChevronDown className="h-3 w-3 opacity-70" strokeWidth={2.5} />}
-              </a>
+              </Link>
             </li>
           ))}
         </ul>
@@ -92,18 +93,7 @@ export function Nav() {
             <span className="hidden sm:inline">Submit your tool</span>
             <span className="sm:hidden">Submit</span>
           </Link>
-          <Link
-            href="/dashboard"
-            aria-label="Account"
-            className="grid h-9 w-9 place-items-center rounded-full transition-all duration-200"
-            style={{
-              background: 'var(--accent-soft)',
-              border: '1px solid var(--rule)',
-              color: 'var(--accent)',
-            }}
-          >
-            <User className="h-4 w-4" />
-          </Link>
+          <NavAccount />
         </div>
       </nav>
     </header>

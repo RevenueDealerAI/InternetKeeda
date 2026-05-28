@@ -1,12 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { useMemo, useState } from 'react';
 import { ArrowUp } from 'lucide-react';
 import { useTools } from '@/lib/api/tools';
-import { getToolLogo } from '@/utils/toolHelpers';
 import type { Tool } from '@/types/tool';
+import { ToolLogo } from './ToolLogo';
 
 const TABS = [
   { id: 'today', label: 'Today' },
@@ -171,9 +170,6 @@ function ToolCard({ tool, rank }: { tool: Tool; rank: number }) {
   const boost = pickBoostLabel(tool);
   const desc = tool.description_ai || tool.description || '';
   const tags = (tool.tags ?? []).slice(0, 3);
-  const logoUrl = getToolLogo(tool);
-  const initial = (tool.name?.[0] || '?').toUpperCase();
-  const [logoFailed, setLogoFailed] = useState(false);
 
   const onMove = (e: React.MouseEvent<HTMLAnchorElement>) => {
     const el = e.currentTarget;
@@ -236,41 +232,9 @@ function ToolCard({ tool, rank }: { tool: Tool; rank: number }) {
       )}
 
       <div className="relative flex items-start gap-4">
-        {logoFailed || !logoUrl ? (
-          <div
-            aria-hidden="true"
-            className="grid h-12 w-12 shrink-0 place-items-center rounded-xl"
-            style={{
-              background: 'var(--accent-soft)',
-              border: '1px solid var(--rule)',
-              color: 'var(--accent)',
-              fontFamily: 'var(--sans)',
-              fontSize: 22,
-              fontWeight: 700,
-              letterSpacing: '-0.02em',
-            }}
-          >
-            {initial}
-          </div>
-        ) : (
-          <div
-            className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl"
-            style={{
-              background: '#fff',
-              border: '1px solid var(--rule)',
-            }}
-          >
-            <Image
-              src={logoUrl}
-              alt={`${tool.name} logo`}
-              fill
-              sizes="48px"
-              className="object-contain p-1.5"
-              unoptimized
-              onError={() => setLogoFailed(true)}
-            />
-          </div>
-        )}
+        <div className="shrink-0">
+          <ToolLogo tool={tool} size={48} radius={12} />
+        </div>
 
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-3">

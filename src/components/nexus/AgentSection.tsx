@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { ArrowRight, Brain, Database, Share2 } from 'lucide-react';
 import { NeuralCanvas } from './NeuralCanvas';
 
@@ -104,8 +103,9 @@ export function AgentSection() {
             })}
           </ul>
 
-          <Link
-            href="/?q=show%20me%20the%20best%20ai%20tools%20for%20my%20workflow"
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new Event('ik:open-eli'))}
             className="mt-10 inline-flex items-center gap-2 rounded-full px-6 py-3.5 text-[11px] font-semibold uppercase tracking-[0.18em] transition-transform hover:-translate-y-0.5"
             style={{
               background: 'linear-gradient(135deg, var(--accent), var(--accent-2))',
@@ -115,7 +115,7 @@ export function AgentSection() {
             }}
           >
             Try AI Keeda <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.5} />
-          </Link>
+          </button>
         </div>
 
         {/* Right — bordered intel panel with denser neural canvas */}

@@ -7,6 +7,7 @@ import { Analytics } from '@/components/Analytics';
 import { AdSense } from '@/components/AdSense';
 import { Nav } from '@/components/nexus/Nav';
 import { Footer } from '@/components/nexus/Footer';
+import { KeedaChat } from '@/components/nexus/KeedaChat';
 
 interface NextRouterAdapterProps {
   children: React.ReactNode;
@@ -37,6 +38,7 @@ export function NextRouterAdapter({ children }: NextRouterAdapterProps) {
       <Suspense fallback={null}>{children}</Suspense>
 
       {!isAdminRoute && <Footer />}
+      <KeedaChat />
     </div>
   );
 }
