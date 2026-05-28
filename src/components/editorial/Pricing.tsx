@@ -1,94 +1,108 @@
 'use client';
 
 import Link from 'next/link';
-import { SectionHeader } from './FeaturedGrid';
 
-type Plan = {
+type Tier = {
   name: string;
   price: string;
-  period: string;
-  tagline: string;
-  features: string[];
+  per: string;
+  desc: string;
+  items: string[];
   cta: { label: string; href: string };
-  highlight?: boolean;
+  featured?: boolean;
+  ribbon?: string;
 };
 
-const PLANS: Plan[] = [
+const TIERS: Tier[] = [
   {
-    name: 'Listing',
+    name: 'Monthly Listing',
     price: '$10',
-    period: '/ month',
-    tagline: 'Stay in the catalog. Forever.',
-    features: [
-      'Public listing on internetkeeda.com',
-      'Category placement + search index',
-      'Real-time analytics dashboard',
-      'Soft-delete safety net for missed payments',
+    per: '/ month',
+    desc: 'Stay in the catalog. Recurring.',
+    items: [
+      'Public listing',
+      'Category placement',
+      'Analytics dashboard',
+      'Soft-delete safety net',
     ],
-    cta: { label: 'Submit tool →', href: '/submit-tool' },
+    cta: { label: 'Submit tool', href: '/submit-tool' },
   },
   {
-    name: 'Boost · Category',
+    name: 'Boost · Category Top',
     price: '$12',
-    period: '/ 7 days',
-    tagline: 'Pin to the top of your category.',
-    features: [
-      'Top slot in your category for 7 days',
-      'Category boost badge on the card',
-      'Real-time impressions + clicks',
-      'PayPal or Cashfree, USD-anchored',
+    per: '/ 7 days',
+    desc: 'Top of your category page.',
+    items: [
+      'Pin to top of category',
+      'Boost badge',
+      'Real-time impressions',
+      'PayPal or Cashfree',
     ],
-    cta: { label: 'Boost category →', href: '/submit-tool' },
+    cta: { label: 'Boost category', href: '/submit-tool' },
   },
   {
-    name: 'Boost · Home',
+    name: 'Boost · Home Rotation',
     price: '$30',
-    period: '/ 7 days',
-    tagline: 'Land in the home rotation.',
-    features: [
-      'Home rotation slot (front-page exposure)',
-      'Self-healing webhooks — no stranded payments',
-      'Resubmit-safe, keeps your slot on re-edit',
-      'Stacks with the monthly Listing',
+    per: '/ 7 days',
+    desc: 'Land in the home rotation.',
+    items: [
+      'Home rotation slot',
+      'Front-page exposure',
+      'Self-healing webhooks',
+      'Resubmit-safe',
     ],
-    cta: { label: 'Boost now →', href: '/submit-tool' },
-    highlight: true,
+    cta: { label: 'Boost now', href: '/submit-tool' },
+    featured: true,
+    ribbon: 'most picked',
   },
   {
     name: 'Featured Badge',
     price: '$60',
-    period: '/ 30 days',
-    tagline: 'Wear the crown for a month.',
-    features: [
-      'Featured badge on every surface',
-      'All boost benefits included',
-      'Editorial mention in our roundup',
-      'Newsletter inclusion to our reader list',
+    per: '/ 30 days',
+    desc: 'Wear the blood crown.',
+    items: [
+      'Featured badge',
+      'Editorial mention',
+      'Newsletter inclusion',
+      'All boost benefits',
     ],
-    cta: { label: 'Go featured →', href: '/submit-tool' },
+    cta: { label: 'Go featured', href: '/submit-tool' },
   },
 ];
 
 export function Pricing() {
   return (
-    <section id="pricing" className="px-4 py-24 sm:py-32">
-      <div className="mx-auto max-w-7xl">
-        <SectionHeader
-          marker="§ 03 — pricing"
-          title={
-            <>
-              Pay to <span className="font-display italic text-blood">be seen.</span>
-            </>
-          }
-        />
-        <p className="mt-6 max-w-2xl text-base text-muted-foreground">
-          USD-anchored. PayPal worldwide, Cashfree for India. Self-healing webhooks keep your
-          listing live even if a single payment event drops.
-        </p>
+    <section id="pricing" className="px-6 py-24">
+      <div className="mx-auto max-w-[var(--maxw,1240px)]">
+        {/* Header — centered */}
+        <div className="mx-auto mb-14 max-w-[760px] text-center">
+          <div className="ik-eyebrow">§ 03 — pricing</div>
+          <h2
+            className="m-0 mt-3 font-medium text-foreground"
+            style={{
+              fontSize: 'clamp(36px, 5vw, 60px)',
+              lineHeight: 1.02,
+              letterSpacing: '-0.025em',
+            }}
+          >
+            Pay to{' '}
+            <span
+              className="font-display-roman italic"
+              style={{ color: 'var(--blood-color)', fontWeight: 400 }}
+            >
+              be seen.
+            </span>
+          </h2>
+          <p className="mx-auto mt-4 text-[16px] leading-[1.55]" style={{ color: 'var(--fg-dim)' }}>
+            USD-anchored. PayPal worldwide. Cashfree for India. Self-healing webhooks so nothing
+            strands.
+          </p>
+        </div>
 
-        <div className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {PLANS.map((plan) => (
-            <PlanCard key={plan.name} plan={plan} />
+        {/* 4-col grid */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {TIERS.map((tier) => (
+            <TierCard key={tier.name} tier={tier} />
           ))}
         </div>
       </div>
@@ -96,69 +110,90 @@ export function Pricing() {
   );
 }
 
-function PlanCard({ plan }: { plan: Plan }) {
-  const highlight = !!plan.highlight;
-
-  // Highlight card → blood-gradient w/ red glow. Others → glass.
-  const cardSurface = highlight
-    ? 'bg-gradient-blood shadow-blood text-white border-transparent'
-    : 'glass text-foreground';
-
-  const mutedText = highlight ? 'text-white/70' : 'text-muted-foreground';
-  const hairline = highlight ? 'bg-white/20' : 'bg-foreground/12';
-
+function TierCard({ tier }: { tier: Tier }) {
+  const featured = !!tier.featured;
   return (
-    <div className="relative flex flex-col">
-      {highlight && (
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
-          <span className="glass font-mono-display rounded-full px-3 py-1 text-[10px] uppercase tracking-[0.22em] text-foreground">
-            most picked
-          </span>
-        </div>
-      )}
+    <article className={`tier-card ${featured ? 'featured' : 'ik-glass'}`}>
+      {tier.ribbon && <div className="ribbon">{tier.ribbon}</div>}
 
       <div
-        className={`ik-card flex h-full flex-col overflow-hidden rounded-2xl border p-8 ${cardSurface}`}
+        className="font-mono-display text-[10px] uppercase tracking-[0.22em]"
+        style={{ color: featured ? 'rgba(255,255,255,0.8)' : 'var(--muted-color)' }}
       >
-        <div className="font-mono-display text-[10px] uppercase tracking-[0.25em]">
-          <span className={mutedText}>plan</span>{' '}
-          <span className="ml-1">{plan.name}</span>
-        </div>
-
-        <div className="mt-5 flex items-baseline gap-2">
-          <span className="font-display text-6xl italic leading-none">{plan.price}</span>
-          <span className={`font-mono-display text-xs uppercase tracking-[0.18em] ${mutedText}`}>
-            {plan.period}
-          </span>
-        </div>
-
-        <p className="font-display-roman mt-4 text-lg italic">{plan.tagline}</p>
-
-        <div className={`mt-6 h-px w-full ${hairline}`} />
-
-        <ul className="mt-6 flex flex-1 flex-col gap-3">
-          {plan.features.map((f) => (
-            <li key={f} className="flex items-start gap-3 text-sm leading-relaxed">
-              <span
-                aria-hidden="true"
-                className={`mt-[0.55rem] h-[3px] w-[3px] shrink-0 rounded-full ${highlight ? 'bg-white' : 'bg-blood'}`}
-              />
-              <span className={highlight ? 'text-white/90' : 'text-foreground/85'}>{f}</span>
-            </li>
-          ))}
-        </ul>
-
-        <Link
-          href={plan.cta.href}
-          className={
-            highlight
-              ? 'font-mono-display mt-8 inline-flex items-center justify-center rounded-full bg-white px-5 py-3 text-[11px] uppercase tracking-[0.2em] text-black transition-transform hover:-translate-y-0.5'
-              : 'font-mono-display bg-gradient-blood shadow-blood mt-8 inline-flex items-center justify-center rounded-full px-5 py-3 text-[11px] uppercase tracking-[0.2em] text-white transition-transform hover:-translate-y-0.5'
-          }
-        >
-          {plan.cta.label}
-        </Link>
+        {tier.name}
       </div>
-    </div>
+
+      <div className="mt-3.5 flex items-baseline gap-2">
+        <span
+          className="font-display-roman italic"
+          style={{
+            fontSize: 56,
+            lineHeight: 1,
+            color: featured ? '#fff' : 'hsl(var(--foreground))',
+            fontWeight: 400,
+          }}
+        >
+          {tier.price}
+        </span>
+        <span
+          className="font-mono-display text-[12px]"
+          style={{ color: featured ? 'rgba(255,255,255,0.8)' : 'var(--muted-color)' }}
+        >
+          {tier.per}
+        </span>
+      </div>
+
+      <p
+        className="m-0 mt-2 text-[14px] leading-[1.5]"
+        style={{ color: featured ? 'rgba(255,255,255,0.85)' : 'var(--fg-dim)' }}
+      >
+        {tier.desc}
+      </p>
+
+      <ul className="m-0 mb-6 mt-5 grid list-none gap-2.5 p-0">
+        {tier.items.map((item) => (
+          <li
+            key={item}
+            className="flex items-start gap-2.5 text-[13px]"
+            style={{ color: featured ? '#fff' : 'hsl(var(--foreground))' }}
+          >
+            <span
+              aria-hidden="true"
+              className="mt-[8px] block h-[5px] w-[5px] flex-shrink-0 rounded-full"
+              style={{ background: featured ? '#fff' : 'var(--blood-color)' }}
+            />
+            {item}
+          </li>
+        ))}
+      </ul>
+
+      <Link
+        href={tier.cta.href}
+        className={featured ? '' : 'btn-blood'}
+        style={
+          featured
+            ? {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                padding: 14,
+                borderRadius: 999,
+                background: '#fff',
+                color: 'var(--blood-color)',
+                fontFamily: 'var(--font-jetbrains-mono), ui-monospace, monospace',
+                fontSize: 11,
+                textTransform: 'uppercase',
+                letterSpacing: '0.18em',
+                fontWeight: 600,
+                width: '100%',
+                transition: 'background 0.25s ease',
+              }
+            : { width: '100%', justifyContent: 'center', padding: 14 }
+        }
+      >
+        {tier.cta.label} →
+      </Link>
+    </article>
   );
 }

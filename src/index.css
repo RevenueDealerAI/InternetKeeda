@@ -2,113 +2,153 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─────────────────────────────────────────────────────────────────
+   DESIGN TOKENS
+   Two themes — LIGHT default, DARK opt-in via [data-theme="dark"].
+   Tokens are kept in two parallel formats so both consumers work:
+     A) Existing Tailwind classes (bg-card, text-foreground, etc.)
+        — these consume hsl(var(--background)) etc., so the H/S/L/A
+        triples below stay HSL.
+     B) Reference editorial CSS (var(--bg), var(--fg), var(--blood))
+        — these consume the same vars wrapped in hsl(...) helpers
+        OR aliased vars (--bg = hsl(var(--background)) is computed
+        per-theme below).
+   ───────────────────────────────────────────────────────────────── */
 @layer base {
-  /* Light editorial — DEFAULT.
-     Ivory canvas, near-black ink, blood red is still the brand accent
-     so the same .text-blood works in both modes. */
+  /* LIGHT — paper + ink, blood accent */
   :root {
-    --background: 48 30% 97%;
-    --foreground: 0 0% 8%;
+    /* tailwind-compat (HSL channels) */
+    --background: 48 24% 97%;
+    --foreground: 25 12% 12%;
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 8%;
+    --card-foreground: 25 12% 12%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 8%;
-    --primary: 0 0% 8%;
+    --popover-foreground: 25 12% 12%;
+    --primary: 25 12% 12%;
     --primary-foreground: 0 0% 99%;
     --secondary: 48 14% 94%;
-    --secondary-foreground: 0 0% 8%;
+    --secondary-foreground: 25 12% 12%;
     --muted: 48 14% 94%;
-    --muted-foreground: 0 0% 40%;
+    --muted-foreground: 25 5% 38%;
     --accent: 48 14% 94%;
-    --accent-foreground: 0 0% 8%;
+    --accent-foreground: 25 12% 12%;
 
-    --blood: 358 92% 47%;       /* #E50914 — shared brand accent */
-    --blood-glow: 358 95% 53%;
-    --destructive: 358 92% 47%;
+    --blood: 358 88% 50%;
+    --blood-glow: 358 95% 56%;
+    --blood-deep: 354 80% 42%;
+    --destructive: 358 88% 50%;
     --destructive-foreground: 0 0% 99%;
 
-    --border: 0 0% 0% / 0.10;
-    --input: 0 0% 0% / 0.12;
-    --ring: 358 92% 47%;
+    --border: 25 12% 12% / 0.10;
+    --input: 25 12% 12% / 0.12;
+    --ring: 358 88% 50%;
     --radius: 0.875rem;
 
-    /* Paper shadows */
-    --shadow-soft: 0 1px 2px hsl(0 0% 0% / 0.04), 0 8px 24px -8px hsl(0 0% 0% / 0.08);
-    --shadow-card: 0 1px 0 hsl(0 0% 0% / 0.04), 0 20px 50px -20px hsl(0 0% 0% / 0.12);
-    --shadow-blood: 0 0 0 1px hsl(358 92% 47% / 0.30), 0 20px 60px -20px hsl(358 92% 47% / 0.45);
+    /* editorial aliases (with hsl() helpers already applied) */
+    --bg:            hsl(48 24% 97%);
+    --bg-elev:       hsl(0 0% 100%);
+    --fg:            hsl(25 12% 12%);
+    --fg-dim:        hsl(25 8% 34%);
+    --muted-color:   hsl(25 5% 50%);
+    --card-color:    hsl(0 0% 100% / 0.85);
+    --card-strong:   hsl(0 0% 100%);
+    --border-color:  hsl(25 12% 12% / 0.10);
+    --border-strong: hsl(25 12% 12% / 0.18);
+    --blood-color:   hsl(358 88% 50%);
+    --blood-deep-color: hsl(354 80% 42%);
+    --blood-glow-color: hsl(358 95% 56%);
+    --blood-soft:    hsl(358 88% 50% / 0.10);
+    --on-blood:      #fff;
 
-    /* Theme-conditional accents — body bg layers, etc. */
+    --shadow-soft: 0 1px 2px hsl(25 12% 12% / 0.06), 0 8px 24px -8px hsl(25 12% 12% / 0.12);
+    --shadow-card: 0 1px 0 hsl(0 0% 100% / 0.6) inset, 0 18px 50px -22px hsl(25 12% 12% / 0.18);
+    --shadow-blood: 0 0 0 1px hsl(358 88% 50% / 0.30), 0 18px 50px -20px hsl(358 88% 50% / 0.40);
+
     --backdrop-layer: transparent;
     --grain-opacity: 0;
-    --glass-tint: 0 0% 0%;       /* hsl(0 0% 0% / α) for light wash */
-    --glass-edge: 0 0% 0% / 0.08;
+    --grid-line:    hsl(25 12% 12% / 0.06);
+    --grain:        hsl(25 12% 12% / 0.04);
+    --vignette-1:   hsl(358 88% 50% / 0.10);
+    --vignette-2:   hsl(354 80% 42% / 0.08);
+    --vignette-3:   hsl(358 88% 50% / 0.06);
+    --spider-filter: drop-shadow(0 18px 30px hsl(25 12% 12% / 0.30));
+
+    --logo-mark-bg: linear-gradient(135deg, var(--blood-color), var(--blood-deep-color));
+    --logo-mark-fg: #fff;
+    --gradient-blood: linear-gradient(135deg, var(--blood-color), var(--blood-deep-color));
+
+    /* glass-utility hooks (used by .glass / .ik-card) */
+    --glass-tint: 25 12% 12%;
+    --glass-edge: 25 12% 12% / 0.10;
     --card-surface: 0 0% 100%;
-    --card-edge: 0 0% 0% / 0.10;
-    --spider-glow: drop-shadow(0 24px 32px hsl(0 0% 0% / 0.16));
+    --card-edge: 25 12% 12% / 0.10;
+    --spider-glow: var(--spider-filter);
   }
 
-  /* Dark cinematic — opt-in via data-theme on <html>. */
+  /* DARK — cinematic near-black with red undertone */
   :root[data-theme="dark"] {
-    --background: 6 12% 9%;
+    --background: 15 8% 10%;
     --foreground: 60 6% 96%;
-    --card: 6 10% 13%;
+    --card: 15 8% 15% / 0.65;
     --card-foreground: 60 6% 96%;
-    --popover: 6 10% 13%;
+    --popover: 15 8% 14%;
     --popover-foreground: 60 6% 96%;
     --primary: 60 6% 96%;
-    --primary-foreground: 6 12% 9%;
-    --secondary: 6 10% 17%;
+    --primary-foreground: 15 8% 10%;
+    --secondary: 15 8% 16%;
     --secondary-foreground: 60 6% 96%;
-    --muted: 6 10% 17%;
-    --muted-foreground: 60 5% 72%;
-    --accent: 6 10% 19%;
+    --muted: 15 8% 16%;
+    --muted-foreground: 60 6% 70%;
+    --accent: 15 8% 18%;
     --accent-foreground: 60 6% 96%;
 
-    --destructive: 358 92% 47%;
+    --blood: 358 92% 53%;
+    --blood-glow: 358 95% 60%;
+    --blood-deep: 354 88% 47%;
+    --destructive: 358 92% 53%;
     --destructive-foreground: 0 0% 99%;
 
-    --border: 0 0% 100% / 0.10;
+    --border: 0 0% 100% / 0.09;
     --input: 0 0% 100% / 0.12;
+    --ring: 358 92% 53%;
 
-    --shadow-soft: 0 1px 2px hsl(0 0% 0% / 0.4), 0 8px 24px -8px hsl(0 0% 0% / 0.5);
-    --shadow-card: 0 1px 0 hsl(0 0% 100% / 0.04) inset, 0 24px 60px -24px hsl(0 0% 0% / 0.7);
-    --shadow-blood: 0 0 0 1px hsl(358 92% 47% / 0.40), 0 20px 60px -20px hsl(358 92% 47% / 0.60);
+    --bg:            hsl(15 8% 10%);
+    --bg-elev:       hsl(15 8% 14%);
+    --fg:            hsl(60 6% 96%);
+    --fg-dim:        hsl(60 6% 78%);
+    --muted-color:   hsl(60 6% 62%);
+    --card-color:    hsl(15 8% 15% / 0.65);
+    --card-strong:   hsl(15 8% 17% / 0.85);
+    --border-color:  hsl(0 0% 100% / 0.09);
+    --border-strong: hsl(0 0% 100% / 0.16);
+    --blood-color:   hsl(358 92% 53%);
+    --blood-deep-color: hsl(354 88% 47%);
+    --blood-glow-color: hsl(358 95% 60%);
+    --blood-soft:    hsl(358 92% 53% / 0.16);
 
-    /* Dark-only cinematic chrome */
+    --shadow-soft: 0 1px 2px hsl(0 0% 0% / 0.45), 0 8px 24px -8px hsl(0 0% 0% / 0.55);
+    --shadow-card: 0 1px 0 hsl(0 0% 100% / 0.04) inset, 0 24px 60px -24px hsl(0 0% 0% / 0.75);
+    --shadow-blood: 0 0 0 1px hsl(358 92% 53% / 0.35), 0 20px 60px -20px hsl(358 92% 53% / 0.55);
+
     --backdrop-layer:
-      radial-gradient(900px 600px at 12% -10%, hsl(358 92% 47% / 0.20), transparent 60%),
-      radial-gradient(800px 500px at 95% 8%,  hsl(355 85% 40% / 0.14), transparent 60%),
-      radial-gradient(1200px 700px at 50% 110%, hsl(358 92% 47% / 0.13), transparent 60%);
+      radial-gradient(ellipse 50% 40% at 15% 15%, hsl(358 92% 53% / 0.18), transparent 60%),
+      radial-gradient(ellipse 45% 35% at 85% 10%, hsl(354 88% 47% / 0.14), transparent 65%),
+      radial-gradient(ellipse 70% 50% at 50% 110%, hsl(358 92% 53% / 0.10), transparent 60%);
     --grain-opacity: 0.18;
-    --glass-tint: 0 0% 100%;
-    --glass-edge: 0 0% 100% / 0.10;
-    --card-surface: 6 10% 14%;
-    --card-edge: 0 0% 100% / 0.10;
-    --spider-glow:
-      drop-shadow(0 0 28px hsl(358 92% 47% / 0.55))
-      drop-shadow(0 24px 36px hsl(0 0% 0% / 0.55));
-  }
+    --grid-line:    hsl(0 0% 100% / 0.045);
+    --grain:        hsl(0 0% 100% / 0.04);
+    --vignette-1:   hsl(358 92% 53% / 0.18);
+    --vignette-2:   hsl(354 88% 47% / 0.14);
+    --vignette-3:   hsl(358 92% 53% / 0.10);
+    --spider-filter:
+      drop-shadow(0 22px 36px hsl(0 0% 0% / 0.55))
+      drop-shadow(0 0 40px hsl(358 92% 53% / 0.25));
 
-  .dark {
-    --background: 222.2 47% 6%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 47% 8%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 47% 8%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 0 72% 55%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 217.2 32.6% 14%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 14%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 0 50% 18%;
-    --accent-foreground: 0 100% 90%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 0 72% 55%;
+    --glass-tint: 0 0% 100%;
+    --glass-edge: 0 0% 100% / 0.09;
+    --card-surface: 15 8% 15%;
+    --card-edge: 0 0% 100% / 0.09;
+    --spider-glow: var(--spider-filter);
   }
 
   * {
@@ -127,9 +167,7 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
-    /* Cinematic vignette only paints in dark mode — light is clean ivory. */
-    background-image: var(--backdrop-layer);
-    background-attachment: fixed;
+    transition: background-color 0.4s ease, color 0.4s ease;
   }
 
   ::selection {
@@ -137,30 +175,10 @@
     color: white;
   }
 
-  /* Editorial typography utilities — the emotional + data voices */
-  .font-display {
-    font-family: var(--font-instrument-serif), "Instrument Serif", "Cormorant Garamond", "Times New Roman", serif;
-    font-style: italic;
-    font-weight: 400;
-    letter-spacing: -0.01em;
-  }
-  .font-display-roman {
-    font-family: var(--font-instrument-serif), "Instrument Serif", "Cormorant Garamond", "Times New Roman", serif;
-    font-style: normal;
-    font-weight: 400;
-  }
-  .font-mono-display {
-    font-family: var(--font-jetbrains-mono), var(--font-geist-mono), "JetBrains Mono", ui-monospace, monospace;
-    font-feature-settings: "ss01", "ss02", "ss03", "cv11";
-  }
-
-  /* Tight tracking on display headings, comfortable on body */
   h1, h2, h3, h4 {
     letter-spacing: -0.02em;
   }
 
-  /* iOS zooms inputs whose font-size < 16px when focused. Lock all
-   * form-field inputs to 16px on mobile so the viewport doesn't jump. */
   @media (max-width: 767px) {
     input[type="text"],
     input[type="email"],
@@ -175,358 +193,510 @@
     }
   }
 
-  /* Hide Next.js 15 dev-mode overlays (segment explorer, build badge,
-   * error indicator). They render into a custom <nextjs-portal> element
-   * that Next 15 no longer exposes via config (devIndicators.* deprecated).
-   * Production builds never inject this element, so the rule is a no-op
-   * in deployment. */
-  nextjs-portal {
-    display: none !important;
+  nextjs-portal { display: none !important; }
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   EDITORIAL TYPOGRAPHY HELPERS
+   ───────────────────────────────────────────────────────────────── */
+@layer components {
+  .font-display {
+    font-family: var(--font-instrument-serif), "Instrument Serif", serif;
+    font-style: italic;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+  }
+  .font-display-roman {
+    font-family: var(--font-instrument-serif), "Instrument Serif", serif;
+    font-style: normal;
+    font-weight: 400;
+  }
+  .font-mono-display {
+    font-family: var(--font-jetbrains-mono), var(--font-geist-mono), "JetBrains Mono", ui-monospace, monospace;
+    font-feature-settings: "ss01", "ss02", "ss03", "cv11";
+  }
+
+  /* Reference editorial typography */
+  .ik-mono { font-family: var(--font-jetbrains-mono), ui-monospace, monospace; font-weight: 500; letter-spacing: 0.04em; }
+  .ik-serif { font-family: var(--font-instrument-serif), serif; font-style: italic; }
+  .ik-eyebrow { font-family: var(--font-jetbrains-mono), ui-monospace, monospace; font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--blood-color); }
+
+  .ik-glass {
+    background: linear-gradient(180deg, hsl(var(--glass-tint) / 0.04), hsl(var(--glass-tint) / 0.015));
+    border: 1px solid var(--border-color);
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+  }
+  :root[data-theme="light"] .ik-glass,
+  :root:not([data-theme="dark"]) .ik-glass {
+    background: linear-gradient(180deg, hsl(0 0% 100% / 0.85), hsl(0 0% 100% / 0.7));
+    border: 1px solid var(--border-color);
+  }
+  .ik-glass-strong {
+    background: linear-gradient(180deg, hsl(var(--glass-tint) / 0.07), hsl(var(--glass-tint) / 0.02));
+    border: 1px solid var(--border-strong);
+    backdrop-filter: blur(24px) saturate(140%);
+    -webkit-backdrop-filter: blur(24px) saturate(140%);
+  }
+  :root[data-theme="light"] .ik-glass-strong,
+  :root:not([data-theme="dark"]) .ik-glass-strong {
+    background: linear-gradient(180deg, hsl(0 0% 100% / 0.95), hsl(0 0% 100% / 0.85));
+    border: 1px solid var(--border-strong);
   }
 }
 
+/* ─────────────────────────────────────────────────────────────────
+   COMPATIBILITY UTILITIES — kept from before, retained where used
+   ───────────────────────────────────────────────────────────────── */
 @layer components {
-  .glass-card {
-    @apply bg-white/80 backdrop-blur-lg border border-white/20 shadow-lg;
+  .glass-card { @apply bg-white/80 backdrop-blur-lg border border-white/20 shadow-lg; }
+  .hover-scale { @apply transition-transform duration-300 hover:scale-[1.02]; }
+
+  .glass {
+    background: linear-gradient(180deg, hsl(var(--glass-tint) / 0.06), hsl(var(--glass-tint) / 0.02));
+    border: 1px solid hsl(var(--glass-edge));
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+  }
+  .glass-strong {
+    background: linear-gradient(180deg, hsl(var(--glass-tint) / 0.09), hsl(var(--glass-tint) / 0.03));
+    border: 1px solid hsl(var(--glass-edge));
+    backdrop-filter: blur(24px) saturate(160%);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
   }
 
-  .hover-scale {
-    @apply transition-transform duration-300 hover:scale-[1.02];
+  .text-blood { color: hsl(var(--blood)); }
+  .bg-blood { background-color: hsl(var(--blood)); }
+  .bg-gradient-blood {
+    background-image: linear-gradient(135deg, hsl(var(--blood)), hsl(var(--blood-deep)));
+  }
+  .shadow-blood { box-shadow: var(--shadow-blood); }
+
+  .ik-hairline { background-color: hsl(var(--foreground) / 0.10); }
+
+  .ik-card {
+    transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1),
+                box-shadow 500ms cubic-bezier(0.22, 1, 0.36, 1),
+                border-color 500ms cubic-bezier(0.22, 1, 0.36, 1);
+    background-color: hsl(var(--card-surface));
+    border: 1px solid hsl(var(--card-edge));
+    box-shadow: var(--shadow-soft);
+  }
+  .ik-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-blood);
+    border-color: hsl(var(--blood) / 0.35);
   }
 
-  /* Phase D Tier 3 — gradient text. Used for hero accent word
-   * ("organized."), section headings, and CTA labels. */
-  .gradient-text {
-    background-image: linear-gradient(90deg, #DC2626 0%, #0A0A0A 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    -webkit-text-fill-color: transparent;
+  .ik-pill {
+    background-color: hsl(var(--card-surface));
+    border: 1px solid hsl(var(--glass-edge));
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    color: hsl(var(--foreground));
+    box-shadow: var(--shadow-soft);
   }
 
-  /* Animated gradient sweep — for the hero accent word. The gradient
-   * is widened to 200% and slid horizontally so a band of bright red
-   * crosses the letters every 6s. Pauses on prefers-reduced-motion. */
-  .gradient-text-sweep {
-    background-image: linear-gradient(
-      90deg,
-      #0A0A0A 0%,
-      #B91C1C 30%,
-      #DC2626 50%,
-      #B91C1C 70%,
-      #0A0A0A 100%
-    );
-    background-size: 220% 100%;
-    background-position: 0% 50%;
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    -webkit-text-fill-color: transparent;
-    animation: gradient-sweep 6s ease-in-out infinite;
-  }
-  @keyframes gradient-sweep {
-    0%,   100% { background-position: 0% 50%; }
-    50%        { background-position: 100% 50%; }
-  }
-  @media (prefers-reduced-motion: reduce), (max-width: 767px) {
-    /* Mobile pauses the sweep so the GPU isn't repainting the
-     * background every frame. The static gradient still reads. */
-    .gradient-text-sweep {
-      animation: none;
-      background-position: 50% 50%;
-    }
+  .ik-ghost-letter {
+    font-family: var(--font-instrument-serif), "Instrument Serif", serif;
+    font-style: italic;
+    color: hsl(var(--foreground) / 0.08);
+    line-height: 0.85;
+    user-select: none;
   }
 
-  /* Headline letter-by-letter decode. Each letter span starts at
-   * opacity:0 + translateY(0.6em) and fades in via a per-letter
-   * delay applied as an inline style. Total reveal ~600 ms. */
-  .decode-letter {
-    display: inline-block;
-    opacity: 0;
-    transform: translateY(0.45em);
-    animation: decode-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-    will-change: transform, opacity;
-  }
-  @keyframes decode-in {
-    to { opacity: 1; transform: translateY(0); }
-  }
-  @media (prefers-reduced-motion: reduce), (max-width: 767px) {
-    /* Mobile keeps the LCP element painted instantly. The desktop
-     * cinematic decode would otherwise hold the headline at opacity:0
-     * for ~0.5 s and push FCP back. */
-    .decode-letter {
-      animation: none;
-      opacity: 1;
-      transform: none;
-    }
+  /* Cinematic film grain — only visible in dark mode */
+  .ik-film-grain {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: -5;
+    opacity: var(--grain-opacity);
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.7 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    background-size: 240px 240px;
   }
 
-  /* Gradient-border card. Wraps a 1px gradient stroke around a white
-   * inner card. Animate the gradient on hover by combining with the
-   * .border-sweep animation. */
-  .gradient-border {
-    position: relative;
-    border-radius: inherit;
-    background-clip: padding-box;
+  /* Reference-spec backdrop — radial vignettes + grid + grain.
+     Only the dark theme vignettes paint; light theme has --vignette-*
+     at low alpha for a subtle warmth. */
+  .ik-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: -6;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse 50% 40% at 15% 15%, var(--vignette-1), transparent 60%),
+      radial-gradient(ellipse 45% 35% at 85% 10%, var(--vignette-2), transparent 65%),
+      radial-gradient(ellipse 70% 50% at 50% 110%, var(--vignette-3), transparent 60%);
+    background-attachment: fixed;
   }
-  .gradient-border::before {
+  .ik-backdrop::before {
     content: "";
     position: absolute;
     inset: 0;
-    border-radius: inherit;
-    padding: 1px;
-    background: linear-gradient(135deg, #DC2626 0%, #991B1B 50%, #0A0A0A 100%);
-    background-size: 200% 200%;
-    -webkit-mask:
-      linear-gradient(#fff 0 0) content-box,
-      linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-            mask-composite: exclude;
-    opacity: 0;
-    transition: opacity 200ms ease;
-    pointer-events: none;
-  }
-  .gradient-border:hover::before,
-  .gradient-border[data-active="true"]::before {
-    opacity: 1;
-    animation: border-sweep 4s ease infinite;
+    background-image:
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 56px 56px;
+    -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, #000 30%, transparent 80%);
+    mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, #000 30%, transparent 80%);
+    opacity: 0.9;
   }
 
-  /* Mobile menu panel — slides down from the top when opened. The
-   * panel itself only renders when isMobileMenuOpen so we don't need
-   * an exit animation; the enter runs on mount via this keyframe. */
-  .mobile-menu-panel {
-    animation: mobile-menu-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  /* Editorial Nav surface */
+  .nav-pill {
+    position: fixed;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 60;
+    width: min(1240px, calc(100% - 32px));
   }
-  @keyframes mobile-menu-in {
-    from { transform: translateY(-16px); }
-    to   { transform: translateY(0); }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .mobile-menu-panel { animation: none; }
-  }
-
-  /* Page-level entrance — runs on every route change because
-   * PageTransition keys the wrapper on pathname. Pure CSS so the
-   * route shell doesn't ship framer-motion. */
-  .page-transition {
-    animation: page-transition-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  }
-  @keyframes page-transition-in {
-    from { opacity: 0; transform: translateY(8px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .page-transition { animation: none; }
+  .nav-pill-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 8px 8px 8px 16px;
+    border-radius: 999px;
+    box-shadow: var(--shadow-soft);
   }
 
-  /* Hero entrance — CSS-driven so the headline paints immediately
-   * without waiting for framer-motion to hydrate. The keyframe runs
-   * once on the initial load; @media (prefers-reduced-motion) kills
-   * it so users who opted out see the final state on the first paint. */
-  .hero-fade-up {
-    opacity: 0;
-    transform: translateY(18px);
-    animation: hero-fade-up-anim 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-  }
-  @keyframes hero-fade-up-anim {
-    to { opacity: 1; transform: translateY(0); }
-  }
-  @media (prefers-reduced-motion: reduce), (max-width: 767px) {
-    /* Mobile FCP-critical — paint hero content immediately rather than
-     * waiting on the 0.55 s fade. Desktop still gets the cinematic
-     * entrance. */
-    .hero-fade-up { opacity: 1; transform: none; animation: none; }
+  /* Reference brand mark — circle with italic serif K */
+  .brand-mark {
+    width: 36px; height: 36px;
+    border-radius: 999px;
+    display: grid; place-items: center;
+    background: var(--logo-mark-bg);
+    color: var(--logo-mark-fg);
+    font-family: var(--font-instrument-serif), serif;
+    font-style: italic;
+    font-size: 20px;
+    box-shadow: var(--shadow-blood);
+    flex-shrink: 0;
   }
 
-  /* R6 — keeda (worm) mark, gentle bob. GPU-only (transform), so it
-   * doesn't trigger layout or paint per frame. Stops on reduced-motion. */
-  .keeda-mark-bob {
-    animation: keeda-bob 4.5s ease-in-out infinite;
-    transform-origin: 50% 50%;
-    will-change: transform;
+  /* Reference search bar */
+  .ik-search {
+    margin: 56px auto 0;
+    max-width: 720px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 8px 8px 22px;
+    border-radius: 999px;
+    box-shadow: var(--shadow-card);
   }
-  @keyframes keeda-bob {
-    0%,  100% { transform: translateY(0)    rotate(-1deg); }
-    50%       { transform: translateY(-4px) rotate( 2deg); }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .keeda-mark-bob { animation: none; }
-  }
-
-  /* Scroll-triggered card reveal. Cards start hidden + offset, and
-   * the IntersectionObserver in useInViewReveal() toggles .in-view
-   * when they cross the viewport edge. Opacity + transform composite
-   * on the GPU. Per-card cascade is driven by inline
-   * `style={{ transitionDelay: ... }}` so each batch in viewport
-   * stays in step. */
-  .card-reveal {
-    opacity: 0;
-    transform: translateY(24px);
-    transition:
-      opacity 0.6s ease-out,
-      transform 0.6s ease-out;
-    will-change: opacity, transform;
-  }
-  .card-reveal.in-view {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .card-reveal,
-    .card-reveal.in-view {
-      opacity: 1;
-      transform: none;
-      transition: none;
-    }
-  }
-
-  .ad-container,
-  .ad-slot {
-    position: relative;
-    overflow: hidden;
-  }
-
-  .ad-container:empty,
-  .ad-slot:empty {
-    display: none;
-  }
-
-  /* Modal scrollbar styling */
-  .modal-scroll {
-  }
-  .modal-scroll::-webkit-scrollbar {
-    width: 8px;
-  }
-  .modal-scroll::-webkit-scrollbar-track {
+  .ik-search .icon { color: var(--blood-color); font-size: 18px; flex-shrink: 0; }
+  .ik-search input {
+    flex: 1;
     background: transparent;
+    border: 0;
+    outline: none;
+    color: hsl(var(--foreground));
+    font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+    font-size: 13px;
+    padding: 14px 0;
+    letter-spacing: 0.02em;
   }
-  .modal-scroll::-webkit-scrollbar-thumb {
-    background: rgba(128, 57, 253, 0.4); /* theme-two purple */
-    border-radius: 9999px;
-    border: 2px solid transparent;
-    background-clip: content-box;
-  }
-}
+  .ik-search input::placeholder { color: var(--muted-color); text-transform: uppercase; letter-spacing: 0.05em; }
 
-/* Global page-level scrollbar — thin, neutral, hover-orange. */
-html {
-  scroll-behavior: smooth;
-}
-@media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.001ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
+  /* Reference primary CTA */
+  .btn-blood {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, hsl(var(--blood)), hsl(var(--blood-deep)));
+    color: #fff;
+    box-shadow: var(--shadow-blood);
+    font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-weight: 600;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
   }
-}
-::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb {
-  background: rgba(15, 23, 42, 0.15);
-  border-radius: 9999px;
-  border: 2px solid transparent;
-  background-clip: content-box;
-}
-::-webkit-scrollbar-thumb:hover { background: rgba(220, 38, 38, 0.45); background-clip: content-box; }
+  .btn-blood:hover { transform: translateY(-1px); }
 
-/* Mobile-specific improvements */
-@media (max-width: 768px) {
-  html, body {
-    -webkit-overflow-scrolling: touch;
-    touch-action: auto;
-    overflow-x: hidden;
-    min-height: 100%;
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border-radius: 999px;
+    border: 1px solid var(--border-strong);
+    color: hsl(var(--foreground));
+    font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    transition: all 0.25s ease;
   }
-  
-  /* Better touch feedback */
-  a, button, [role="button"] {
-    -webkit-tap-highlight-color: transparent;
+  .btn-ghost:hover {
+    background: var(--blood-soft);
+    border-color: var(--blood-color);
+  }
+
+  /* Category pill */
+  .cat-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--border-color);
+    background: var(--card-color);
+    transition: all 0.25s ease;
+  }
+  .cat-pill:hover {
+    border-color: var(--blood-color);
+    background: var(--blood-soft);
+    transform: translateY(-1px);
+  }
+  .cat-pill .glyph { color: var(--blood-color); font-family: var(--font-jetbrains-mono), ui-monospace, monospace; font-size: 11px; width: 14px; text-align: center; }
+  .cat-pill .name { font-size: 13px; color: hsl(var(--foreground)); }
+  .cat-pill .count {
+    font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+    font-size: 10px; padding: 2px 8px; border-radius: 999px;
+    background: hsl(var(--foreground) / 0.08);
+    color: var(--fg-dim);
+  }
+
+  /* Trending pill (small mono) */
+  .trend-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--border-color);
+    background: var(--card-color);
+    font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--fg-dim);
+    transition: all 0.25s ease;
+  }
+  .trend-pill:hover {
+    color: hsl(var(--foreground));
+    border-color: var(--blood-color);
+    background: var(--blood-soft);
+  }
+
+  /* Pulsing blood dot */
+  .blood-dot {
+    width: 6px; height: 6px;
+    border-radius: 999px;
+    background: var(--blood-color);
+    box-shadow: 0 0 12px var(--blood-glow-color);
+    animation: ik-pulse 2.4s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+  @keyframes ik-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.55; transform: scale(0.7); }
+  }
+
+  /* Stats strip — 4-cell grid with hairline gap-1px dividers */
+  .stats-strip {
+    margin: 80px auto 0;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    border-radius: 22px;
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+    background: var(--border-strong);
+    max-width: 1080px;
+  }
+  .stats-strip .stat {
+    background: var(--card-strong);
+    padding: 28px 26px;
+    text-align: left;
+  }
+  .stats-strip .stat-n {
+    font-family: var(--font-instrument-serif), serif;
+    font-style: italic;
+    font-size: clamp(36px, 4vw, 52px);
+    line-height: 1;
+    color: hsl(var(--foreground));
+  }
+  .stats-strip .stat-l {
+    margin-top: 10px;
+    font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--muted-color);
+  }
+  @media (max-width: 760px) {
+    .stats-strip { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* Tool ROW card (Just Released) */
+  .tool-row-card {
+    display: flex;
+    gap: 16px;
+    padding: 18px;
+    border-radius: 18px;
+    box-shadow: var(--shadow-soft);
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    position: relative;
+  }
+  .tool-row-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-blood);
+    border-color: hsl(var(--blood) / 0.35) !important;
+  }
+  .tool-row-icon {
+    flex-shrink: 0;
+    width: 56px; height: 56px;
+    border-radius: 14px;
+    display: grid; place-items: center;
+    background: linear-gradient(135deg, hsl(15 8% 8%), hsl(0 0% 2%));
+    color: var(--blood-color);
+    font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+    font-size: 22px;
+    border: 1px solid var(--border-color);
+    box-shadow: inset 0 0 0 1px hsl(0 0% 100% / 0.04);
+  }
+  :root[data-theme="light"] .tool-row-icon,
+  :root:not([data-theme="dark"]) .tool-row-icon {
+    background: linear-gradient(135deg, hsl(25 12% 14%), hsl(0 0% 4%));
+    color: var(--blood-glow-color);
+  }
+
+  /* Tab pill group */
+  .tab-group {
+    display: inline-flex;
+    gap: 2px;
+    padding: 5px;
+    border-radius: 999px;
+    box-shadow: var(--shadow-soft);
+  }
+  .tab-group button {
+    padding: 9px 16px;
+    border-radius: 999px;
+    font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--muted-color);
+    transition: all 0.2s ease;
+    background: transparent;
+    border: 0;
     cursor: pointer;
   }
-  
-  /* Active states for mobile tap */
-  .active-scale {
-    transition: transform 0.1s ease;
+  .tab-group button.active {
+    background: linear-gradient(135deg, hsl(var(--blood)), hsl(var(--blood-deep)));
+    color: #fff;
+    box-shadow: var(--shadow-blood);
   }
-  
-  .active-scale:active {
-    transform: scale(0.97);
+  .tab-group button:not(.active):hover { color: hsl(var(--foreground)); }
+
+  /* Boost badge — top-right of tool card */
+  .boost-badge {
+    position: absolute;
+    top: 14px; right: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, hsl(var(--blood)), hsl(var(--blood-deep)));
+    color: #fff;
+    font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
   }
-  
-  /* Mobile scrolling areas */
-  .mobile-scroll-area {
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* IE and Edge */
+  .boost-badge .ddot {
+    width: 4px; height: 4px;
+    background: #fff;
+    border-radius: 999px;
+    animation: ik-pulse 1.6s ease-in-out infinite;
   }
-  
-  .mobile-scroll-area::-webkit-scrollbar {
-    display: none; /* Chrome, Safari, Opera */
+
+  /* Tag chip — inside tool card */
+  .tool-tag {
+    font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: hsl(var(--foreground) / 0.04);
+    border: 1px solid hsl(var(--foreground) / 0.06);
+    color: var(--fg-dim);
   }
-  
-  /* Add smooth corners to match iOS design language */
-  .mobile-rounded {
-    border-radius: 0.75rem;
+
+  /* Corridor cell */
+  .corridor-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    border-radius: 22px;
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+    background: var(--border-strong);
   }
-  
-  /* Mobile safe areas for bottom navigation */
-  .mobile-safe-bottom {
-    padding-bottom: env(safe-area-inset-bottom, 1rem);
+  @media (max-width: 980px) { .corridor-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 600px) { .corridor-grid { grid-template-columns: 1fr; } }
+  .corridor-cell {
+    background: var(--card-strong);
+    padding: 32px 28px 26px;
+    position: relative;
+    transition: background 0.3s ease;
+    min-height: 220px;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
   }
-  
-  /* Improve modal interactions on mobile */
-  .mobile-modal-sheet {
-    border-radius: 1rem 1rem 0 0;
-    transform: translateY(0);
-    transition: transform 0.3s ease-out;
+  .corridor-cell:hover { background: hsl(var(--blood) / 0.06); }
+
+  /* Pricing tier card */
+  .tier-card {
+    position: relative;
+    padding: 28px 24px 26px;
+    border-radius: 22px;
+    box-shadow: var(--shadow-soft);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
   }
-  
-  .mobile-modal-sheet.closed {
-    transform: translateY(100%);
+  .tier-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-card);
   }
-  
-  /* Mobile bottom sheet */
-  .mobile-bottom-sheet {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 50;
-    background-color: white;
-    border-top-left-radius: 1rem;
-    border-top-right-radius: 1rem;
-    box-shadow: 0 -4px 6px -1px rgb(0 0 0 / 0.05);
-    transform: translateY(0);
-    transition: transform 0.3s cubic-bezier(0.33, 1, 0.68, 1);
+  .tier-card.featured {
+    background: linear-gradient(160deg, hsl(var(--blood)) 0%, hsl(var(--blood-deep)) 100%);
+    color: #fff;
+    border-color: transparent;
   }
-  
-  .mobile-bottom-sheet.closed {
-    transform: translateY(100%);
+  .tier-card .ribbon {
+    position: absolute;
+    top: -12px; left: 50%;
+    transform: translateX(-50%);
+    padding: 4px 14px;
+    border-radius: 999px;
+    background: var(--bg-elev);
+    color: hsl(var(--foreground));
+    border: 1px solid var(--border-strong);
+    font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+    font-size: 9px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
   }
 }
 
-section:not(.ad-container):not(.ad-slot) .sponsored-listing,
-section:not(.ad-container):not(.ad-slot) [class*="sponsored"],
-section:not(.ad-container):not(.ad-slot) [class*="ad-"] {
-  display: none !important;
-}
-
-.ad-container .sponsored-listing,
-.ad-slot .sponsored-listing,
-.ad-container [class*="sponsored"],
-.ad-slot [class*="sponsored"] {
-  display: block;
-}
-
-/* ============================================================
-   EDITORIAL WEB — spider + web animation system
-   ============================================================ */
-
-/* Hero spider + chip float — subtle drift on a thread */
+/* ─────────────────────────────────────────────────────────────────
+   ANIMATIONS — spider, web sway, marquee, etc.
+   ───────────────────────────────────────────────────────────────── */
 @keyframes ik-float-y {
   0%, 100% { transform: translateY(0) rotate(0deg); }
   50%      { transform: translateY(-14px) rotate(1.5deg); }
@@ -535,9 +705,6 @@ section:not(.ad-container):not(.ad-slot) [class*="ad-"] {
 .ik-float-y-slow { animation: ik-float-y 8s ease-in-out infinite; will-change: transform; }
 .ik-float-y-fast { animation: ik-float-y 5s ease-in-out infinite; will-change: transform; }
 
-/* Big hero spider — actually dangles like it's on a thread.
-   Combines vertical bob (thread length), horizontal sway, and
-   rotation, all offset so it feels organic instead of pendulum-y. */
 @keyframes ik-dangle {
   0%   { transform: translate3d(0, 0, 0) rotate(-3deg); }
   20%  { transform: translate3d(18px, -10px, 0) rotate(4deg); }
@@ -552,38 +719,35 @@ section:not(.ad-container):not(.ad-slot) [class*="ad-"] {
   will-change: transform;
 }
 
-/* Corner webs — barely-there sway, as if disturbed by air */
 @keyframes ik-web-sway {
   0%, 100% { transform: translate(0, 0) rotate(0deg); }
   50%      { transform: translate(2px, -1px) rotate(0.2deg); }
 }
-.ik-web-sway { animation: ik-web-sway 8s ease-in-out infinite; transform-origin: center; will-change: transform; }
-.ik-web-sway-2 { animation: ik-web-sway 9.5s ease-in-out 1.2s infinite; transform-origin: center; will-change: transform; }
-.ik-web-sway-3 { animation: ik-web-sway 11s ease-in-out 0.4s infinite; transform-origin: center; will-change: transform; }
-.ik-web-sway-4 { animation: ik-web-sway 7.5s ease-in-out 2.1s infinite; transform-origin: center; will-change: transform; }
+.ik-web-sway   { animation: ik-web-sway  8s   ease-in-out infinite; transform-origin: center; will-change: transform; }
+.ik-web-sway-2 { animation: ik-web-sway  9.5s ease-in-out 1.2s infinite; transform-origin: center; will-change: transform; }
+.ik-web-sway-3 { animation: ik-web-sway 11s   ease-in-out 0.4s infinite; transform-origin: center; will-change: transform; }
+.ik-web-sway-4 { animation: ik-web-sway  7.5s ease-in-out 2.1s infinite; transform-origin: center; will-change: transform; }
 
-/* Roaming spider — 60s crawl tour. Positions are top/left % of viewport. */
+/* Roaming spider — reference's 80s viewport tour with rotation */
 @keyframes ik-crawl {
-  0%   { top: 12vh;  left: -6vw;  transform: rotate(15deg); }
-  12%  { top: 8vh;   left: 22vw;  transform: rotate(85deg); }
-  24%  { top: 26vh;  left: 48vw;  transform: rotate(135deg); }
-  36%  { top: 58vh;  left: 72vw;  transform: rotate(170deg); }
-  48%  { top: 84vh;  left: 84vw;  transform: rotate(215deg); }
-  60%  { top: 72vh;  left: 38vw;  transform: rotate(265deg); }
-  72%  { top: 44vh;  left: 12vw;  transform: rotate(305deg); }
-  84%  { top: 18vh;  left: 4vw;   transform: rotate(350deg); }
-  100% { top: 12vh;  left: -6vw;  transform: rotate(375deg); }
+  0%   { transform: translate(8vw, 14vh) rotate(20deg); }
+  12%  { transform: translate(72vw, 10vh) rotate(110deg); }
+  25%  { transform: translate(86vw, 40vh) rotate(180deg); }
+  38%  { transform: translate(62vw, 58vh) rotate(225deg); }
+  50%  { transform: translate(22vw, 64vh) rotate(290deg); }
+  62%  { transform: translate(10vw, 40vh) rotate(340deg); }
+  75%  { transform: translate(42vw, 24vh) rotate(45deg); }
+  88%  { transform: translate(76vw, 48vh) rotate(160deg); }
+  100% { transform: translate(8vw, 14vh) rotate(380deg); }
 }
-.ik-crawl { animation: ik-crawl 60s linear infinite; will-change: top, left, transform; }
+.ik-crawl { animation: ik-crawl 80s linear infinite; will-change: transform; }
 
-/* Inner leg-wiggle — runs inside the spider wrapper while it crawls */
 @keyframes ik-leg-wiggle {
   0%, 100% { transform: scale(1.015, 0.985); }
   50%      { transform: scale(0.985, 1.015); }
 }
-.ik-leg-wiggle { animation: ik-leg-wiggle 0.4s ease-in-out infinite; will-change: transform; transform-origin: center; }
+.ik-leg-wiggle { animation: ik-leg-wiggle 0.45s ease-in-out infinite; will-change: transform; transform-origin: center; }
 
-/* Marquee — edge-faded category strip in the hero */
 @keyframes ik-marquee {
   0%   { transform: translateX(0); }
   100% { transform: translateX(-50%); }
@@ -594,108 +758,208 @@ section:not(.ad-container):not(.ad-slot) [class*="ad-"] {
           mask-image: linear-gradient(90deg, transparent 0%, #000 8%, #000 92%, transparent 100%);
 }
 
-/* Spider thread — thin vertical line above the roaming spider */
 .ik-thread {
   background-image: linear-gradient(to bottom, transparent 0%, hsl(var(--foreground) / 0.3) 100%);
 }
 
-/* Hairline divider — visible on dark via low-alpha foreground */
-.ik-hairline { background-color: hsl(var(--foreground) / 0.10); }
-
-/* Glassmorphism — wash + edge swap per theme via CSS vars. In
-   light, glass-tint is black at low alpha (subtle paper wash on
-   ivory). In dark, glass-tint is white at low alpha (frosted
-   highlight on near-black). Same class name, both look right. */
-.glass {
-  background: linear-gradient(
-    180deg,
-    hsl(var(--glass-tint) / 0.06),
-    hsl(var(--glass-tint) / 0.02)
-  );
-  border: 1px solid hsl(var(--glass-edge));
-  backdrop-filter: blur(18px) saturate(140%);
-  -webkit-backdrop-filter: blur(18px) saturate(140%);
-}
-.glass-strong {
-  background: linear-gradient(
-    180deg,
-    hsl(var(--glass-tint) / 0.09),
-    hsl(var(--glass-tint) / 0.03)
-  );
-  border: 1px solid hsl(var(--glass-edge));
-  backdrop-filter: blur(24px) saturate(160%);
-  -webkit-backdrop-filter: blur(24px) saturate(160%);
-}
-
-/* Blood-red brand utilities — same in both themes */
-.text-blood { color: hsl(var(--blood)); }
-.bg-blood { background-color: hsl(var(--blood)); }
-.bg-gradient-blood {
-  background-image: linear-gradient(135deg, hsl(var(--blood)), hsl(355 85% 40%));
-}
-.shadow-blood { box-shadow: var(--shadow-blood); }
-
-/* Card surface — SOLID enough to read in both themes. In light it's
-   pure paper white. In dark it's a slightly-lifted near-black panel
-   with a subtle white edge. The hover state goes blood-glow either
-   way (works on both palettes). */
-.ik-card {
-  transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1),
-              box-shadow 500ms cubic-bezier(0.22, 1, 0.36, 1),
-              border-color 500ms cubic-bezier(0.22, 1, 0.36, 1);
-  background-color: hsl(var(--card-surface));
-  border: 1px solid hsl(var(--card-edge));
-  box-shadow: var(--shadow-soft);
-}
-.ik-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-blood);
-  border-color: hsl(var(--blood) / 0.35);
-}
-
-/* Pill chips — solid card surface w/ subtle edge so they read in both
-   modes (the old white-on-white version disappeared on dark). */
-.ik-pill {
-  background-color: hsl(var(--card-surface));
-  border: 1px solid hsl(var(--glass-edge));
-  backdrop-filter: blur(14px) saturate(140%);
-  -webkit-backdrop-filter: blur(14px) saturate(140%);
-  color: hsl(var(--foreground));
-  box-shadow: var(--shadow-soft);
-}
-
-/* Ghost letter — faint italic-serif backdrop inside featured thumbs.
-   Alpha is intentionally low so it sits behind the real logo. */
-.ik-ghost-letter {
-  font-family: var(--font-instrument-serif), "Instrument Serif", serif;
-  font-style: italic;
-  color: hsl(var(--foreground) / 0.08);
-  line-height: 0.85;
-  user-select: none;
-}
-
-/* Cinematic film grain — only visible in dark mode (alpha gated by
-   --grain-opacity which is 0 in light, 0.18 in dark). */
-.ik-film-grain {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: -5;
-  opacity: var(--grain-opacity);
-  mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.7 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
-  background-size: 240px 240px;
-}
-
-/* Spider drop-shadow — red glow in dark, soft black in light.
-   Apply with `style={{ filter: 'var(--spider-glow)' }}` from React. */
-
-/* Reduced-motion — kill all editorial loops */
 @media (prefers-reduced-motion: reduce) {
   .ik-float-y, .ik-float-y-slow, .ik-float-y-fast,
   .ik-dangle,
   .ik-web-sway, .ik-web-sway-2, .ik-web-sway-3, .ik-web-sway-4,
-  .ik-crawl, .ik-leg-wiggle, .ik-marquee {
+  .ik-crawl, .ik-leg-wiggle, .ik-marquee,
+  .blood-dot, .boost-badge .ddot {
     animation: none !important;
   }
+}
+
+/* Legacy compat classes preserved below (gradient-text, decode-letter,
+   card-reveal, page-transition, hero-fade-up, mobile-menu-panel,
+   modal-scroll, mobile helpers, ad-container, sponsored-listing) —
+   used by other pages, untouched. */
+@layer components {
+  .gradient-text {
+    background-image: linear-gradient(90deg, #DC2626 0%, #0A0A0A 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+  }
+  .gradient-text-sweep {
+    background-image: linear-gradient(90deg, #0A0A0A 0%, #B91C1C 30%, #DC2626 50%, #B91C1C 70%, #0A0A0A 100%);
+    background-size: 220% 100%;
+    background-position: 0% 50%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    animation: gradient-sweep 6s ease-in-out infinite;
+  }
+  @keyframes gradient-sweep {
+    0%, 100% { background-position: 0% 50%; }
+    50%      { background-position: 100% 50%; }
+  }
+  @media (prefers-reduced-motion: reduce), (max-width: 767px) {
+    .gradient-text-sweep { animation: none; background-position: 50% 50%; }
+  }
+
+  .decode-letter {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(0.45em);
+    animation: decode-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    will-change: transform, opacity;
+  }
+  @keyframes decode-in { to { opacity: 1; transform: translateY(0); } }
+  @media (prefers-reduced-motion: reduce), (max-width: 767px) {
+    .decode-letter { animation: none; opacity: 1; transform: none; }
+  }
+
+  .gradient-border { position: relative; border-radius: inherit; background-clip: padding-box; }
+  .gradient-border::before {
+    content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px;
+    background: linear-gradient(135deg, #DC2626 0%, #991B1B 50%, #0A0A0A 100%);
+    background-size: 200% 200%;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+    opacity: 0; transition: opacity 200ms ease; pointer-events: none;
+  }
+  .gradient-border:hover::before,
+  .gradient-border[data-active="true"]::before {
+    opacity: 1; animation: border-sweep 4s ease infinite;
+  }
+  @keyframes border-sweep {
+    0%, 100% { background-position: 0% 50%; }
+    50%      { background-position: 100% 50%; }
+  }
+
+  .mobile-menu-panel { animation: mobile-menu-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+  @keyframes mobile-menu-in { from { transform: translateY(-16px); } to { transform: translateY(0); } }
+  @media (prefers-reduced-motion: reduce) { .mobile-menu-panel { animation: none; } }
+
+  .page-transition { animation: page-transition-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+  @keyframes page-transition-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @media (prefers-reduced-motion: reduce) { .page-transition { animation: none; } }
+
+  .hero-fade-up {
+    opacity: 0; transform: translateY(18px);
+    animation: hero-fade-up-anim 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  @keyframes hero-fade-up-anim { to { opacity: 1; transform: translateY(0); } }
+  @media (prefers-reduced-motion: reduce), (max-width: 767px) {
+    .hero-fade-up { opacity: 1; transform: none; animation: none; }
+  }
+
+  .keeda-mark-bob {
+    animation: keeda-bob 4.5s ease-in-out infinite;
+    transform-origin: 50% 50%; will-change: transform;
+  }
+  @keyframes keeda-bob {
+    0%, 100% { transform: translateY(0) rotate(-1deg); }
+    50%      { transform: translateY(-4px) rotate(2deg); }
+  }
+  @media (prefers-reduced-motion: reduce) { .keeda-mark-bob { animation: none; } }
+
+  .card-reveal {
+    opacity: 0; transform: translateY(24px);
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+    will-change: opacity, transform;
+  }
+  .card-reveal.in-view { opacity: 1; transform: translateY(0); }
+  @media (prefers-reduced-motion: reduce) {
+    .card-reveal, .card-reveal.in-view {
+      opacity: 1; transform: none; transition: none;
+    }
+  }
+
+  .ad-container, .ad-slot { position: relative; overflow: hidden; }
+  .ad-container:empty, .ad-slot:empty { display: none; }
+
+  .modal-scroll {}
+  .modal-scroll::-webkit-scrollbar { width: 8px; }
+  .modal-scroll::-webkit-scrollbar-track { background: transparent; }
+  .modal-scroll::-webkit-scrollbar-thumb {
+    background: rgba(128, 57, 253, 0.4);
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+}
+
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.15);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--blood) / 0.45);
+  background-clip: content-box;
+}
+
+@media (max-width: 768px) {
+  html, body {
+    -webkit-overflow-scrolling: touch;
+    touch-action: auto;
+    overflow-x: hidden;
+    min-height: 100%;
+  }
+  a, button, [role="button"] {
+    -webkit-tap-highlight-color: transparent;
+    cursor: pointer;
+  }
+  .active-scale { transition: transform 0.1s ease; }
+  .active-scale:active { transform: scale(0.97); }
+  .mobile-scroll-area {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .mobile-scroll-area::-webkit-scrollbar { display: none; }
+  .mobile-rounded { border-radius: 0.75rem; }
+  .mobile-safe-bottom { padding-bottom: env(safe-area-inset-bottom, 1rem); }
+  .mobile-modal-sheet {
+    border-radius: 1rem 1rem 0 0;
+    transform: translateY(0);
+    transition: transform 0.3s ease-out;
+  }
+  .mobile-modal-sheet.closed { transform: translateY(100%); }
+  .mobile-bottom-sheet {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 50;
+    background-color: white;
+    border-top-left-radius: 1rem;
+    border-top-right-radius: 1rem;
+    box-shadow: 0 -4px 6px -1px rgb(0 0 0 / 0.05);
+    transform: translateY(0);
+    transition: transform 0.3s cubic-bezier(0.33, 1, 0.68, 1);
+  }
+  .mobile-bottom-sheet.closed { transform: translateY(100%); }
+}
+
+section:not(.ad-container):not(.ad-slot) .sponsored-listing,
+section:not(.ad-container):not(.ad-slot) [class*="sponsored"],
+section:not(.ad-container):not(.ad-slot) [class*="ad-"] {
+  display: none !important;
+}
+.ad-container .sponsored-listing,
+.ad-slot .sponsored-listing,
+.ad-container [class*="sponsored"],
+.ad-slot [class*="sponsored"] {
+  display: block;
 }

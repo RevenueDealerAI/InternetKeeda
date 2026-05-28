@@ -41,22 +41,26 @@ export function NextRouterAdapter({ children }: NextRouterAdapterProps) {
   const safeTheme = currentTheme && currentTheme.path ? currentTheme : THEMES.find(t => t.id === DEFAULT_THEME) || THEMES[0];
   const shouldShowThemeOne = safeTheme.id === 'theme-one';
   const isAdminRoute = pathname?.startsWith('/admin') || false;
+  // Homepage owns its own editorial Nav + Footer (the reference design
+  // wants them rendered inline). Skip the global ones there to avoid
+  // a double navbar.
+  const isHomeRoute = pathname === '/';
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       <MetaTagsManager />
       <Analytics />
       <AdSense />
-      
-      {!isAdminRoute && shouldShowThemeOne && <ThemeOneNavigation />}
+
+      {!isAdminRoute && !isHomeRoute && shouldShowThemeOne && <ThemeOneNavigation />}
       {!isAdminRoute && shouldShowThemeOne && <ThemeOneBackgroundAnimation />}
-      
+
       {!isAdminRoute && !shouldShowThemeOne && <ThemeTwoNavigation />}
       {!isAdminRoute && !shouldShowThemeOne && <ThemeTwoBackgroundAnimation />}
-      
+
       {children}
-      
-      {!isAdminRoute && shouldShowThemeOne && <ThemeOneFooter />}
+
+      {!isAdminRoute && !isHomeRoute && shouldShowThemeOne && <ThemeOneFooter />}
       {!isAdminRoute && !shouldShowThemeOne && <ThemeTwoFooter />}
     </div>
   );

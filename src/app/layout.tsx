@@ -3,7 +3,6 @@
 import { Geist, Geist_Mono, Instrument_Serif, JetBrains_Mono } from 'next/font/google';
 import { SpiderWeb } from '@/components/editorial/SpiderWeb';
 import { RoamingSpider } from '@/components/editorial/RoamingSpider';
-import { ThemeToggle } from '@/components/editorial/ThemeToggle';
 
 // No-FOUC theme init — runs BEFORE React hydrates so the page paints
 // with the user's preferred theme on the first frame, no flash.
@@ -122,10 +121,12 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body className="font-sans antialiased bg-background text-foreground">
+        {/* Cinematic backdrop — vignettes + grid + grain, theme-aware
+            (light theme has --vignette-* near-zero alpha so it's clean). */}
+        <div className="ik-backdrop" aria-hidden="true" />
         <div className="ik-film-grain" aria-hidden="true" />
         <SpiderWeb />
         <RoamingSpider />
-        <ThemeToggle />
         <HelmetProvider>
           <HeadFavicons />
           {/* ClerkProvider is NOT mounted at the root anymore.

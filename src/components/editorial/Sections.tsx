@@ -1,58 +1,64 @@
 'use client';
 
 import Link from 'next/link';
-import { SectionHeader } from './FeaturedGrid';
 
 type Corridor = {
-  icon: string;
-  route: string;
+  num: string;
+  tag: string;
   title: string;
+  em: string;
   desc: string;
   href: string;
 };
 
-// All routes verified against src/app/ — every href is a real page,
-// not an invented destination.
+// Six corridors per the reference. All hrefs map to REAL existing
+// routes verified against src/app/ — no 404s, no invented destinations.
 const CORRIDORS: Corridor[] = [
   {
-    icon: '△',
-    route: '/trending',
-    title: 'Trending this week',
+    num: '§ 01',
+    tag: '/launches',
+    title: 'Latest',
+    em: 'launches',
+    desc: 'Fresh AI tools that shipped this week. New releases, public betas, v1 launches.',
+    href: '/latest-launches',
+  },
+  {
+    num: '§ 02',
+    tag: '/trending',
+    title: 'Trending',
+    em: 'this week',
     desc: 'What builders are picking up right now. Tools climbing the catalog by votes and views.',
     href: '/trending',
   },
   {
-    icon: '★',
-    route: '/top-products',
-    title: 'Top products',
+    num: '§ 03',
+    tag: '/top',
+    title: 'Top',
+    em: 'products',
     desc: 'The highest-rated tools across every category — community-voted and editor-checked.',
     href: '/top-products',
   },
   {
-    icon: '✦',
-    route: '/latest-launches',
-    title: 'Latest launches',
-    desc: 'Fresh AI tools that shipped this week. New releases, public betas, and v1 launches.',
-    href: '/latest-launches',
-  },
-  {
-    icon: '+',
-    route: '/recently-added',
-    title: 'Recently added',
+    num: '§ 04',
+    tag: '/recent',
+    title: 'Recently',
+    em: 'added',
     desc: 'Just-listed tools by submission date. Earliest signal for what builders are putting out.',
     href: '/recently-added',
   },
   {
-    icon: '◐',
-    route: '/categories',
-    title: 'Browse categories',
+    num: '§ 05',
+    tag: '/categories',
+    title: 'Browse',
+    em: 'categories',
     desc: 'Every category indexed — writing, design, code, video, audio, research, agents, and more.',
     href: '/categories',
   },
   {
-    icon: '§',
-    route: '/latest-news',
-    title: 'AI news',
+    num: '§ 06',
+    tag: '/news',
+    title: 'AI',
+    em: 'news',
     desc: 'What is happening in AI this week. Releases, launches, big shifts, and the why behind them.',
     href: '/latest-news',
   },
@@ -60,70 +66,81 @@ const CORRIDORS: Corridor[] = [
 
 export function Sections() {
   return (
-    <section id="corridors" className="px-4 py-24 sm:py-32">
-      <div className="mx-auto max-w-7xl">
-        <SectionHeader
-          marker="§ 02 — the rooms"
-          title={
-            <>
-              Six <span className="font-display italic text-blood">corridors</span> into the web.
-            </>
-          }
-        />
-        <p className="mt-6 max-w-2xl text-base text-muted-foreground">
-          The catalog is more than a list. Six rooms organize tools by intent — enter the one that
-          matches what you are actually trying to find.
-        </p>
+    <section id="corridors" className="px-6 py-24">
+      <div className="mx-auto max-w-[var(--maxw,1240px)]">
+        {/* Header */}
+        <div className="mb-10 max-w-[720px]">
+          <div className="ik-eyebrow">§ 02 — the rooms</div>
+          <h2
+            className="m-0 mt-3 font-medium text-foreground"
+            style={{
+              fontSize: 'clamp(36px, 5vw, 60px)',
+              lineHeight: 1.02,
+              letterSpacing: '-0.025em',
+            }}
+          >
+            Six{' '}
+            <span
+              className="font-display-roman italic"
+              style={{ color: 'var(--blood-color)', fontWeight: 400 }}
+            >
+              corridors
+            </span>{' '}
+            into the web.
+          </h2>
+          <p className="mt-3.5 text-[16px] leading-[1.55]" style={{ color: 'var(--fg-dim)' }}>
+            Each room is its own dense, hand-tuned surface. No infinite scroll. No SEO bait. No
+            purple gradients.
+          </p>
+        </div>
 
-        <div
-          className="mt-12 overflow-hidden rounded-2xl border bg-foreground/10"
-          style={{ borderColor: 'hsl(var(--border))' }}
-        >
-          <div className="grid grid-cols-1 gap-px sm:grid-cols-2 lg:grid-cols-3">
-            {CORRIDORS.map((c) => (
-              <CorridorCell key={c.route} corridor={c} />
-            ))}
-          </div>
+        {/* 3×2 hairline grid */}
+        <div className="corridor-grid">
+          {CORRIDORS.map((c) => (
+            <Link key={c.tag} href={c.href} className="corridor-cell group">
+              <div className="ik-eyebrow">
+                {c.num} — {c.tag}
+              </div>
+              <h3
+                className="m-0 mt-3.5 font-medium text-foreground"
+                style={{
+                  fontSize: 26,
+                  lineHeight: 1.15,
+                  letterSpacing: '-0.015em',
+                }}
+              >
+                {c.title}{' '}
+                <span
+                  className="font-display-roman italic"
+                  style={{ color: 'var(--blood-color)', fontWeight: 400 }}
+                >
+                  {c.em}
+                </span>
+              </h3>
+              <p
+                className="mt-2 flex-1 text-[14px] leading-[1.55]"
+                style={{ color: 'var(--fg-dim)' }}
+              >
+                {c.desc}
+              </p>
+              <div
+                className="font-mono-display mt-6 flex items-center justify-between text-[10px] uppercase tracking-[0.22em]"
+                style={{ color: 'var(--muted-color)' }}
+              >
+                <span className="transition-colors group-hover:text-[color:var(--blood-color)]">
+                  explore
+                </span>
+                <span
+                  aria-hidden="true"
+                  className="inline-block transition-transform duration-300 group-hover:translate-x-1 group-hover:text-[color:var(--blood-color)]"
+                >
+                  →
+                </span>
+              </div>
+            </Link>
+          ))}
         </div>
       </div>
     </section>
-  );
-}
-
-function CorridorCell({ corridor }: { corridor: Corridor }) {
-  return (
-    <Link
-      href={corridor.href}
-      className="group flex flex-col bg-card p-7 transition-colors hover:bg-muted"
-    >
-      <div className="flex items-start justify-between gap-3">
-        <span
-          aria-hidden="true"
-          className="bg-gradient-blood shadow-blood flex h-11 w-11 items-center justify-center rounded-full text-white"
-        >
-          <span className="font-display text-xl italic leading-none">{corridor.icon}</span>
-        </span>
-        <span className="font-mono-display text-[10px] uppercase tracking-[0.2em] text-foreground/50">
-          {corridor.route}
-        </span>
-      </div>
-
-      <h3 className="font-display mt-7 text-3xl italic leading-tight">{corridor.title}</h3>
-      <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{corridor.desc}</p>
-
-      <div className="ik-hairline mt-7 h-px w-full" />
-
-      <div className="mt-4 flex items-center gap-2">
-        <span className="font-mono-display text-[11px] uppercase tracking-[0.22em] text-foreground/70 transition-colors group-hover:text-blood">
-          enter
-        </span>
-        <span
-          aria-hidden="true"
-          className="font-mono-display inline-block translate-x-0 text-foreground/70 transition-all duration-300 group-hover:translate-x-1 group-hover:text-blood"
-        >
-          →
-        </span>
-      </div>
-    </Link>
   );
 }
