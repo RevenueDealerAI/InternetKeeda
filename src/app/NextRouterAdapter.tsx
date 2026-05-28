@@ -5,8 +5,8 @@ import { usePathname } from 'next/navigation';
 import { MetaTagsManager } from '@/components/MetaTagsManager';
 import { Analytics } from '@/components/Analytics';
 import { AdSense } from '@/components/AdSense';
-import { Nav as EditorialNav } from '@/components/editorial/Nav';
-import { Footer as EditorialFooter } from '@/components/editorial/Footer';
+import { Nav } from '@/components/nexus/Nav';
+import { Footer } from '@/components/nexus/Footer';
 
 interface NextRouterAdapterProps {
   children: React.ReactNode;
@@ -29,15 +29,14 @@ export function NextRouterAdapter({ children }: NextRouterAdapterProps) {
       <Analytics />
       <AdSense />
 
-      {!isAdminRoute && <EditorialNav />}
+      {!isAdminRoute && <Nav />}
 
       {/* Suspense wraps children so pages that call useSearchParams()
           (e.g. /payment/return, /subscription/return) can stream during
-          static prerender — previously the isLoading gate above gave
-          this implicitly; now we declare it. */}
+          static prerender. */}
       <Suspense fallback={null}>{children}</Suspense>
 
-      {!isAdminRoute && <EditorialFooter />}
+      {!isAdminRoute && <Footer />}
     </div>
   );
 }

@@ -14,6 +14,70 @@
         OR aliased vars (--bg = hsl(var(--background)) is computed
         per-theme below).
    ───────────────────────────────────────────────────────────────── */
+/* ─────────────────────────────────────────────────────────────────
+   NEXUS TOKENS (verbatim from CLAUDE.md handoff brief)
+   Hex/rgba, not oklch. Light default is dark? No — the spec says
+   dark is default. Both selectors set explicitly so init script
+   data-theme attr drives which palette wins. Also expose the same
+   tokens via HSL channel aliases (--background, --foreground, --card,
+   --blood, --border) so existing Tailwind utilities (bg-card,
+   text-foreground, hsl(var(--blood))) keep rendering correctly.
+   ───────────────────────────────────────────────────────────────── */
+:root {
+  --sans:  var(--font-sans), "Space Grotesk", system-ui, sans-serif;
+  --mono:  var(--font-mono), "IBM Plex Mono", ui-monospace, monospace;
+  --serif: var(--font-serif), "Instrument Serif", Georgia, serif;
+  --maxw: 1320px;
+  --pad:  28px;
+}
+
+/* DARK (default) */
+:root, :root[data-theme="dark"], html.dark {
+  --bg:           #0a0a0c;
+  --bg-2:         #111114;
+  --surface:      rgba(255,255,255,0.035);
+  --surface-2:    rgba(255,255,255,0.06);
+  --ink:          #f4f3f0;
+  --ink-2:        rgba(244,243,240,0.75);
+  --ink-soft:     rgba(244,243,240,0.50);
+  --ink-dim:      rgba(244,243,240,0.32);
+  --rule:         rgba(255,255,255,0.10);
+  --rule-2:       rgba(255,255,255,0.05);
+  --accent:       #ff3b3b;
+  --accent-2:     #d62a2a;
+  --accent-glow:  #ff5a5a;
+  --accent-soft:  rgba(255,59,59,0.14);
+  --cyan:         #5ed7ff;
+  --on-accent:    #fff;
+  --hero-bg:      #050507;
+  --shadow:       0 1px 0 rgba(255,255,255,0.04) inset, 0 30px 80px -30px rgba(0,0,0,0.85);
+  --shadow-sm:    0 1px 2px rgba(0,0,0,0.5), 0 10px 24px -10px rgba(0,0,0,0.55);
+  --shadow-accent:0 0 0 1px rgba(255,59,59,0.35), 0 20px 60px -16px rgba(255,59,59,0.45);
+}
+
+/* LIGHT — opt-in via data-theme="light" */
+:root[data-theme="light"]:not(.dark) {
+  --bg:           #f7f5f2;
+  --bg-2:         #ffffff;
+  --surface:      rgba(15,15,18,0.025);
+  --surface-2:    rgba(15,15,18,0.05);
+  --ink:          #0f0f12;
+  --ink-2:        rgba(15,15,18,0.75);
+  --ink-soft:     rgba(15,15,18,0.55);
+  --ink-dim:      rgba(15,15,18,0.35);
+  --rule:         rgba(15,15,18,0.12);
+  --rule-2:       rgba(15,15,18,0.06);
+  --accent:       #e3262a;
+  --accent-2:     #c01a1d;
+  --accent-glow:  #ff4a4d;
+  --accent-soft:  rgba(227,38,42,0.10);
+  --on-accent:    #fff;
+  --hero-bg:      #0f0f12;
+  --shadow:       0 1px 0 #fff inset, 0 22px 60px -28px rgba(15,15,18,0.20);
+  --shadow-sm:    0 1px 2px rgba(15,15,18,0.06), 0 10px 28px -12px rgba(15,15,18,0.14);
+  --shadow-accent:0 0 0 1px rgba(227,38,42,0.30), 0 18px 50px -16px rgba(227,38,42,0.35);
+}
+
 @layer base {
   /* LIGHT — paper + ink, blood accent */
   :root {
@@ -210,15 +274,20 @@
    ───────────────────────────────────────────────────────────────── */
 @layer components {
   .font-display {
-    font-family: var(--font-instrument-serif), "Instrument Serif", serif;
+    font-family: var(--font-instrument-serif), "Fraunces", "Cormorant Garamond", serif;
     font-style: italic;
-    font-weight: 400;
-    letter-spacing: -0.01em;
+    font-weight: 600;
+    letter-spacing: -0.012em;
+    /* Push the optical-size axis toward display + soft + wonk for a
+       wider, more expressive italic at large sizes. */
+    font-variation-settings: "opsz" 144, "SOFT" 60, "WONK" 1;
   }
   .font-display-roman {
-    font-family: var(--font-instrument-serif), "Instrument Serif", serif;
+    font-family: var(--font-instrument-serif), "Fraunces", "Cormorant Garamond", serif;
     font-style: normal;
-    font-weight: 400;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    font-variation-settings: "opsz" 144, "SOFT" 40, "WONK" 0;
   }
   .font-mono-display {
     font-family: var(--font-jetbrains-mono), var(--font-geist-mono), "JetBrains Mono", ui-monospace, monospace;
@@ -227,7 +296,12 @@
 
   /* Reference editorial typography */
   .ik-mono { font-family: var(--font-jetbrains-mono), ui-monospace, monospace; font-weight: 500; letter-spacing: 0.04em; }
-  .ik-serif { font-family: var(--font-instrument-serif), serif; font-style: italic; }
+  .ik-serif {
+    font-family: var(--font-instrument-serif), "Fraunces", serif;
+    font-style: italic;
+    font-weight: 600;
+    font-variation-settings: "opsz" 144, "SOFT" 60, "WONK" 1;
+  }
   .ik-eyebrow { font-family: var(--font-jetbrains-mono), ui-monospace, monospace; font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--blood-color); }
 
   .ik-glass {
@@ -307,8 +381,10 @@
   }
 
   .ik-ghost-letter {
-    font-family: var(--font-instrument-serif), "Instrument Serif", serif;
+    font-family: var(--font-instrument-serif), "Fraunces", serif;
     font-style: italic;
+    font-weight: 700;
+    font-variation-settings: "opsz" 144, "SOFT" 60, "WONK" 1;
     color: hsl(var(--foreground) / 0.08);
     line-height: 0.85;
     user-select: none;
@@ -355,7 +431,7 @@
     position: absolute;
     inset: 0;
     background-image:
-      radial-gradient(circle 240px at var(--mx, 50%) var(--my, -200px), var(--grid-spot), transparent 70%),
+      radial-gradient(circle 320px at var(--mx, 50%) var(--my, -400px), var(--grid-spot), transparent 70%),
       linear-gradient(var(--grid-line) 1px, transparent 1px),
       linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
     background-size: 100% 100%, 56px 56px, 56px 56px;
@@ -364,40 +440,30 @@
     opacity: 1;
   }
 
-  /* The 3D lifted tile that snaps to the grid cell under the cursor.
-     MouseGrid3D positions/rotates it via inline transform every rAF.
-     Border + inner glow + box-shadow make it look like a panel that
-     has popped up out of the surface. */
+  /* The 3D-lifted halo that follows the cursor. Round (not a tile)
+     so the highlighted AREA feels like a region, not a single grid
+     cell. mix-blend-mode: screen on the element + radial gradient
+     fill = light spreads from the centre and dies at the edge. */
   .ik-grid-tile {
-    background:
-      linear-gradient(
-        135deg,
-        hsl(var(--blood) / 0.18),
-        hsl(var(--blood) / 0.05) 60%,
-        transparent
-      );
-    border: 1px solid hsl(var(--blood) / 0.55);
-    border-radius: 4px;
-    box-shadow:
-      0 0 0 1px hsl(var(--blood) / 0.18),
-      0 12px 28px -8px hsl(var(--blood) / 0.5),
-      inset 0 0 16px hsl(var(--blood) / 0.18);
+    background: radial-gradient(
+      circle at center,
+      hsl(var(--blood) / 0.55) 0%,
+      hsl(var(--blood) / 0.30) 30%,
+      hsl(var(--blood) / 0.10) 55%,
+      transparent 75%
+    );
+    border-radius: 9999px;
     backface-visibility: hidden;
   }
-  /* Light theme — tone the lifted tile down so the paper canvas still
-     reads cleanly. Soft black border + faint blood wash. */
+  /* Light theme — softer halo so the paper canvas stays clean. */
   :root:not([data-theme="dark"]) .ik-grid-tile {
-    background:
-      linear-gradient(
-        135deg,
-        hsl(var(--blood) / 0.10),
-        hsl(var(--blood) / 0.02) 60%,
-        transparent
-      );
-    border-color: hsl(var(--blood) / 0.35);
-    box-shadow:
-      0 0 0 1px hsl(var(--blood) / 0.12),
-      0 8px 20px -8px hsl(var(--blood) / 0.30);
+    background: radial-gradient(
+      circle at center,
+      hsl(var(--blood) / 0.30) 0%,
+      hsl(var(--blood) / 0.15) 30%,
+      hsl(var(--blood) / 0.06) 55%,
+      transparent 75%
+    );
   }
 
   /* Editorial Nav surface */
@@ -816,7 +882,20 @@
   0%   { transform: translateX(0); }
   100% { transform: translateX(-50%); }
 }
-.ik-marquee { animation: ik-marquee 50s linear infinite; will-change: transform; }
+.ik-marquee { animation: ik-marquee 40s linear infinite; will-change: transform; }
+
+/* Nexus pulse — dot + orb */
+@keyframes ik-pulse-dot {
+  0%, 100% { transform: scale(1); opacity: 1; box-shadow: 0 0 12px var(--accent-glow); }
+  50%      { transform: scale(0.65); opacity: 0.55; box-shadow: 0 0 6px var(--accent-glow); }
+}
+.ik-pulse-dot { animation: ik-pulse-dot 2.4s ease-in-out infinite; will-change: transform, opacity; }
+
+@keyframes ik-pulse-orb {
+  0%, 100% { transform: scale(1); opacity: 0.85; }
+  50%      { transform: scale(1.05); opacity: 1; }
+}
+.ik-pulse-orb { animation: ik-pulse-orb 8s ease-in-out infinite; will-change: transform, opacity; }
 .ik-marquee-mask {
   -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 8%, #000 92%, transparent 100%);
           mask-image: linear-gradient(90deg, transparent 0%, #000 8%, #000 92%, transparent 100%);

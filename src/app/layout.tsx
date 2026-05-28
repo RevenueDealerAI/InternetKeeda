@@ -1,9 +1,6 @@
 'use client';
 
-import { Geist, Geist_Mono, Instrument_Serif, JetBrains_Mono } from 'next/font/google';
-import { SpiderWeb } from '@/components/editorial/SpiderWeb';
-import { RoamingSpider } from '@/components/editorial/RoamingSpider';
-import { MouseGrid3D } from '@/components/editorial/MouseGrid3D';
+import { Space_Grotesk, IBM_Plex_Mono, Instrument_Serif } from 'next/font/google';
 
 // No-FOUC theme init — runs BEFORE React hydrates so the page paints
 // with the user's preferred theme on the first frame, no flash.
@@ -38,27 +35,38 @@ import { usePathname } from 'next/navigation';
 import { initializeVoteCounts } from '../utils/voteUtils';
 import '../index.css';
 
-const geistSans = Geist({
+// Nexus-spec fonts. Space Grotesk is the workhorse sans (body + headlines
+// + nav links). IBM Plex Mono is reserved for labels / eyebrows / category
+// counts / ticker / search input / section markers. Instrument Serif
+// italic is the accent voice — used SPARINGLY on 1-2 words per headline
+// only ("Learn.", "launches", "be seen.").
+const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
-  variable: '--font-geist-sans',
+  weight: ['300', '400', '500', '600', '700'],
+  variable: '--font-sans',
   display: 'swap',
 });
-const geistMono = Geist_Mono({
+const ibmPlexMono = IBM_Plex_Mono({
   subsets: ['latin'],
-  variable: '--font-geist-mono',
+  weight: ['400', '500', '600'],
+  variable: '--font-mono',
   display: 'swap',
 });
 const instrumentSerif = Instrument_Serif({
   subsets: ['latin'],
   weight: '400',
-  variable: '--font-instrument-serif',
+  style: ['normal', 'italic'],
+  variable: '--font-serif',
   display: 'swap',
 });
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ['latin'],
-  variable: '--font-jetbrains-mono',
-  display: 'swap',
-});
+// Legacy aliases — kept so any consumer still reading the old vars
+// renders correctly during the pivot.
+const fontAliasesStyle = {
+  '--font-geist-sans': 'var(--font-sans)',
+  '--font-geist-mono': 'var(--font-mono)',
+  '--font-instrument-serif': 'var(--font-serif)',
+  '--font-jetbrains-mono': 'var(--font-mono)',
+} as React.CSSProperties;
 
 const queryClient = new QueryClient();
 
@@ -146,20 +154,17 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable} ${jetbrainsMono.variable}`}
+      className={`${spaceGrotesk.variable} ${ibmPlexMono.variable} ${instrumentSerif.variable}`}
+      style={fontAliasesStyle}
     >
       <head>
         {/* No-FOUC theme init — must run synchronously before <body> */}
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body className="font-sans antialiased">
-        {/* Cinematic backdrop — vignettes + grid + grain, theme-aware
-            (light theme has --vignette-* near-zero alpha so it's clean). */}
-        <div className="ik-backdrop" aria-hidden="true" />
-        <div className="ik-film-grain" aria-hidden="true" />
-        <MouseGrid3D />
-        <SpiderWeb />
-        <RoamingSpider />
+        {/* Nexus direction: no spider, no grid. The neural canvas is the
+            signature element and gets mounted inline in the Hero +
+            AgentSection + Final CTA — not as a global layer. */}
         <HelmetProvider>
           <HeadFavicons />
           {/* ClerkProvider is NOT mounted at the root anymore.
