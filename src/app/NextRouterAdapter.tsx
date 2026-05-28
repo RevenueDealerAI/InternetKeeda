@@ -53,10 +53,10 @@ export function NextRouterAdapter({ children }: NextRouterAdapterProps) {
       <AdSense />
 
       {!isAdminRoute && !isHomeRoute && shouldShowThemeOne && <ThemeOneNavigation />}
-      {!isAdminRoute && shouldShowThemeOne && <ThemeOneBackgroundAnimation />}
+      {!isAdminRoute && !isHomeRoute && shouldShowThemeOne && <ThemeOneBackgroundAnimation />}
 
-      {!isAdminRoute && !shouldShowThemeOne && <ThemeTwoNavigation />}
-      {!isAdminRoute && !shouldShowThemeOne && <ThemeTwoBackgroundAnimation />}
+      {!isAdminRoute && !isHomeRoute && !shouldShowThemeOne && <ThemeTwoNavigation />}
+      {!isAdminRoute && !isHomeRoute && !shouldShowThemeOne && <ThemeTwoBackgroundAnimation />}
 
       {children}
 

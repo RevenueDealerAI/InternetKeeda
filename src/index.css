@@ -324,9 +324,11 @@
     background-size: 240px 240px;
   }
 
-  /* Reference-spec backdrop — radial vignettes + grid + grain.
-     Only the dark theme vignettes paint; light theme has --vignette-*
-     at low alpha for a subtle warmth. */
+  /* Reference-spec backdrop — radial vignettes over solid bg. The
+     last layer is var(--bg) so even if some legacy global background
+     animation tries to paint over the body, the .ik-backdrop layer
+     itself carries the canvas color and the theme's dark/light bg
+     wins. */
   .ik-backdrop {
     position: fixed;
     inset: 0;
@@ -335,7 +337,8 @@
     background:
       radial-gradient(ellipse 50% 40% at 15% 15%, var(--vignette-1), transparent 60%),
       radial-gradient(ellipse 45% 35% at 85% 10%, var(--vignette-2), transparent 65%),
-      radial-gradient(ellipse 70% 50% at 50% 110%, var(--vignette-3), transparent 60%);
+      radial-gradient(ellipse 70% 50% at 50% 110%, var(--vignette-3), transparent 60%),
+      var(--bg);
     background-attachment: fixed;
   }
   .ik-backdrop::before {

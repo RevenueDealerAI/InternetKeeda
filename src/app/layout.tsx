@@ -120,7 +120,7 @@ export default function RootLayout({
         {/* No-FOUC theme init — must run synchronously before <body> */}
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
-      <body className="font-sans antialiased bg-background text-foreground">
+      <body className="font-sans antialiased">
         {/* Cinematic backdrop — vignettes + grid + grain, theme-aware
             (light theme has --vignette-* near-zero alpha so it's clean). */}
         <div className="ik-backdrop" aria-hidden="true" />
