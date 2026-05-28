@@ -4,27 +4,31 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Editorial Web — ivory canvas, black ink. Black is the brand. */
+    --background: 48 30% 97%;
+    --foreground: 0 0% 8%;
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 0 0% 8%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    /* Brand: KEEDA red #DC2626 → HSL 0 72% 51% (matches logo) */
-    --primary: 0 72% 51%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 0 73% 96%;
-    --accent-foreground: 0 72% 30%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 0 72% 51%;
+    --popover-foreground: 0 0% 8%;
+    --primary: 0 0% 8%;
+    --primary-foreground: 0 0% 99%;
+    --secondary: 48 14% 94%;
+    --secondary-foreground: 0 0% 8%;
+    --muted: 48 14% 94%;
+    --muted-foreground: 0 0% 45%;
+    --accent: 48 14% 94%;
+    --accent-foreground: 0 0% 8%;
+    --destructive: 0 70% 45%;
+    --destructive-foreground: 0 0% 99%;
+    --border: 0 0% 89%;
+    --input: 0 0% 88%;
+    --ring: 0 0% 8%;
     --radius: 0.75rem;
+
+    /* Editorial shadows — soft paper lift, no glow */
+    --shadow-soft: 0 1px 2px hsl(0 0% 0% / 0.04), 0 8px 24px -8px hsl(0 0% 0% / 0.08);
+    --shadow-card: 0 1px 0 hsl(0 0% 0% / 0.04), 0 20px 50px -20px hsl(0 0% 0% / 0.12);
   }
 
   .dark {
@@ -65,6 +69,23 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+  }
+
+  /* Editorial typography utilities — the emotional + data voices */
+  .font-display {
+    font-family: var(--font-instrument-serif), "Instrument Serif", "Cormorant Garamond", "Times New Roman", serif;
+    font-style: italic;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+  }
+  .font-display-roman {
+    font-family: var(--font-instrument-serif), "Instrument Serif", "Cormorant Garamond", "Times New Roman", serif;
+    font-style: normal;
+    font-weight: 400;
+  }
+  .font-mono-display {
+    font-family: var(--font-jetbrains-mono), var(--font-geist-mono), "JetBrains Mono", ui-monospace, monospace;
+    font-feature-settings: "ss01", "ss02", "ss03", "cv11";
   }
 
   /* Tight tracking on display headings, comfortable on body */
@@ -433,4 +454,102 @@ section:not(.ad-container):not(.ad-slot) [class*="ad-"] {
 .ad-container [class*="sponsored"],
 .ad-slot [class*="sponsored"] {
   display: block;
+}
+
+/* ============================================================
+   EDITORIAL WEB — spider + web animation system
+   ============================================================ */
+
+/* Hero spider + chip float — subtle drift on a thread */
+@keyframes ik-float-y {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%      { transform: translateY(-14px) rotate(1.5deg); }
+}
+.ik-float-y { animation: ik-float-y 6s ease-in-out infinite; will-change: transform; }
+.ik-float-y-slow { animation: ik-float-y 8s ease-in-out infinite; will-change: transform; }
+.ik-float-y-fast { animation: ik-float-y 5s ease-in-out infinite; will-change: transform; }
+
+/* Corner webs — barely-there sway, as if disturbed by air */
+@keyframes ik-web-sway {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  50%      { transform: translate(2px, -1px) rotate(0.2deg); }
+}
+.ik-web-sway { animation: ik-web-sway 8s ease-in-out infinite; transform-origin: center; will-change: transform; }
+.ik-web-sway-2 { animation: ik-web-sway 9.5s ease-in-out 1.2s infinite; transform-origin: center; will-change: transform; }
+.ik-web-sway-3 { animation: ik-web-sway 11s ease-in-out 0.4s infinite; transform-origin: center; will-change: transform; }
+.ik-web-sway-4 { animation: ik-web-sway 7.5s ease-in-out 2.1s infinite; transform-origin: center; will-change: transform; }
+
+/* Roaming spider — 60s crawl tour. Positions are top/left % of viewport. */
+@keyframes ik-crawl {
+  0%   { top: 12vh;  left: -6vw;  transform: rotate(15deg); }
+  12%  { top: 8vh;   left: 22vw;  transform: rotate(85deg); }
+  24%  { top: 26vh;  left: 48vw;  transform: rotate(135deg); }
+  36%  { top: 58vh;  left: 72vw;  transform: rotate(170deg); }
+  48%  { top: 84vh;  left: 84vw;  transform: rotate(215deg); }
+  60%  { top: 72vh;  left: 38vw;  transform: rotate(265deg); }
+  72%  { top: 44vh;  left: 12vw;  transform: rotate(305deg); }
+  84%  { top: 18vh;  left: 4vw;   transform: rotate(350deg); }
+  100% { top: 12vh;  left: -6vw;  transform: rotate(375deg); }
+}
+.ik-crawl { animation: ik-crawl 60s linear infinite; will-change: top, left, transform; }
+
+/* Inner leg-wiggle — runs inside the spider wrapper while it crawls */
+@keyframes ik-leg-wiggle {
+  0%, 100% { transform: scale(1.015, 0.985); }
+  50%      { transform: scale(0.985, 1.015); }
+}
+.ik-leg-wiggle { animation: ik-leg-wiggle 0.4s ease-in-out infinite; will-change: transform; transform-origin: center; }
+
+/* Marquee — edge-faded category strip in the hero */
+@keyframes ik-marquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.ik-marquee { animation: ik-marquee 50s linear infinite; will-change: transform; }
+.ik-marquee-mask {
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 8%, #000 92%, transparent 100%);
+          mask-image: linear-gradient(90deg, transparent 0%, #000 8%, #000 92%, transparent 100%);
+}
+
+/* Spider thread — thin vertical line above the roaming spider */
+.ik-thread {
+  background-image: linear-gradient(to bottom, transparent 0%, hsl(var(--foreground) / 0.3) 100%);
+}
+
+/* Hairline divider — 1px foreground at 10% opacity */
+.ik-hairline { background-color: hsl(var(--foreground) / 0.12); }
+
+/* Editorial-card hover lift */
+.ik-card {
+  transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 500ms cubic-bezier(0.22, 1, 0.36, 1);
+  box-shadow: var(--shadow-soft);
+}
+.ik-card:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-card);
+}
+
+/* Paper-pill (rounded-full chips on paper bg) */
+.ik-pill {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  box-shadow: var(--shadow-soft);
+}
+
+/* Editorial big-letter ghost preview inside FeaturedGrid thumbs */
+.ik-ghost-letter {
+  font-family: var(--font-instrument-serif), "Instrument Serif", serif;
+  font-style: italic;
+  color: hsl(var(--foreground) / 0.08);
+  line-height: 0.85;
+  user-select: none;
+}
+
+/* Reduced-motion — kill all editorial loops */
+@media (prefers-reduced-motion: reduce) {
+  .ik-float-y, .ik-float-y-slow, .ik-float-y-fast,
+  .ik-web-sway, .ik-web-sway-2, .ik-web-sway-3, .ik-web-sway-4,
+  .ik-crawl, .ik-leg-wiggle, .ik-marquee {
+    animation: none !important;
+  }
 }
