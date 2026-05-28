@@ -109,13 +109,44 @@ function AppInitializer() {
   return null;
 }
 
+// React re-renders <html> during client hydration and strips any
+// data-theme that the no-FOUC <head> script set. This hook re-applies
+// the saved theme on the client side after hydration and keeps it
+// pinned so the page never drops back to default light.
+function ThemeAttributePersister() {
+  useEffect(() => {
+    const apply = () => {
+      try {
+        const saved = localStorage.getItem('ik-theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const theme =
+          saved === 'dark' || saved === 'light' ? saved : prefersDark ? 'dark' : 'light';
+        if (document.documentElement.getAttribute('data-theme') !== theme) {
+          document.documentElement.setAttribute('data-theme', theme);
+        }
+      } catch {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    };
+    apply();
+    // Re-apply on storage events from other tabs.
+    window.addEventListener('storage', apply);
+    return () => window.removeEventListener('storage', apply);
+  }, []);
+  return null;
+}
+
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable} ${jetbrainsMono.variable}`}>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable} ${jetbrainsMono.variable}`}
+    >
       <head>
         {/* No-FOUC theme init — must run synchronously before <body> */}
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
@@ -145,6 +176,7 @@ export default function RootLayout({
                     <QueryClientProvider client={queryClient}>
                       <TooltipProvider>
                         <AppInitializer />
+                        <ThemeAttributePersister />
                         <ScrollBehaviorFix />
                         <ScrollProgress />
                         <NextRouterAdapter>

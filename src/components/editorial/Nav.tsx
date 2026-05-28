@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { ChevronDown, Moon, Sun, User } from 'lucide-react';
 
@@ -47,17 +48,27 @@ export function Nav() {
   return (
     <header className="nav-pill">
       <nav className="nav-pill-inner ik-glass-strong" aria-label="Primary">
-        {/* Brand */}
-        <Link href="/" className="flex items-center gap-3 pl-1 pr-2 py-1">
-          <span className="brand-mark" aria-hidden="true">K</span>
-          <span className="leading-tight">
-            <span className="font-display-roman block text-[18px] italic text-foreground">
-              Internet Keeda
-            </span>
-            <span className="font-mono-display mt-0.5 block text-[9px] uppercase tracking-[0.22em] text-[color:var(--muted-color)]">
-              everything ai
-            </span>
-          </span>
+        {/* Brand — logo image swaps based on theme via dual-img */}
+        <Link
+          href="/"
+          aria-label="Internet Keeda — home"
+          className="relative flex h-12 w-[180px] shrink-0 items-center pl-1 sm:w-[220px]"
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/branding/logo-light.png"
+            alt="Internet Keeda"
+            className="ik-logo-light block h-full w-auto object-contain"
+            draggable={false}
+          />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/branding/logo-dark.png"
+            alt=""
+            aria-hidden="true"
+            className="ik-logo-dark absolute left-1 top-1/2 hidden h-full w-auto -translate-y-1/2 object-contain"
+            draggable={false}
+          />
         </Link>
 
         {/* Center nav links — desktop only */}

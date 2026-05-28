@@ -40,27 +40,24 @@ export function Footer() {
       style={{ borderTop: '1px solid var(--border-color)' }}
     >
       <div className="mx-auto grid max-w-[var(--maxw,1240px)] grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr]">
-        {/* Brand block */}
+        {/* Brand block — logo image */}
         <div className="flex flex-col gap-4">
-          <div className="flex items-center gap-3.5">
-            <span
-              className="brand-mark"
+          <div className="relative h-14 w-[220px]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/branding/logo-light.png"
+              alt="Internet Keeda"
+              className="ik-logo-light block h-full w-auto object-contain"
+              draggable={false}
+            />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/branding/logo-dark.png"
+              alt=""
               aria-hidden="true"
-              style={{ width: 44, height: 44, fontSize: 24 }}
-            >
-              K
-            </span>
-            <div>
-              <div className="font-display-roman text-[22px] italic text-foreground leading-none">
-                Internet Keeda
-              </div>
-              <div
-                className="font-mono-display mt-1.5 text-[9px] uppercase tracking-[0.22em]"
-                style={{ color: 'var(--muted-color)' }}
-              >
-                everything ai · since 2026
-              </div>
-            </div>
+              className="ik-logo-dark absolute left-0 top-0 hidden h-full w-auto object-contain"
+              draggable={false}
+            />
           </div>
           <p
             className="m-0 text-[14px] leading-[1.55]"

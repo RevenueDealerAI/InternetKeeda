@@ -8,12 +8,12 @@ import { useTools } from '@/lib/api/tools';
 import { useCategories } from '@/hooks/useCategories';
 import { getToolLogo } from '@/utils/toolHelpers';
 import type { Tool } from '@/types/tool';
-import { Nav } from '@/components/editorial/Nav';
 import { Hero } from '@/components/editorial/Hero';
 import { FeaturedGrid } from '@/components/editorial/FeaturedGrid';
 import { Sections } from '@/components/editorial/Sections';
 import { Pricing } from '@/components/editorial/Pricing';
-import { Footer } from '@/components/editorial/Footer';
+// Nav + Footer are mounted globally in NextRouterAdapter — no need
+// to render them again here.
 
 // Single-route editorial composition matching the design reference.
 // Every surface uses theme tokens (var(--bg), var(--fg), var(--blood),
@@ -90,34 +90,28 @@ export default function Index() {
   }, [handleAiSearch]);
 
   return (
-    <div className="relative min-h-screen">
-      <Nav />
+    <main className="relative">
+      <Hero
+        toolCount={totalToolCount || 5247}
+        categoryCount={categoryCount || 42}
+        onAiSearch={handleAiSearch}
+        aiLoading={aiLoading}
+        initialQuery={aiQuery}
+      />
 
-      <main>
-        <Hero
-          toolCount={totalToolCount || 5247}
-          categoryCount={categoryCount || 42}
-          onAiSearch={handleAiSearch}
-          aiLoading={aiLoading}
-          initialQuery={aiQuery}
+      {(aiQuery || aiLoading) && (
+        <AiResultsSection
+          query={aiQuery}
+          results={aiResults}
+          loading={aiLoading}
+          onClear={clearAiSearch}
         />
+      )}
 
-        {(aiQuery || aiLoading) && (
-          <AiResultsSection
-            query={aiQuery}
-            results={aiResults}
-            loading={aiLoading}
-            onClear={clearAiSearch}
-          />
-        )}
-
-        <FeaturedGrid />
-        <Sections />
-        <Pricing />
-      </main>
-
-      <Footer />
-    </div>
+      <FeaturedGrid />
+      <Sections />
+      <Pricing />
+    </main>
   );
 }
 

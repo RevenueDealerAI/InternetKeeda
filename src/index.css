@@ -373,6 +373,13 @@
     box-shadow: var(--shadow-soft);
   }
 
+  /* Theme-conditional logo swap. Both logos sit in the DOM; CSS
+     toggles which one is visible based on data-theme. */
+  :root[data-theme="dark"] .ik-logo-light { display: none; }
+  :root[data-theme="dark"] .ik-logo-dark { display: block !important; }
+  :root:not([data-theme="dark"]) .ik-logo-light { display: block; }
+  :root:not([data-theme="dark"]) .ik-logo-dark { display: none; }
+
   /* Reference brand mark — circle with italic serif K */
   .brand-mark {
     width: 36px; height: 36px;
@@ -898,6 +905,70 @@
     border: 2px solid transparent;
     background-clip: content-box;
   }
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   DARK-THEME OVERRIDES FOR LEGACY TAILWIND UTILITY CLASSES
+   Other pages (categories, dashboard, top-products, etc.) use the
+   original light-themed component styling with hardcoded bg-white /
+   text-gray-* / border-gray-*. Without these overrides those pages
+   would render as white islands on the dark canvas. Scope to dark
+   theme only — light theme keeps its original look.
+   ───────────────────────────────────────────────────────────────── */
+:root[data-theme="dark"] .bg-white,
+:root[data-theme="dark"] .bg-slate-50,
+:root[data-theme="dark"] .bg-neutral-50,
+:root[data-theme="dark"] .bg-zinc-50,
+:root[data-theme="dark"] .bg-stone-50 {
+  background-color: var(--card-strong) !important;
+  color: hsl(var(--foreground));
+}
+:root[data-theme="dark"] .bg-gray-50,
+:root[data-theme="dark"] .bg-gray-100,
+:root[data-theme="dark"] .bg-slate-100,
+:root[data-theme="dark"] .bg-neutral-100,
+:root[data-theme="dark"] .bg-orange-50,
+:root[data-theme="dark"] .bg-orange-100 {
+  background-color: var(--bg-elev) !important;
+  color: hsl(var(--foreground));
+}
+:root[data-theme="dark"] .text-black,
+:root[data-theme="dark"] .text-gray-900,
+:root[data-theme="dark"] .text-gray-800,
+:root[data-theme="dark"] .text-slate-900,
+:root[data-theme="dark"] .text-neutral-900 {
+  color: hsl(var(--foreground)) !important;
+}
+:root[data-theme="dark"] .text-gray-700,
+:root[data-theme="dark"] .text-gray-600,
+:root[data-theme="dark"] .text-slate-700,
+:root[data-theme="dark"] .text-slate-600 {
+  color: var(--fg-dim) !important;
+}
+:root[data-theme="dark"] .text-gray-500,
+:root[data-theme="dark"] .text-gray-400,
+:root[data-theme="dark"] .text-slate-500,
+:root[data-theme="dark"] .text-slate-400 {
+  color: var(--muted-color) !important;
+}
+:root[data-theme="dark"] .border-gray-100,
+:root[data-theme="dark"] .border-gray-200,
+:root[data-theme="dark"] .border-gray-300,
+:root[data-theme="dark"] .border-slate-100,
+:root[data-theme="dark"] .border-slate-200 {
+  border-color: var(--border-color) !important;
+}
+/* Gradient backgrounds in BackgroundAnimation-style components
+   (from-white via-orange-50/30 to-white). Hide on dark. */
+:root[data-theme="dark"] [class*="from-white"],
+:root[data-theme="dark"] [class*="to-white"] {
+  background-image: none !important;
+}
+/* Tool-card hover shadows in legacy pages stay subtle on dark */
+:root[data-theme="dark"] .shadow-sm,
+:root[data-theme="dark"] .shadow-md,
+:root[data-theme="dark"] .shadow-lg {
+  box-shadow: var(--shadow-soft) !important;
 }
 
 html { scroll-behavior: smooth; }

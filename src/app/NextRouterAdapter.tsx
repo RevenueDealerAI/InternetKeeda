@@ -1,50 +1,27 @@
 'use client';
 
+import { Suspense } from 'react';
 import { usePathname } from 'next/navigation';
-import { useTheme } from '@/themes/ThemeContext';
-import { THEMES, DEFAULT_THEME } from '@/themes/theme-config';
-import { Navigation as ThemeOneNavigation } from '@/themes/theme-one/components/Navigation';
-import { Footer as ThemeOneFooter } from '@/themes/theme-one/components/Footer';
-import { BackgroundAnimation as ThemeOneBackgroundAnimation } from '@/themes/theme-one/components/BackgroundAnimation';
-import { ThemeTwoNavigation } from '@/themes/theme-two/components/ThemeTwoNavigation';
-import { ThemeTwoFooter } from '@/themes/theme-two/components/ThemeTwoFooter';
-import { ThemeTwoBackgroundAnimation } from '@/themes/theme-two/components/ThemeTwoBackgroundAnimation';
 import { MetaTagsManager } from '@/components/MetaTagsManager';
 import { Analytics } from '@/components/Analytics';
 import { AdSense } from '@/components/AdSense';
+import { Nav as EditorialNav } from '@/components/editorial/Nav';
+import { Footer as EditorialFooter } from '@/components/editorial/Footer';
 
 interface NextRouterAdapterProps {
   children: React.ReactNode;
 }
 
+// Editorial Nav + Footer are now mounted SITE-WIDE so the cinematic
+// dark/light theme covers every page consistently. The legacy
+// ThemeOneNavigation / ThemeOneFooter / ThemeOneBackgroundAnimation
+// (which hardcoded bg-white + orange gradient backdrops) are no longer
+// rendered — they fought the theme tokens on every non-home route.
+//
+// Admin pages keep their own internal layout (no editorial chrome).
 export function NextRouterAdapter({ children }: NextRouterAdapterProps) {
   const pathname = usePathname();
-  const { currentTheme, isLoading } = useTheme();
-
-  // Don't render navigation/footer until theme is determined to prevent flash
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <MetaTagsManager />
-        <Analytics />
-        <AdSense />
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  const safeTheme = currentTheme && currentTheme.path ? currentTheme : THEMES.find(t => t.id === DEFAULT_THEME) || THEMES[0];
-  const shouldShowThemeOne = safeTheme.id === 'theme-one';
   const isAdminRoute = pathname?.startsWith('/admin') || false;
-  // Homepage owns its own editorial Nav + Footer (the reference design
-  // wants them rendered inline). Skip the global ones there to avoid
-  // a double navbar.
-  const isHomeRoute = pathname === '/';
 
   return (
     <div className="min-h-screen">
@@ -52,17 +29,15 @@ export function NextRouterAdapter({ children }: NextRouterAdapterProps) {
       <Analytics />
       <AdSense />
 
-      {!isAdminRoute && !isHomeRoute && shouldShowThemeOne && <ThemeOneNavigation />}
-      {!isAdminRoute && !isHomeRoute && shouldShowThemeOne && <ThemeOneBackgroundAnimation />}
+      {!isAdminRoute && <EditorialNav />}
 
-      {!isAdminRoute && !isHomeRoute && !shouldShowThemeOne && <ThemeTwoNavigation />}
-      {!isAdminRoute && !isHomeRoute && !shouldShowThemeOne && <ThemeTwoBackgroundAnimation />}
+      {/* Suspense wraps children so pages that call useSearchParams()
+          (e.g. /payment/return, /subscription/return) can stream during
+          static prerender — previously the isLoading gate above gave
+          this implicitly; now we declare it. */}
+      <Suspense fallback={null}>{children}</Suspense>
 
-      {children}
-
-      {!isAdminRoute && !isHomeRoute && shouldShowThemeOne && <ThemeOneFooter />}
-      {!isAdminRoute && !shouldShowThemeOne && <ThemeTwoFooter />}
+      {!isAdminRoute && <EditorialFooter />}
     </div>
   );
 }
-

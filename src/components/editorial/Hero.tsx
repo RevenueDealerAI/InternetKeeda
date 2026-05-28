@@ -103,47 +103,45 @@ export function Hero({
           </span>
         </div>
 
-        {/* Massive headline */}
-        <h1
-          className="mt-9 font-medium text-foreground"
-          style={{
-            fontSize: 'clamp(56px, 11vw, 184px)',
-            lineHeight: 0.9,
-            letterSpacing: '-0.035em',
-            margin: '36px 0 0',
-          }}
-        >
-          <span className="block">
-            Discover.{' '}
-            <span
-              className="font-display-roman font-normal italic"
-              style={{ color: 'var(--blood-color)' }}
-            >
-              Learn.
-            </span>
-          </span>
-          <span className="block">
-            Earn.{' '}
-            <span
-              className="font-display-roman font-normal italic"
-              style={{ color: 'var(--fg-dim)' }}
-            >
-              Everything AI.
-            </span>
-          </span>
+        {/* Big logo as the hero mark — replaces the "INTERNET keeda"
+            wordmark text. Two <img> tags swap visibility by theme. */}
+        <h1 className="m-0 mt-9 mb-0 flex items-center justify-center" aria-label="Internet Keeda">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/branding/logo-light.png"
+            alt="Internet Keeda"
+            className="ik-logo-light block h-auto w-full max-w-[960px]"
+            draggable={false}
+          />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/branding/logo-dark.png"
+            alt=""
+            aria-hidden="true"
+            className="ik-logo-dark hidden h-auto w-full max-w-[960px]"
+            draggable={false}
+          />
         </h1>
 
         {/* Tagline */}
         <p
           className="mx-auto mt-8 text-[18px] leading-[1.55] text-[color:var(--fg-dim)]"
-          style={{ maxWidth: 620 }}
+          style={{ maxWidth: 720 }}
         >
-          A hub built{' '}
-          <em className="font-display-roman not-italic" style={{ fontStyle: 'italic', color: 'hsl(var(--foreground))' }}>
+          <span className="font-display-roman italic text-blood">Discover.</span>{' '}
+          <span className="font-display-roman italic text-blood">Learn.</span>{' '}
+          <span className="font-display-roman italic">Earn.</span>{' '}
+          <span className="font-display-roman italic" style={{ color: 'var(--fg-dim)' }}>
+            Everything AI
+          </span>{' '}
+          — a hub built{' '}
+          <em
+            className="font-display-roman not-italic"
+            style={{ fontStyle: 'italic', color: 'var(--fg)' }}
+          >
             by people who use AI tools daily
-          </em>{' '}
-          — not a corporate aggregator. {toolCount.toLocaleString()}+ tools across writing,
-          design, code, audio, video &amp; research.
+          </em>
+          , not a corporate aggregator.
         </p>
 
         {/* CTAs */}
