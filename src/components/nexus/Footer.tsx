@@ -55,9 +55,10 @@ export function Footer() {
                 background: 'linear-gradient(135deg, var(--accent), var(--accent-2))',
                 color: 'var(--on-accent)',
                 boxShadow: 'var(--shadow-accent)',
-                fontFamily: 'var(--serif)',
-                fontStyle: 'italic',
+                fontFamily: 'var(--sans)',
+                fontWeight: 700,
                 fontSize: 22,
+                letterSpacing: '-0.02em',
               }}
             >
               K
@@ -134,13 +135,15 @@ export function Footer() {
           © 2026 viom global inc · all webs reserved
         </div>
         <div
-          className="text-[14px]"
-          style={{ color: 'var(--ink-2)', fontFamily: 'var(--serif)', fontStyle: 'italic' }}
+          className="text-[13px]"
+          style={{
+            color: 'var(--ink-soft)',
+            fontFamily: 'var(--mono)',
+            letterSpacing: '0.06em',
+          }}
         >
           Made with{' '}
-          <span aria-hidden="true" style={{ color: 'var(--accent)' }}>
-            ●
-          </span>{' '}
+          <span aria-hidden="true" style={{ color: 'var(--accent)' }}>●</span>{' '}
           from somewhere on the internet.
         </div>
       </div>

@@ -1,9 +1,11 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useMemo, useState } from 'react';
 import { ArrowUp } from 'lucide-react';
 import { useTools } from '@/lib/api/tools';
+import { getToolLogo } from '@/utils/toolHelpers';
 import type { Tool } from '@/types/tool';
 
 const TABS = [
@@ -25,11 +27,6 @@ const BOOST_LABEL: Record<string, string> = {
   'category-top': 'category',
 };
 
-const GLYPHS: Record<string, string> = {
-  writing: '✦', design: '◆', code: '⌘', image: '◐', audio: '♪',
-  video: '▶', research: '?', agents: '△', automation: '⚙',
-  voice: '◊', '3d': '▣', vision: '◉', marketing: '$',
-};
 
 export function Launches() {
   const [tab, setTab] = useState<TabId>('today');
@@ -94,16 +91,7 @@ export function Launches() {
               }}
             >
               Today&apos;s{' '}
-              <span
-                style={{
-                  fontFamily: 'var(--serif)',
-                  fontStyle: 'italic',
-                  fontWeight: 400,
-                  color: 'var(--accent)',
-                }}
-              >
-                launches
-              </span>
+              <span style={{ fontWeight: 600, color: 'var(--accent)' }}>launches</span>
               , ranked by humans.
             </h2>
           </div>
@@ -180,10 +168,12 @@ function pickBoostLabel(t: Tool): string | null {
 
 function ToolCard({ tool, rank }: { tool: Tool; rank: number }) {
   const cat = (tool.category || 'all').toLowerCase().trim();
-  const glyph = GLYPHS[cat] || '✦';
   const boost = pickBoostLabel(tool);
   const desc = tool.description_ai || tool.description || '';
   const tags = (tool.tags ?? []).slice(0, 3);
+  const logoUrl = getToolLogo(tool);
+  const initial = (tool.name?.[0] || '?').toUpperCase();
+  const [logoFailed, setLogoFailed] = useState(false);
 
   const onMove = (e: React.MouseEvent<HTMLAnchorElement>) => {
     const el = e.currentTarget;
@@ -246,19 +236,41 @@ function ToolCard({ tool, rank }: { tool: Tool; rank: number }) {
       )}
 
       <div className="relative flex items-start gap-4">
-        <div
-          aria-hidden="true"
-          className="grid h-12 w-12 shrink-0 place-items-center rounded-xl"
-          style={{
-            background: 'linear-gradient(135deg, rgba(255,59,59,0.10), rgba(0,0,0,0.4))',
-            border: '1px solid var(--rule)',
-            color: 'var(--accent)',
-            fontFamily: 'var(--mono)',
-            fontSize: 18,
-          }}
-        >
-          {glyph}
-        </div>
+        {logoFailed || !logoUrl ? (
+          <div
+            aria-hidden="true"
+            className="grid h-12 w-12 shrink-0 place-items-center rounded-xl"
+            style={{
+              background: 'var(--accent-soft)',
+              border: '1px solid var(--rule)',
+              color: 'var(--accent)',
+              fontFamily: 'var(--sans)',
+              fontSize: 22,
+              fontWeight: 700,
+              letterSpacing: '-0.02em',
+            }}
+          >
+            {initial}
+          </div>
+        ) : (
+          <div
+            className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl"
+            style={{
+              background: '#fff',
+              border: '1px solid var(--rule)',
+            }}
+          >
+            <Image
+              src={logoUrl}
+              alt={`${tool.name} logo`}
+              fill
+              sizes="48px"
+              className="object-contain p-1.5"
+              unoptimized
+              onError={() => setLogoFailed(true)}
+            />
+          </div>
+        )}
 
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-3">

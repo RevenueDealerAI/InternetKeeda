@@ -62,16 +62,7 @@ export function CtaCard() {
             }}
           >
             List your tool.{' '}
-            <span
-              style={{
-                fontFamily: 'var(--serif)',
-                fontStyle: 'italic',
-                fontWeight: 400,
-                color: 'var(--accent)',
-              }}
-            >
-              Get
-            </span>{' '}
+            <span style={{ fontWeight: 600, color: 'var(--accent)' }}>Get</span>{' '}
             seen.
           </h2>
           <p

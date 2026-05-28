@@ -36,9 +36,10 @@ export function Nav() {
               background: 'linear-gradient(135deg, var(--accent), var(--accent-2))',
               color: 'var(--on-accent)',
               boxShadow: 'var(--shadow-accent)',
-              fontFamily: 'var(--serif)',
-              fontStyle: 'italic',
-              fontSize: 18,
+              fontFamily: 'var(--sans)',
+              fontWeight: 700,
+              fontSize: 16,
+              letterSpacing: '-0.02em',
             }}
           >
             K

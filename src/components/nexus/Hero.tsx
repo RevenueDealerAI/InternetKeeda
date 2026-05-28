@@ -138,16 +138,7 @@ export function Hero({
         >
           <span className="block">
             Discover.{' '}
-            <span
-              style={{
-                fontFamily: 'var(--serif)',
-                fontStyle: 'italic',
-                fontWeight: 400,
-                color: 'var(--accent)',
-              }}
-            >
-              Learn.
-            </span>
+            <span style={{ fontWeight: 600, color: 'var(--accent)' }}>Learn.</span>
           </span>
           <span className="block">
             Earn.{' '}
@@ -338,11 +329,12 @@ function StatCell({ value, label }: { value: string; label: string }) {
       style={{ background: 'rgba(17,17,20,0.85)' }}
     >
       <div
-        className="text-left"
+        className="text-left tabular-nums"
         style={{
-          fontFamily: 'var(--serif)',
-          fontStyle: 'italic',
+          fontFamily: 'var(--sans)',
           fontSize: 'clamp(36px, 4vw, 52px)',
+          fontWeight: 600,
+          letterSpacing: '-0.03em',
           lineHeight: 1,
           color: '#f4f3f0',
         }}

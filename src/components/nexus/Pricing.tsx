@@ -102,16 +102,7 @@ export function Pricing() {
             }}
           >
             Pay to{' '}
-            <span
-              style={{
-                fontFamily: 'var(--serif)',
-                fontStyle: 'italic',
-                fontWeight: 400,
-                color: 'var(--accent)',
-              }}
-            >
-              be seen.
-            </span>
+            <span style={{ fontWeight: 600, color: 'var(--accent)' }}>be seen.</span>
           </h2>
           <p
             className="mx-auto mt-4 text-[16px] leading-[1.6]"
@@ -183,11 +174,12 @@ function TierCard({ tier }: { tier: Tier }) {
 
       <div className="mt-4 flex items-baseline gap-2">
         <span
+          className="tabular-nums"
           style={{
-            fontFamily: 'var(--serif)',
-            fontStyle: 'italic',
-            fontWeight: 400,
+            fontFamily: 'var(--sans)',
+            fontWeight: 600,
             fontSize: 56,
+            letterSpacing: '-0.03em',
             lineHeight: 1,
             color: featured ? '#fff' : 'var(--ink)',
           }}

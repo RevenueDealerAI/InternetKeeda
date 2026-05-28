@@ -58,16 +58,7 @@ export function AgentSection() {
             }}
           >
             Ask once. Get a{' '}
-            <span
-              style={{
-                fontFamily: 'var(--serif)',
-                fontStyle: 'italic',
-                fontWeight: 400,
-                color: 'var(--accent)',
-              }}
-            >
-              whole stack
-            </span>
+            <span style={{ fontWeight: 600, color: 'var(--accent)' }}>whole stack</span>
             , not ten tabs.
           </h2>
           <p

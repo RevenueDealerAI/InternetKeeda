@@ -169,14 +169,7 @@ function AiResults({
               {loading ? (
                 <>
                   Routing{' '}
-                  <span
-                    style={{
-                      fontFamily: 'var(--serif)',
-                      fontStyle: 'italic',
-                      fontWeight: 400,
-                      color: 'var(--accent)',
-                    }}
-                  >
+                  <span style={{ fontWeight: 600, color: 'var(--accent)' }}>
                     &ldquo;{query}&rdquo;
                   </span>
                   …
@@ -184,12 +177,8 @@ function AiResults({
               ) : results.length > 0 ? (
                 <>
                   <span
-                    style={{
-                      fontFamily: 'var(--serif)',
-                      fontStyle: 'italic',
-                      fontWeight: 400,
-                      color: 'var(--accent)',
-                    }}
+                    className="tabular-nums"
+                    style={{ fontWeight: 700, color: 'var(--accent)' }}
                   >
                     {results.length}
                   </span>{' '}
