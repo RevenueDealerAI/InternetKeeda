@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { Search } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
+import { CategoryPills } from './CategoryPills';
 
 type HeroProps = {
   toolCount: number;
@@ -116,6 +117,9 @@ export function Hero({
               Browse catalog
             </Link>
           </div>
+
+          {/* Category pills strip — real categories, real counts */}
+          <CategoryPills />
 
           {/* Hanging hero spider */}
           <HangingSpider toolCount={toolCount} categoryCount={categoryCount} />

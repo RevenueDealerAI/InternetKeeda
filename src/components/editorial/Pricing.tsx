@@ -28,15 +28,28 @@ const PLANS: Plan[] = [
     cta: { label: 'Submit tool →', href: '/submit-tool' },
   },
   {
+    name: 'Boost · Category',
+    price: '$12',
+    period: '/ 7 days',
+    tagline: 'Pin to the top of your category.',
+    features: [
+      'Top slot in your category for 7 days',
+      'Category boost badge on the card',
+      'Real-time impressions + clicks',
+      'PayPal or Cashfree, USD-anchored',
+    ],
+    cta: { label: 'Boost category →', href: '/submit-tool' },
+  },
+  {
     name: 'Boost · Home',
     price: '$30',
     period: '/ 7 days',
     tagline: 'Land in the home rotation.',
     features: [
       'Home rotation slot (front-page exposure)',
-      'Real-time impressions + click tracking',
-      'Resubmit-safe — keeps your slot if you re-edit',
-      'Stacks with monthly Listing',
+      'Self-healing webhooks — no stranded payments',
+      'Resubmit-safe, keeps your slot on re-edit',
+      'Stacks with the monthly Listing',
     ],
     cta: { label: 'Boost now →', href: '/submit-tool' },
     highlight: true,
@@ -45,7 +58,7 @@ const PLANS: Plan[] = [
     name: 'Featured Badge',
     price: '$60',
     period: '/ 30 days',
-    tagline: 'Wear the black crown.',
+    tagline: 'Wear the crown for a month.',
     features: [
       'Featured badge on every surface',
       'All boost benefits included',
@@ -73,7 +86,7 @@ export function Pricing() {
           listing live even if a single payment event drops.
         </p>
 
-        <div className="mt-12 grid grid-cols-1 gap-5 lg:grid-cols-3">
+        <div className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {PLANS.map((plan) => (
             <PlanCard key={plan.name} plan={plan} />
           ))}

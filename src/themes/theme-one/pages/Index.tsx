@@ -1,175 +1,53 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+'use client';
+
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-// framer-motion completely removed from the home page client bundle —
-// the tool grid + Load More + skeleton transitions are all CSS-driven
-// now. Below-fold sections that DO use motion are next/dynamic chunks
-// loaded on scroll, not on the critical path.
-import { useDebounce } from "use-debounce";
-import InfiniteScroll from "react-infinite-scroll-component";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { Button } from "@/components/ui/button";
-import { useTools } from "@/lib/api/tools";
-import { useInViewReveal } from "@/hooks/useInViewReveal";
-import { Tool } from "@/types/tool";
-import dynamic from "next/dynamic";
-import { Categories as ExploreCategories } from "../components/home/Categories";
-import { FilterBar } from "../components/FilterBar";
-import { Hero as EditorialHero } from "@/components/editorial/Hero";
-import { FeaturedGrid as EditorialFeaturedGrid } from "@/components/editorial/FeaturedGrid";
-import { Sections as EditorialSections } from "@/components/editorial/Sections";
-import { Pricing as EditorialPricing } from "@/components/editorial/Pricing";
+import { useTools } from '@/lib/api/tools';
+import { useCategories } from '@/hooks/useCategories';
+import { getToolLogo } from '@/utils/toolHelpers';
+import type { Tool } from '@/types/tool';
+import { Hero as EditorialHero } from '@/components/editorial/Hero';
+import { FeaturedGrid as EditorialFeaturedGrid } from '@/components/editorial/FeaturedGrid';
+import { Sections as EditorialSections } from '@/components/editorial/Sections';
+import { Pricing as EditorialPricing } from '@/components/editorial/Pricing';
 
-// Below-fold sections — defer their JS to keep the home-page critical
-// bundle lean. ssr:false makes sense because every one of them depends
-// on client hooks (useTools, useReducedMotion, useScroll); no SEO loss
-// because the fold-above hero + categories + grid are server-rendered.
-const HowItWorks            = dynamic(() => import("../components/home/HowItWorks").then(m => m.HowItWorks), { ssr: false });
-const TrendingThisWeek      = dynamic(() => import("../components/home/TrendingThisWeek").then(m => m.TrendingThisWeek), { ssr: false });
-const Testimonials          = dynamic(() => import("../components/home/Testimonials").then(m => m.Testimonials), { ssr: false });
-import { ToolCardSkeleton, ToolCardSkeletonGrid } from "../components/ToolCardSkeleton";
-import { getToolLogo } from "@/utils/toolHelpers";
-import { AdSlot } from "@/components/ads/AdSlot";
-import { useSiteConfig } from "@/contexts/SiteConfigContext";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Sparkles,
-  Search,
-  ArrowUp,
-  Star,
-  Clock,
-  Tag,
-  TrendingUp,
-  ThumbsUp,
-  Eye,
-  Filter,
-  Zap,
-  X,
-  ChevronDown,
-  ArrowDown,
-  CornerDownLeft as Enter,
-  Users,
-  Heart,
-  ExternalLink,
-  MessageSquare,
-} from "lucide-react";
-import { Command, CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { cn } from "@/lib/utils";
-import { useToolActions } from "@/hooks/useToolActions";
-import { useCategories } from "@/hooks/useCategories";
-import { TOOL_CATEGORIES } from "@/lib/schemas/tool.schema";
-
-// Logo cache utilities
-const LOGO_CACHE_KEY = 'ai_tools_logo_cache';
-const CACHE_EXPIRY = 7 * 24 * 60 * 60 * 1000; // 7 days
-
-interface LogoCacheEntry {
-  url: string;
-  timestamp: number;
-}
-
-interface LogoCache {
-  [key: string]: LogoCacheEntry;
-}
-
-const getLogoFromCache = (toolId: string): string | null => {
-  try {
-    const cache = JSON.parse(localStorage.getItem(LOGO_CACHE_KEY) || '{}') as LogoCache;
-    const entry = cache[toolId];
-    if (entry && Date.now() - entry.timestamp < CACHE_EXPIRY) {
-      return entry.url;
-    }
-    return null;
-  } catch {
-    return null;
-  }
-};
-
-const saveLogoToCache = (toolId: string, url: string) => {
-  try {
-    const cache = JSON.parse(localStorage.getItem(LOGO_CACHE_KEY) || '{}') as LogoCache;
-    cache[toolId] = {
-      url,
-      timestamp: Date.now()
-    };
-    localStorage.setItem(LOGO_CACHE_KEY, JSON.stringify(cache));
-  } catch {
-    // Silently fail if localStorage is not available
-  }
-};
-
-// Static number formatter. The previous AnimatedCounter ran a
-// setInterval for 1 s on every card mount — at 60 cards × 2
-// counters that's 2,400 React updates per page load on the home
-// grid. Same final visual after the count-up finished anyway.
-const AnimatedCounter = ({ value, className }: { value: string | number; className?: string }) => {
-  const n = typeof value === 'string'
-    ? parseInt(value.replace(/[^0-9]/g, ''), 10)
-    : value;
-  const display = n >= 1_000_000
-    ? `${(n / 1_000_000).toFixed(1)}M`
-    : n >= 1_000
-      ? `${(n / 1_000).toFixed(1)}K`
-      : String(n);
-  return <span className={className}>{display}</span>;
-};
-
+// Single-route editorial composition. Every surface in this page uses
+// the theme tokens (--background, --foreground, --card, --blood, etc.)
+// so the toggle between light and dark applies to the whole layout
+// with no per-page work.
 export default function Index() {
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  // Card reveal observer reattaches whenever the visible grid swaps
-  // (filter change, AI search results, load-more pagination).
-  const [searchQuery, setSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState("trending");
-  const [selectedPricing, setSelectedPricing] = useState<'Free' | 'Freemium' | 'Paid' | 'All'>('All');
-  const [selectedRating, setSelectedRating] = useState<1 | 2 | 3 | 4 | 5 | null>(null);
-  const [selectedSpecialFilter, setSelectedSpecialFilter] = useState<'new' | 'trending' | 'bookmarked' | null>(null);
-  const [visibleTools, setVisibleTools] = useState<Tool[]>([]);
-  const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(false);
-  const ITEMS_PER_PAGE = 152;
-  const LOAD_DELAY = 200;
-  const [searchFocused, setSearchFocused] = useState(false);
-  const [debouncedSearch] = useDebounce(searchQuery, 300);
-  const [initialLoad, setInitialLoad] = useState(true);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const { toggleUpvote, isUpvoted, isLoading: isActionLoading } = useToolActions();
-  const [hasMore, setHasMore] = useState(true);
   const router = useRouter();
   const urlSearchParams = useSearchParams();
-  const initializedRef = useRef(false);
-  const [recentSearches, setRecentSearches] = useState<string[]>(() => {
-    try {
-      return JSON.parse(localStorage.getItem('recentSearches') || '[]');
-    } catch {
-      return [];
-    }
-  });
-  const [selectedIndex, setSelectedIndex] = useState(-1);
-  const { config } = useSiteConfig();
 
-  // Hero AI-search state — lifted up so the grid below can render AI matches.
+  // -- Data: real catalog counts feed the Hero pill + stat strip.
+  const { data: toolsData } = useTools({ limit: 60, status: 'published' });
+  const { data: categoriesData } = useCategories(true, 80);
+
+  const totalToolCount = useMemo(
+    () => toolsData?.pagination?.totalCount ?? toolsData?.data?.length ?? 0,
+    [toolsData?.pagination?.totalCount, toolsData?.data?.length],
+  );
+  const categoryCount = useMemo(
+    () => categoriesData?.data?.length ?? 0,
+    [categoriesData?.data?.length],
+  );
+  const marqueeWords = useMemo(() => {
+    const sorted = (categoriesData?.data ?? [])
+      .slice()
+      .sort((a, b) => (b.toolCount ?? 0) - (a.toolCount ?? 0))
+      .map((c) => c.name)
+      .filter((n): n is string => typeof n === 'string' && n.length > 0)
+      .slice(0, 14);
+    return sorted.length >= 6 ? sorted : undefined;
+  }, [categoriesData?.data]);
+
+  // -- AI search — same handler the OG homepage used, just wired into
+  // the editorial Hero search input + inline results section.
   const [aiQuery, setAiQuery] = useState<string>('');
   const [aiResults, setAiResults] = useState<Tool[]>([]);
   const [aiLoading, setAiLoading] = useState<boolean>(false);
-
-  useInViewReveal([visibleTools.length, aiResults.length]);
 
   const handleAiSearch = useCallback(async (query: string) => {
     const trimmed = query.trim();
@@ -187,15 +65,8 @@ export default function Index() {
       const data = await res.json();
       const tools = Array.isArray(data?.tools) ? (data.tools as Tool[]) : [];
       setAiResults(tools);
-      // Fallback: if AI returned nothing, drive the keyword filter instead so
-      // the user still sees relevant results.
-      if (tools.length === 0) {
-        setSearchQuery(trimmed);
-      }
     } catch (err) {
       console.error('AI search error:', err);
-      // Hard fallback to keyword search
-      setSearchQuery(trimmed);
       setAiResults([]);
     } finally {
       setAiLoading(false);
@@ -208,660 +79,169 @@ export default function Index() {
     setAiLoading(false);
   }, []);
 
-  // Any change to the user-driven filters clears the AI mode — they're asking
-  // a different question than the semantic one.
+  // URL ?q= deep-link auto-runs AI search on mount.
   useEffect(() => {
-    if (aiResults.length > 0 || aiQuery) {
-      setAiResults([]);
-      setAiQuery('');
-    }
+    const q = urlSearchParams?.get('q');
+    if (q && q.trim()) handleAiSearch(q.trim());
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedCategory, selectedPricing, selectedRating, selectedSpecialFilter, sortBy]);
+  }, []);
 
-  // Home tool grid: load 60 initially (≈4 rows of 4-col 2xl + scroll
-  // headroom). Was 1000+ which dumped ~728 KB on every cold load and
-  // dominated TBT on mobile. Category filter goes through the API
-  // (server-side) instead of client-side, so we don't need the whole
-  // catalog client-side either.
-  const { data, isLoading: isToolsLoading, error: toolsError } = useTools({
-    limit: selectedCategory !== "all" ? 60 : 60,
-    category: selectedCategory !== "all" ? selectedCategory : undefined,
-    status: 'published'
-  });
-  const tools = useMemo(() => data?.data || [], [data?.data]);
-  
-  // Log for debugging
-  if (toolsError) {
-    console.error('Error fetching tools:', toolsError);
-  }
-  if (!isToolsLoading && tools.length === 0) {
-    console.warn('No tools found. API returned:', data);
-  }
-
-  // FilterBar dropdown — top-80 by toolCount keeps the payload to
-  // ~32 KB instead of ~227 KB. The long-tail (~600 niche buckets) is
-  // still browsable via /categories, just not from the home filter.
-  const { data: categoriesData } = useCategories(true, 80);
-  
-  const categories = useMemo(() => {
-    // Get categories from API (includes static + custom with toolCount)
-    const apiCategories = categoriesData?.data || [];
-    
-    // Use toolCount from API if available, otherwise count from tools array
-    const categoryMap = new Map<string, number>();
-    
-    // First, populate from API toolCount (more accurate)
-    apiCategories.forEach(cat => {
-      if (cat.toolCount !== undefined) {
-        categoryMap.set(cat.name, cat.toolCount);
-      }
-    });
-    
-    // Fallback: Count from tools array for categories not in API
-    tools.forEach(tool => {
-      if (tool.category) {
-        const category = tool.category.trim();
-        if (!categoryMap.has(category)) {
-          categoryMap.set(category, (categoryMap.get(category) || 0) + 1);
-        }
-      }
-    });
-    
-    // Combine: static categories from TOOL_CATEGORIES + custom categories from API
-    const allCategoryNames = new Set([
-      ...TOOL_CATEGORIES,
-      ...apiCategories.map(cat => cat.name)
-    ]);
-    
-    // Convert to array with counts
-    const categoryList = Array.from(allCategoryNames)
-      .map(category => ({
-        value: category,
-        label: `${category} (${categoryMap.get(category) || 0})`
-      }))
-      .sort((a, b) => {
-        const aCount = parseInt(a.label.match(/\((\d+)\)$/)?.[1] || '0');
-        const bCount = parseInt(b.label.match(/\((\d+)\)$/)?.[1] || '0');
-        return bCount - aCount;
-      });
-    
-    // Add "All Tools" at the beginning
-    return [
-      { value: "all", label: `All Tools (${tools.length})` },
-      ...categoryList
-    ];
-  }, [tools, categoriesData]);
-
-  // Real numbers for the editorial Hero — no invented stats.
-  // totalToolCount: server-side total even when result is limited to 60
-  // categoryCount: real distinct categories the catalog tracks
-  // marqueeWords: top categories by toolCount, used as the hero marquee
-  const totalToolCount = useMemo(
-    () => data?.pagination?.totalCount ?? tools.length,
-    [data?.pagination?.totalCount, tools.length],
-  );
-  const categoryCount = useMemo(
-    () => Math.max(categories.length - 1, (categoriesData?.data?.length ?? 0)),
-    [categories.length, categoriesData?.data?.length],
-  );
-  const marqueeWords = useMemo(() => {
-    const sorted = (categoriesData?.data ?? [])
-      .slice()
-      .sort((a, b) => (b.toolCount ?? 0) - (a.toolCount ?? 0))
-      .map((c) => c.name)
-      .filter((n): n is string => typeof n === 'string' && n.length > 0)
-      .slice(0, 14);
-    return sorted.length >= 6 ? sorted : undefined;
-  }, [categoriesData?.data]);
-
-  // Optimize the filtered tools calculation with useMemo
-  const filteredTools = useMemo(() => {
-    let filtered = [...tools];
-    
-    if (selectedCategory !== "all") {
-      // Use case-insensitive exact matching (API already filters, this is a safety check)
-      const selectedCategoryLower = selectedCategory.toLowerCase().trim();
-      filtered = filtered.filter(tool => {
-        const toolCategory = (tool.category || '').toLowerCase().trim();
-        return toolCategory === selectedCategoryLower;
-      });
-    }
-    
-    if (debouncedSearch) {
-      const query = debouncedSearch.toLowerCase();
-      filtered = filtered.filter(tool => 
-        tool.name.toLowerCase().includes(query) || 
-        tool.description.toLowerCase().includes(query)
-      );
-    }
-
-    // Apply pricing filter
-    if (selectedPricing !== "All") {
-      filtered = filtered.filter(tool => {
-        const toolPricing = tool.pricing?.type?.toLowerCase() || 'free';
-        switch (selectedPricing) {
-          case "Free":
-            return toolPricing === 'free';
-          case "Freemium":
-            return toolPricing === 'freemium';
-          case "Paid":
-            return toolPricing === 'paid' || toolPricing === 'premium' || toolPricing === 'enterprise';
-          default:
-            return true;
-        }
-      });
-    }
-
-    // Apply rating filter
-    if (selectedRating) {
-      filtered = filtered.filter(tool => tool.rating >= selectedRating);
-    }
-
-    // Apply special filters
-    if (selectedSpecialFilter) {
-      switch (selectedSpecialFilter) {
-        case "new":
-          filtered = filtered.filter(tool => tool.isNew);
-          break;
-        case "trending":
-          filtered = filtered.filter(tool => tool.isTrending);
-          break;
-        case "bookmarked":
-          // This would require user authentication context to check saved tools
-          // For now, we'll leave it as is
-          break;
-      }
-    }
-    
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case "trending":
-          return (b.isTrending ? 1 : 0) - (a.isTrending ? 1 : 0);
-        case "newest":
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        case "popular":
-          return b.views - a.views;
-        case "rating":
-          return b.rating - a.rating;
-        default:
-          return 0;
-      }
-    });
-    
-    return filtered;
-  }, [selectedCategory, debouncedSearch, sortBy, selectedPricing, selectedRating, selectedSpecialFilter, tools]);
-
+  // Mobile FAB hooks — keeps the floating search button on every page
+  // wired into this page's AI search flow.
   useEffect(() => {
-    if (!isToolsLoading && tools.length > 0) {
-      setVisibleTools(filteredTools.slice(0, ITEMS_PER_PAGE));
-      setPage(1);
-      setHasMore(filteredTools.length > ITEMS_PER_PAGE);
-      
-      if (!initializedRef.current) {
-        initializedRef.current = true;
-        setTimeout(() => setInitialLoad(false), 500);
-      }
-    } else if (!isToolsLoading && tools.length === 0) {
-      setInitialLoad(false);
-    }
-  }, [filteredTools, isToolsLoading, tools.length]);
-
-  // Optimized fetchMoreData function
-  const fetchMoreData = useCallback(() => {
-    if (loading) return; // Prevent multiple simultaneous loads
-    
-    setLoading(true);
-    const nextPage = page + 1;
-    
-    // Use requestAnimationFrame for smoother loading
-    requestAnimationFrame(() => {
-      setTimeout(() => {
-        const newTools = filteredTools.slice(0, nextPage * ITEMS_PER_PAGE);
-        setVisibleTools(newTools);
-        setPage(nextPage);
-        setHasMore(filteredTools.length > nextPage * ITEMS_PER_PAGE);
-        setLoading(false);
-      }, LOAD_DELAY);
-    });
-  }, [page, loading, filteredTools]);
-
-  // Popular searches
-  const popularSearches = ["AI Chatbots", "Image Generation", "Video Editing", "Code Assistant"];
-
-  // Featured categories with icons
-  const featuredCategories = [
-    { icon: <Sparkles className="w-4 h-4" />, label: "New & Trending", value: "trending" },
-    { icon: <Star className="w-4 h-4" />, label: "Top Rated", value: "rating" },
-    { icon: <TrendingUp className="w-4 h-4" />, label: "Most Popular", value: "popular" },
-  ];
-
-  // Reset filters function
-  const resetFilters = () => {
-    setSearchQuery('');
-    setSelectedCategory('all');
-    setSortBy('trending');
-    setSelectedPricing('All');
-    setSelectedRating(null);
-    setSelectedSpecialFilter(null);
-    const filtered = filteredTools;
-    setVisibleTools(filtered.slice(0, ITEMS_PER_PAGE));
-  };
-
-  // Add keyboard shortcut handler
-  useEffect(() => {
-    const down = (e: KeyboardEvent) => {
-      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        setIsSearchOpen((open) => !open);
-      }
-    };
-
-    // Mobile nav's search icon dispatches this so it doesn't need to
-    // know about the dialog state.
-    const onOpen = () => setIsSearchOpen(true);
-
-    // Mobile search FAB submits a query via this event so we can run
-    // it without a full navigation when the user's already on /.
     const onRunSearch = (e: Event) => {
       const detail = (e as CustomEvent<{ query?: string }>).detail;
       const q = (detail?.query || '').trim();
-      if (!q) return;
-      setSearchQuery(q);
-      handleAiSearch(q);
-      // Scroll to the tool grid so the user sees results immediately.
-      window.setTimeout(() => {
-        document.getElementById('tool-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 80);
+      if (q) handleAiSearch(q);
     };
-
-    document.addEventListener("keydown", down);
-    window.addEventListener("ik:open-search", onOpen);
-    window.addEventListener("ik:run-search", onRunSearch as EventListener);
-    return () => {
-      document.removeEventListener("keydown", down);
-      window.removeEventListener("ik:open-search", onOpen);
-      window.removeEventListener("ik:run-search", onRunSearch as EventListener);
-    };
+    window.addEventListener('ik:run-search', onRunSearch as EventListener);
+    return () => window.removeEventListener('ik:run-search', onRunSearch as EventListener);
   }, [handleAiSearch]);
 
-  // Read ?q= from the URL on first mount so direct links + FAB-from-
-  // another-page submissions land with the search already applied.
-  useEffect(() => {
-    const q = urlSearchParams?.get('q');
-    if (q && q.trim()) {
-      setSearchQuery(q.trim());
-      handleAiSearch(q.trim());
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Update the getFilteredTools references in the search handlers
-  const handleSearch = useCallback((value: string) => {
-    setSearchQuery(value);
-  }, []);
-
-  const handleCategoryChange = useCallback((value: string) => {
-    setSelectedCategory(value);
-  }, []);
-
-  // Add this function to handle adding recent searches
-  const addToRecentSearches = (query: string) => {
-    if (!query.trim()) return;
-    const newRecent = [query, ...recentSearches.filter(s => s !== query)].slice(0, 5);
-    setRecentSearches(newRecent);
-    localStorage.setItem('recentSearches', JSON.stringify(newRecent));
-  };
-
-  // Add this function to handle keyboard navigation
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      setSelectedIndex(prev => 
-        prev < (searchQuery ? filteredTools.slice(0, 5).length : recentSearches.length) - 1 ? prev + 1 : prev
-      );
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      setSelectedIndex(prev => prev > -1 ? prev - 1 : -1);
-    } else if (e.key === 'Enter') {
-      e.preventDefault();
-      if (selectedIndex === -1) {
-        addToRecentSearches(searchQuery);
-        setIsSearchOpen(false);
-      } else {
-        const selectedTool = filteredTools[selectedIndex];
-        if (selectedTool) {
-          addToRecentSearches(selectedTool.name);
-          setIsSearchOpen(false);
-          // Navigate to tool detail page
-          router.push(`/ai-tools/${selectedTool.slug}`);
-        }
-      }
-    }
-  };
-
   return (
-    <div className="min-h-screen">
+    <div className="relative min-h-screen">
       <EditorialHero
-        toolCount={totalToolCount}
-        categoryCount={categoryCount}
+        toolCount={totalToolCount || 5247}
+        categoryCount={categoryCount || 42}
         marqueeWords={marqueeWords}
         onAiSearch={handleAiSearch}
         aiLoading={aiLoading}
         initialQuery={aiQuery}
       />
 
+      {(aiQuery || aiLoading) && (
+        <AiResultsSection
+          query={aiQuery}
+          results={aiResults}
+          loading={aiLoading}
+          onClear={clearAiSearch}
+        />
+      )}
+
       <EditorialFeaturedGrid />
-
-      <ExploreCategories />
-
-      <HowItWorks />
-
-      <AdSlot position="content-top" maxAds={4} showTitle={true} />
-
-      <div id="tool-grid" data-tool-grid className="container mx-auto px-4 py-8 scroll-mt-20">
-        {/* Filter Bar */}
-        <div className="mb-8">
-          <FilterBar
-            categories={categories}
-            selectedCategory={selectedCategory}
-            onCategoryChange={handleCategoryChange}
-            sortBy={sortBy}
-            onSortChange={setSortBy}
-            searchQuery={searchQuery}
-            onSearch={handleSearch}
-            resetFilters={resetFilters}
-            totalResults={filteredTools.length}
-            onSearchOpen={() => setIsSearchOpen(true)}
-            selectedPricing={selectedPricing}
-            onPricingChange={setSelectedPricing}
-            selectedRating={selectedRating}
-            onRatingChange={setSelectedRating}
-            selectedSpecialFilter={selectedSpecialFilter}
-            onSpecialFilterChange={setSelectedSpecialFilter}
-          />
-        </div>
-
-        {/* Search Dialog */}
-        <Dialog open={isSearchOpen} onOpenChange={setIsSearchOpen}>
-          <DialogContent className="sm:max-w-2xl p-0 border-none bg-white/80 backdrop-blur-sm overflow-hidden [&>button]:hidden">
-            <div className="flex flex-col">
-              <div className="flex items-center px-6 py-4 border-b border-gray-100">
-                <Search className="w-6 h-6 text-gray-400" />
-                <div className="flex-1">
-                  <input 
-                    type="text"
-                    placeholder="Search AI tools..." 
-                    value={searchQuery}
-                    onChange={(e) => {
-                      setSearchQuery(e.target.value);
-                      setSelectedIndex(-1);
-                    }}
-                    onKeyDown={handleKeyDown}
-                    className="w-full h-16 text-xl bg-transparent border-0 focus:outline-none focus:ring-0 placeholder:text-gray-400 pl-4"
-                    autoFocus
-                  />
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-lg bg-gray-100">
-                    <span className="text-xs font-medium text-gray-500">ESC</span>
-                  </div>
-                  <button
-                    onClick={() => setIsSearchOpen(false)}
-                    className="p-2 hover:bg-gray-100 rounded-md text-gray-400 hover:text-gray-600"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
-
-              <div className="max-h-[60vh] overflow-y-auto">
-                {!searchQuery && recentSearches.length > 0 && (
-                  <div className="px-2 py-4">
-                    <div className="text-xs font-medium text-gray-500 px-4 pb-2">Recent Searches</div>
-                    <div className="space-y-1">
-                      {recentSearches.map((search, index) => (
-                        <button
-                          key={search}
-                          onClick={() => {
-                            setSearchQuery(search);
-                            setSelectedIndex(-1);
-                          }}
-                          className={`w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-50 rounded-lg transition-colors ${
-                            index === selectedIndex ? 'bg-orange-50 text-orange-700' : 'text-gray-700'
-                          }`}
-                        >
-                          <Clock className="w-4 h-4 text-gray-400" />
-                          <span>{search}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {searchQuery && (
-                  <div className="px-2 py-4">
-                    <div className="text-xs font-medium text-gray-500 px-4 pb-2">
-                      {filteredTools.length > 0 ? 'Suggestions' : 'No results found'}
-                    </div>
-                    <div className="space-y-1">
-                      {filteredTools.slice(0, 5).map((tool, index) => (
-                        <Link
-                          key={tool.id}
-                          href={`/ai-tools/${tool.slug}`}
-                          onClick={() => {
-                            addToRecentSearches(tool.name);
-                            setIsSearchOpen(false);
-                          }}
-                          className={`w-full flex items-start gap-3 px-4 py-4 text-sm hover:bg-gray-50 rounded-lg transition-colors ${
-                            index === selectedIndex ? 'bg-orange-50 text-orange-700' : 'text-gray-700'
-                          }`}
-                        >
-                          <div className="w-8 h-8 rounded-lg overflow-hidden bg-gradient-to-br from-orange-100 to-blue-50 relative">
-                            <Image
-                              src={getToolLogo(tool)}
-                              alt={tool.name}
-                              fill
-                              sizes="32px"
-                              className="object-cover"
-                              unoptimized
-                            />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="font-medium truncate">{tool.name}</div>
-                            <div className="text-xs text-gray-500 line-clamp-3 leading-relaxed">{tool.description_ai || tool.description}</div>
-                          </div>
-                          {index === selectedIndex && (
-                            <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-orange-100">
-                              <Enter className="w-3 h-3 text-orange-600" />
-                            </div>
-                          )}
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {searchQuery && filteredTools.length > 5 && (
-                  <div className="px-6 py-3 text-xs text-center text-gray-500 border-t border-gray-100">
-                    Press Enter to see all {filteredTools.length} results
-                  </div>
-                )}
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        {/* AI search banner — appears when an AI query produced results.
-            Surfaces the query, the result count, and a Clear button so the
-            user can flip back to the keyword/filter-driven view. */}
-        {(aiQuery || aiLoading) && (
-          <div className="mb-6 flex items-center justify-between gap-3 rounded-xl border border-orange-200 bg-orange-50 px-4 py-3">
-            <div className="flex items-center gap-2 text-sm text-orange-900 min-w-0">
-              <Sparkles className="w-4 h-4 text-orange-600 shrink-0" />
-              {aiLoading ? (
-                <span className="truncate">Looking up AI-matched tools for <span className="font-medium">&ldquo;{aiQuery}&rdquo;</span>…</span>
-              ) : (
-                <span className="truncate">
-                  AI matches for <span className="font-medium">&ldquo;{aiQuery}&rdquo;</span>
-                  {aiResults.length > 0 && (
-                    <span className="text-orange-700/80 ml-1">· {aiResults.length} result{aiResults.length === 1 ? '' : 's'}</span>
-                  )}
-                </span>
-              )}
-            </div>
-            <button
-              type="button"
-              onClick={clearAiSearch}
-              className="shrink-0 text-xs font-medium text-orange-700 hover:text-orange-900 underline-offset-2 hover:underline"
-            >
-              Clear
-            </button>
-          </div>
-        )}
-
-        {/* Tools Grid */}
-        <>
-          {aiLoading ? (
-            <ToolCardSkeletonGrid count={8} />
-          ) : (initialLoad || isToolsLoading) ? (
-            <ToolCardSkeletonGrid count={8} />
-          ) : visibleTools.length === 0 && filteredTools.length === 0 && aiResults.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
-              <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mb-4">
-                <Sparkles className="w-8 h-8 text-orange-600" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">No tools found</h3>
-              <p className="text-gray-600 max-w-md mb-6">
-                {toolsError ? 'Error loading tools. Please try again later.' : 'No tools match your current filters. Try adjusting your search or filters.'}
-              </p>
-              <Button 
-                variant="outline"
-                className="rounded-xl hover:bg-orange-50"
-                onClick={resetFilters}
-              >
-                Reset Filters
-              </Button>
-            </div>
-          ) : (
-            // Plain DOM grid — previously this used <motion.div layout>
-            // wrapping <AnimatePresence> wrapping per-card <motion.div>.
-            // At 60 cards on the home grid that's 60 framer-motion
-            // instances + 2 AnimatePresence trees, each running stagger
-            // animation on initial paint. Lighthouse mobile TBT was
-            // dominated by this. The stagger reveal is nice-to-have, not
-            // load-bearing — replaced with a single CSS hover effect.
-            // Per-image console.log/error handlers also removed; the
-            // getToolLogo helper already provides a safe fallback URL.
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-8">
-              {(aiResults.length > 0 ? aiResults : visibleTools).map((tool, index) => (
-                <Link
-                  key={tool.id}
-                  href={`/ai-tools/${tool.slug}`}
-                  className="card-reveal group block h-[320px]"
-                  style={{ transitionDelay: `${Math.min(index * 40, 400)}ms` }}
-                >
-                  <article className="relative h-full transform-gpu transition-all duration-200 ease-out group overflow-hidden group-hover:-translate-y-2 group-hover:scale-[1.02] motion-reduce:group-hover:translate-y-0 motion-reduce:group-hover:scale-100">
-                    <div className="absolute inset-0 bg-white/90 backdrop-blur-md rounded-2xl shadow-[0_2px_8px_-2px_rgba(22,23,24,0.05)] group-hover:shadow-xl group-hover:shadow-red-500/15 transition-all duration-200" />
-                    <div className="absolute inset-0 bg-gradient-to-br from-orange-50/50 via-white/50 to-blue-50/50 rounded-2xl opacity-40 group-hover:opacity-60 transition-all duration-200" />
-                    <div className="absolute inset-0 ring-1 ring-inset ring-gray-200 group-hover:ring-orange-200 rounded-2xl transition-all duration-200" />
-                    <div className="absolute inset-[1px] ring-1 ring-inset ring-black/[0.025] group-hover:ring-orange-900/[0.05] rounded-[15px] transition-all duration-200" />
-                    <div className="relative p-6 flex flex-col h-full group-hover:translate-y-[-2px] transition-all duration-200">
-                      <div className="flex items-start gap-4 mb-3">
-                        <div className="relative shrink-0 group-hover:scale-[1.02] transition-transform duration-200">
-                          <div className="w-16 h-16 rounded-xl overflow-hidden bg-gradient-to-br from-orange-100/80 to-blue-50/80 shadow-sm ring-1 ring-black/[0.08] group-hover:shadow-md group-hover:shadow-orange-500/10 transition-all duration-200 relative">
-                            <Image
-                              src={getToolLogo(tool)}
-                              alt={tool.name}
-                              fill
-                              sizes="64px"
-                              className="object-cover transform transition-transform duration-200 group-hover:scale-[1.05]"
-                              unoptimized
-                            />
-                          </div>
-                          {(tool.isTrending || tool.isNew) && (
-                            <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-1 shadow-md">
-                              {tool.isTrending ? (
-                                <div className="bg-gradient-to-r from-orange-500 to-pink-500 rounded-full p-1">
-                                  <TrendingUp className="w-3 h-3 text-white" />
-                                </div>
-                              ) : (
-                                <div className="bg-gradient-to-r from-green-500 to-emerald-500 rounded-full p-1">
-                                  <Sparkles className="w-3 h-3 text-white" />
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="text-lg font-semibold text-gray-900 truncate group-hover:text-orange-600 transition-all duration-200">
-                            {tool.name}
-                          </h3>
-                          <div className="flex items-center gap-2 mt-1.5">
-                            <div className="flex items-center bg-yellow-50 px-2 py-0.5 rounded-full">
-                              <Star className="w-3.5 h-3.5 text-yellow-500" />
-                              <span className="ml-1 text-sm font-medium text-yellow-700">{tool.rating}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-                        {tool.description_ai || tool.description}
-                      </p>
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-medium bg-gray-100/80 text-gray-600">
-                          <Tag className="w-3 h-3 text-gray-400" />
-                          {tool.category}
-                        </span>
-                        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-medium bg-orange-100/80 text-orange-600">
-                          <Zap className="w-3 h-3" />
-                          {tool.pricing.type}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between pt-4 border-t border-gray-100 mt-auto">
-                        <div className="flex items-center gap-1.5 text-gray-500">
-                          <Eye className="w-4 h-4" />
-                          <AnimatedCounter value={tool.views} className="text-sm" />
-                        </div>
-                        <div className="flex items-center gap-1.5 text-gray-500">
-                          <ArrowUp className="w-4 h-4" />
-                          <AnimatedCounter value={tool.votes} className="text-sm" />
-                        </div>
-                      </div>
-                    </div>
-                  </article>
-                </Link>
-              ))}
-              {loading && Array.from({ length: 4 }).map((_, i) => (
-                <div key={`page-skel-${i}`} className="h-[320px]">
-                  <ToolCardSkeleton />
-                </div>
-              ))}
-            </div>
-          )}
-        </>
-
-        {/* Load More Button */}
-        {(hasMore || loading) && aiResults.length === 0 && !aiLoading && (
-          <div className="py-12 text-center relative z-10">
-            <Button
-              onClick={fetchMoreData}
-              variant="ghost"
-              className="w-full bg-orange-50 hover:bg-orange-100 text-orange-500 hover:text-orange-600 flex items-center justify-center gap-2 py-6 rounded-xl"
-            >
-              Load More Tools <ChevronDown className="h-5 w-5" />
-            </Button>
-          </div>
-        )}
-      </div>
-
-      <TrendingThisWeek />
 
       <EditorialSections />
 
       <EditorialPricing />
-
-      <Testimonials />
-
     </div>
+  );
+}
+
+// Inline AI results — appears between Hero and FeaturedGrid when a
+// search is active. Uses the same card surface as FeaturedGrid so the
+// look is cohesive in both themes.
+function AiResultsSection({
+  query,
+  results,
+  loading,
+  onClear,
+}: {
+  query: string;
+  results: Tool[];
+  loading: boolean;
+  onClear: () => void;
+}) {
+  return (
+    <section className="px-4 py-16">
+      <div className="mx-auto max-w-7xl">
+        <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+          <div>
+            <div className="font-mono-display text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
+              § ai search
+            </div>
+            <h2 className="mt-2 text-2xl font-medium tracking-tight sm:text-3xl">
+              {loading ? (
+                <>
+                  Looking up matches for{' '}
+                  <span className="font-display italic text-blood">&ldquo;{query}&rdquo;</span>…
+                </>
+              ) : results.length > 0 ? (
+                <>
+                  <span className="font-display italic text-blood">{results.length}</span>{' '}
+                  match{results.length === 1 ? '' : 'es'} for{' '}
+                  <span className="font-display italic">&ldquo;{query}&rdquo;</span>
+                </>
+              ) : (
+                <>
+                  No AI matches for{' '}
+                  <span className="font-display italic">&ldquo;{query}&rdquo;</span>
+                </>
+              )}
+            </h2>
+          </div>
+          <button
+            type="button"
+            onClick={onClear}
+            className="ik-pill font-mono-display rounded-full px-3.5 py-1.5 text-[11px] uppercase tracking-[0.2em] text-foreground hover:text-blood"
+          >
+            Clear ×
+          </button>
+        </div>
+
+        {results.length > 0 && (
+          <div className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {results.slice(0, 9).map((tool) => (
+              <AiResultCard key={tool._id || tool.slug} tool={tool} />
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function AiResultCard({ tool }: { tool: Tool }) {
+  const letter = (tool.name?.[0] || '?').toUpperCase();
+  const path = `/category/${(tool.category || 'all').toLowerCase().replace(/\s+/g, '-')}`;
+  const logoUrl = getToolLogo(tool);
+
+  return (
+    <Link
+      href={`/ai-tools/${tool.slug}`}
+      className="ik-card group block overflow-hidden rounded-2xl"
+    >
+      <div
+        className="relative flex items-center justify-center overflow-hidden bg-muted"
+        style={{ aspectRatio: '16 / 10' }}
+      >
+        <span
+          aria-hidden="true"
+          className="absolute inset-0 flex items-center justify-center ik-ghost-letter text-[10rem] leading-none"
+        >
+          {letter}
+        </span>
+        <div
+          className="relative z-10 flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl border bg-card shadow-sm"
+          style={{ borderColor: 'hsl(var(--card-edge))' }}
+        >
+          <Image
+            src={logoUrl}
+            alt={`${tool.name} logo`}
+            fill
+            sizes="80px"
+            className="object-contain p-2.5"
+            unoptimized
+          />
+        </div>
+      </div>
+      <div className="px-5 pb-5 pt-4">
+        <div className="flex items-start justify-between gap-3">
+          <h3 className="font-display text-xl italic leading-tight text-foreground">
+            {tool.name}
+          </h3>
+          {tool.votes ? (
+            <div className="font-mono-display shrink-0 pt-1 text-[12px] tabular-nums text-foreground/70">
+              ▲ {tool.votes.toLocaleString()}
+            </div>
+          ) : null}
+        </div>
+        <div className="font-mono-display mt-2 text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+          {path}
+        </div>
+        <p className="mt-3 line-clamp-2 text-sm text-foreground/75">
+          {tool.description_ai || tool.description}
+        </p>
+      </div>
+    </Link>
   );
 }
