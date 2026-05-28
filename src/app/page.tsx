@@ -1,24 +1,12 @@
 'use client';
 
-import { useTheme } from '@/themes/ThemeContext';
 import ThemeOneIndex from '@/themes/theme-one/pages/Index';
-import { ThemeTwoHomePage } from '@/themes/theme-two/pages/ThemeTwoHomePage';
-import { THEMES, DEFAULT_THEME } from '@/themes/theme-config';
 
+// The Nexus homepage is the only homepage. No theme switching here —
+// the previous useTheme()-routed branch caused a flash of the
+// alternate theme on first paint while the SiteConfig provider
+// resolved which theme was active. ThemeOneIndex is the Nexus build;
+// render it directly.
 export default function Home() {
-  const { currentTheme } = useTheme();
-
-  // Render the editorial homepage immediately — don't gate on
-  // ThemeContext's isLoading. The cinematic theme tokens come from
-  // CSS vars in index.css and the no-FOUC init script in layout.tsx,
-  // not from this context. Blocking the homepage on isLoading was
-  // showing a light "Loading..." spinner that broke the dark canvas.
-  const safeTheme =
-    currentTheme && currentTheme.path
-      ? currentTheme
-      : THEMES.find((t) => t.id === DEFAULT_THEME) || THEMES[0];
-  const shouldShowThemeOne = safeTheme.id === 'theme-one';
-
-  if (shouldShowThemeOne) return <ThemeOneIndex />;
-  return <ThemeTwoHomePage />;
+  return <ThemeOneIndex />;
 }

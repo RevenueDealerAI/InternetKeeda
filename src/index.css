@@ -233,8 +233,17 @@
     font-variant-ligatures: contextual;
   }
 
+  /* Paint html + body with the canvas color so there's no flash of
+     unstyled (white) background while CSS resolves --bg. The init
+     script in layout.tsx also sets html.style.background inline
+     before React hydrates so the canvas color is correct on the
+     literal first frame. */
+  html {
+    background-color: var(--bg);
+    color: var(--fg);
+  }
   body {
-    font-family: var(--font-geist-sans), "Inter", system-ui, -apple-system, sans-serif;
+    font-family: var(--font-sans), "Inter", system-ui, -apple-system, sans-serif;
     background-color: var(--bg);
     color: var(--fg);
     -webkit-font-smoothing: antialiased;

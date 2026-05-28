@@ -4,13 +4,23 @@ import { Space_Grotesk, IBM_Plex_Mono, Instrument_Serif } from 'next/font/google
 
 // No-FOUC theme init — runs BEFORE React hydrates so the page paints
 // with the user's preferred theme on the first frame, no flash.
+// Also paints the body background-color INLINE during the init so the
+// canvas color is correct on the very first frame, before our CSS
+// stylesheet has fully resolved the --bg variable.
 const THEME_INIT_SCRIPT = `
 (function(){try{
   var saved=localStorage.getItem('ik-theme');
   var mql=window.matchMedia('(prefers-color-scheme: dark)');
   var theme=(saved==='dark'||saved==='light')?saved:(mql.matches?'dark':'light');
   document.documentElement.setAttribute('data-theme',theme);
-}catch(e){document.documentElement.setAttribute('data-theme','light');}})();
+  var bg=theme==='dark'?'#0a0a0c':'#f7f5f2';
+  var ink=theme==='dark'?'#f4f3f0':'#0f0f12';
+  document.documentElement.style.background=bg;
+  document.documentElement.style.color=ink;
+}catch(e){
+  document.documentElement.setAttribute('data-theme','light');
+  document.documentElement.style.background='#f7f5f2';
+}})();
 `;
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@/components/ui/tooltip";
