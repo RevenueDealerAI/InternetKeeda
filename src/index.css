@@ -3,39 +3,90 @@
 @tailwind utilities;
 
 @layer base {
+  /* Light editorial — DEFAULT.
+     Ivory canvas, near-black ink, blood red is still the brand accent
+     so the same .text-blood works in both modes. */
   :root {
-    /* Dark Cinematic — near-black w/ red undertone, blood-red brand.
-       HSL approximations of the oklch spec for consumer compatibility. */
-    --background: 6 12% 9%;             /* near-black, faint red */
-    --foreground: 60 6% 96%;            /* warm off-white */
-    --card: 6 10% 13%;                  /* slightly lifted */
+    --background: 48 30% 97%;
+    --foreground: 0 0% 8%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 8%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 8%;
+    --primary: 0 0% 8%;
+    --primary-foreground: 0 0% 99%;
+    --secondary: 48 14% 94%;
+    --secondary-foreground: 0 0% 8%;
+    --muted: 48 14% 94%;
+    --muted-foreground: 0 0% 40%;
+    --accent: 48 14% 94%;
+    --accent-foreground: 0 0% 8%;
+
+    --blood: 358 92% 47%;       /* #E50914 — shared brand accent */
+    --blood-glow: 358 95% 53%;
+    --destructive: 358 92% 47%;
+    --destructive-foreground: 0 0% 99%;
+
+    --border: 0 0% 0% / 0.10;
+    --input: 0 0% 0% / 0.12;
+    --ring: 358 92% 47%;
+    --radius: 0.875rem;
+
+    /* Paper shadows */
+    --shadow-soft: 0 1px 2px hsl(0 0% 0% / 0.04), 0 8px 24px -8px hsl(0 0% 0% / 0.08);
+    --shadow-card: 0 1px 0 hsl(0 0% 0% / 0.04), 0 20px 50px -20px hsl(0 0% 0% / 0.12);
+    --shadow-blood: 0 0 0 1px hsl(358 92% 47% / 0.30), 0 20px 60px -20px hsl(358 92% 47% / 0.45);
+
+    /* Theme-conditional accents — body bg layers, etc. */
+    --backdrop-layer: transparent;
+    --grain-opacity: 0;
+    --glass-tint: 0 0% 0%;       /* hsl(0 0% 0% / α) for light wash */
+    --glass-edge: 0 0% 0% / 0.08;
+    --card-surface: 0 0% 100%;
+    --card-edge: 0 0% 0% / 0.10;
+    --spider-glow: drop-shadow(0 24px 32px hsl(0 0% 0% / 0.16));
+  }
+
+  /* Dark cinematic — opt-in via data-theme on <html>. */
+  :root[data-theme="dark"] {
+    --background: 6 12% 9%;
+    --foreground: 60 6% 96%;
+    --card: 6 10% 13%;
     --card-foreground: 60 6% 96%;
     --popover: 6 10% 13%;
     --popover-foreground: 60 6% 96%;
-    --primary: 60 6% 96%;               /* light-on-dark */
+    --primary: 60 6% 96%;
     --primary-foreground: 6 12% 9%;
     --secondary: 6 10% 17%;
     --secondary-foreground: 60 6% 96%;
     --muted: 6 10% 17%;
-    --muted-foreground: 60 5% 70%;
+    --muted-foreground: 60 5% 72%;
     --accent: 6 10% 19%;
     --accent-foreground: 60 6% 96%;
 
-    /* Blood red — #E50914 (Netflix red) */
-    --blood: 358 92% 47%;
-    --blood-glow: 358 95% 53%;
     --destructive: 358 92% 47%;
     --destructive-foreground: 0 0% 99%;
 
     --border: 0 0% 100% / 0.10;
     --input: 0 0% 100% / 0.12;
-    --ring: 358 92% 47%;
-    --radius: 0.875rem;
 
-    /* Cinematic shadows — deep ink + blood-red glow */
     --shadow-soft: 0 1px 2px hsl(0 0% 0% / 0.4), 0 8px 24px -8px hsl(0 0% 0% / 0.5);
     --shadow-card: 0 1px 0 hsl(0 0% 100% / 0.04) inset, 0 24px 60px -24px hsl(0 0% 0% / 0.7);
-    --shadow-blood: 0 0 0 1px hsl(358 92% 47% / 0.35), 0 20px 60px -20px hsl(358 92% 47% / 0.55);
+    --shadow-blood: 0 0 0 1px hsl(358 92% 47% / 0.40), 0 20px 60px -20px hsl(358 92% 47% / 0.60);
+
+    /* Dark-only cinematic chrome */
+    --backdrop-layer:
+      radial-gradient(900px 600px at 12% -10%, hsl(358 92% 47% / 0.20), transparent 60%),
+      radial-gradient(800px 500px at 95% 8%,  hsl(355 85% 40% / 0.14), transparent 60%),
+      radial-gradient(1200px 700px at 50% 110%, hsl(358 92% 47% / 0.13), transparent 60%);
+    --grain-opacity: 0.18;
+    --glass-tint: 0 0% 100%;
+    --glass-edge: 0 0% 100% / 0.10;
+    --card-surface: 6 10% 14%;
+    --card-edge: 0 0% 100% / 0.10;
+    --spider-glow:
+      drop-shadow(0 0 28px hsl(358 92% 47% / 0.55))
+      drop-shadow(0 24px 36px hsl(0 0% 0% / 0.55));
   }
 
   .dark {
@@ -76,19 +127,14 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
-    /* Cinematic aurora — three blood-red radial blobs over the
-       near-black canvas. Fixed attachment so the glow stays in place
-       while the page scrolls. */
-    background-image:
-      radial-gradient(900px 600px at 12% -10%, hsl(358 92% 47% / 0.18), transparent 60%),
-      radial-gradient(800px 500px at 95% 8%,  hsl(355 85% 40% / 0.12), transparent 60%),
-      radial-gradient(1200px 700px at 50% 110%, hsl(358 92% 47% / 0.12), transparent 60%);
+    /* Cinematic vignette only paints in dark mode — light is clean ivory. */
+    background-image: var(--backdrop-layer);
     background-attachment: fixed;
   }
 
   ::selection {
-    background: hsl(358 92% 47% / 0.6);
-    color: hsl(60 6% 96%);
+    background: hsl(var(--blood) / 0.55);
+    color: white;
   }
 
   /* Editorial typography utilities — the emotional + data voices */
@@ -556,21 +602,32 @@ section:not(.ad-container):not(.ad-slot) [class*="ad-"] {
 /* Hairline divider — visible on dark via low-alpha foreground */
 .ik-hairline { background-color: hsl(var(--foreground) / 0.10); }
 
-/* Glassmorphism — primary card surface in the cinematic theme */
+/* Glassmorphism — wash + edge swap per theme via CSS vars. In
+   light, glass-tint is black at low alpha (subtle paper wash on
+   ivory). In dark, glass-tint is white at low alpha (frosted
+   highlight on near-black). Same class name, both look right. */
 .glass {
-  background: linear-gradient(180deg, hsl(0 0% 100% / 0.04), hsl(0 0% 100% / 0.015));
-  border: 1px solid hsl(0 0% 100% / 0.08);
+  background: linear-gradient(
+    180deg,
+    hsl(var(--glass-tint) / 0.06),
+    hsl(var(--glass-tint) / 0.02)
+  );
+  border: 1px solid hsl(var(--glass-edge));
   backdrop-filter: blur(18px) saturate(140%);
   -webkit-backdrop-filter: blur(18px) saturate(140%);
 }
 .glass-strong {
-  background: linear-gradient(180deg, hsl(0 0% 100% / 0.07), hsl(0 0% 100% / 0.02));
-  border: 1px solid hsl(0 0% 100% / 0.10);
+  background: linear-gradient(
+    180deg,
+    hsl(var(--glass-tint) / 0.09),
+    hsl(var(--glass-tint) / 0.03)
+  );
+  border: 1px solid hsl(var(--glass-edge));
   backdrop-filter: blur(24px) saturate(160%);
   -webkit-backdrop-filter: blur(24px) saturate(160%);
 }
 
-/* Blood-red brand utilities */
+/* Blood-red brand utilities — same in both themes */
 .text-blood { color: hsl(var(--blood)); }
 .bg-blood { background-color: hsl(var(--blood)); }
 .bg-gradient-blood {
@@ -578,13 +635,16 @@ section:not(.ad-container):not(.ad-slot) [class*="ad-"] {
 }
 .shadow-blood { box-shadow: var(--shadow-blood); }
 
-/* Card hover lift — soft baseline → blood-glow on hover */
+/* Card surface — SOLID enough to read in both themes. In light it's
+   pure paper white. In dark it's a slightly-lifted near-black panel
+   with a subtle white edge. The hover state goes blood-glow either
+   way (works on both palettes). */
 .ik-card {
-  transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 500ms cubic-bezier(0.22, 1, 0.36, 1);
-  background: linear-gradient(180deg, hsl(0 0% 100% / 0.035), hsl(0 0% 100% / 0.012));
-  border: 1px solid hsl(0 0% 100% / 0.08);
-  backdrop-filter: blur(16px) saturate(130%);
-  -webkit-backdrop-filter: blur(16px) saturate(130%);
+  transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 500ms cubic-bezier(0.22, 1, 0.36, 1),
+              border-color 500ms cubic-bezier(0.22, 1, 0.36, 1);
+  background-color: hsl(var(--card-surface));
+  border: 1px solid hsl(var(--card-edge));
   box-shadow: var(--shadow-soft);
 }
 .ik-card:hover {
@@ -593,37 +653,42 @@ section:not(.ad-container):not(.ad-slot) [class*="ad-"] {
   border-color: hsl(var(--blood) / 0.35);
 }
 
-/* Glass-pill chips — replaces the old paper-pill */
+/* Pill chips — solid card surface w/ subtle edge so they read in both
+   modes (the old white-on-white version disappeared on dark). */
 .ik-pill {
-  background: linear-gradient(180deg, hsl(0 0% 100% / 0.06), hsl(0 0% 100% / 0.02));
-  border: 1px solid hsl(0 0% 100% / 0.10);
+  background-color: hsl(var(--card-surface));
+  border: 1px solid hsl(var(--glass-edge));
   backdrop-filter: blur(14px) saturate(140%);
   -webkit-backdrop-filter: blur(14px) saturate(140%);
   color: hsl(var(--foreground));
+  box-shadow: var(--shadow-soft);
 }
 
-/* Ghost letter — now a faint warm-cream wash visible on dark thumbs */
+/* Ghost letter — faint italic-serif backdrop inside featured thumbs.
+   Alpha is intentionally low so it sits behind the real logo. */
 .ik-ghost-letter {
   font-family: var(--font-instrument-serif), "Instrument Serif", serif;
   font-style: italic;
-  color: hsl(var(--foreground) / 0.06);
+  color: hsl(var(--foreground) / 0.08);
   line-height: 0.85;
   user-select: none;
 }
 
-/* Cinematic film grain — fixed overlay layer, scaled SVG noise.
-   Sits between body bg and content; mix-blend-overlay so it adds
-   texture without dimming the underlying colors. */
+/* Cinematic film grain — only visible in dark mode (alpha gated by
+   --grain-opacity which is 0 in light, 0.18 in dark). */
 .ik-film-grain {
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: -5;
-  opacity: 0.15;
+  opacity: var(--grain-opacity);
   mix-blend-mode: overlay;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.7 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
   background-size: 240px 240px;
 }
+
+/* Spider drop-shadow — red glow in dark, soft black in light.
+   Apply with `style={{ filter: 'var(--spider-glow)' }}` from React. */
 
 /* Reduced-motion — kill all editorial loops */
 @media (prefers-reduced-motion: reduce) {

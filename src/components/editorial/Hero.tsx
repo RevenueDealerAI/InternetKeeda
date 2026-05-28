@@ -163,12 +163,7 @@ function HangingSpider({ toolCount, categoryCount }: { toolCount: number; catego
             width={420}
             height={420}
             className="block h-[18rem] w-[18rem] sm:h-[24rem] sm:w-[24rem] md:h-[28rem] md:w-[28rem]"
-            style={{
-              // Backlit blood-red glow so the matte-black silhouette reads
-              // against the dark cinematic background.
-              filter:
-                'drop-shadow(0 0 28px rgba(229, 9, 20, 0.55)) drop-shadow(0 24px 36px rgba(0, 0, 0, 0.55))',
-            }}
+            style={{ filter: 'var(--spider-glow)' }}
             draggable={false}
           />
         </div>

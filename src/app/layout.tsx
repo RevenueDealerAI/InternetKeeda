@@ -3,6 +3,18 @@
 import { Geist, Geist_Mono, Instrument_Serif, JetBrains_Mono } from 'next/font/google';
 import { SpiderWeb } from '@/components/editorial/SpiderWeb';
 import { RoamingSpider } from '@/components/editorial/RoamingSpider';
+import { ThemeToggle } from '@/components/editorial/ThemeToggle';
+
+// No-FOUC theme init — runs BEFORE React hydrates so the page paints
+// with the user's preferred theme on the first frame, no flash.
+const THEME_INIT_SCRIPT = `
+(function(){try{
+  var saved=localStorage.getItem('ik-theme');
+  var mql=window.matchMedia('(prefers-color-scheme: dark)');
+  var theme=(saved==='dark'||saved==='light')?saved:(mql.matches?'dark':'light');
+  document.documentElement.setAttribute('data-theme',theme);
+}catch(e){document.documentElement.setAttribute('data-theme','light');}})();
+`;
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/toaster";
@@ -105,10 +117,15 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable} ${jetbrainsMono.variable}`}>
+      <head>
+        {/* No-FOUC theme init — must run synchronously before <body> */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
       <body className="font-sans antialiased bg-background text-foreground">
         <div className="ik-film-grain" aria-hidden="true" />
         <SpiderWeb />
         <RoamingSpider />
+        <ThemeToggle />
         <HelmetProvider>
           <HeadFavicons />
           {/* ClerkProvider is NOT mounted at the root anymore.
