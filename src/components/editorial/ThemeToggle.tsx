@@ -13,14 +13,12 @@ function readMode(): Mode {
 }
 
 export function ThemeToggle() {
-  // The init script in layout.tsx sets data-theme before hydration —
-  // we only mirror that here so the icon matches the current state.
   const [mode, setMode] = useState<Mode>(() => readMode());
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // If something else changed data-theme between SSR + hydrate,
-    // pick up the new value.
     setMode(readMode());
+    setMounted(true);
   }, []);
 
   const toggle = () => {
@@ -30,9 +28,13 @@ export function ThemeToggle() {
     try {
       localStorage.setItem('ik-theme', next);
     } catch {
-      // localStorage unavailable (private mode etc.) — non-fatal
+      // localStorage unavailable — non-fatal
     }
   };
+
+  // Avoid hydration mismatch — render after mount so the icon reflects
+  // whatever the init script set.
+  if (!mounted) return null;
 
   return (
     <button
@@ -40,13 +42,15 @@ export function ThemeToggle() {
       onClick={toggle}
       aria-label={mode === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
       title={mode === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
-      className="ik-pill fixed bottom-4 right-4 z-50 flex h-11 w-11 items-center justify-center rounded-full transition-transform hover:-translate-y-0.5"
+      className="bg-gradient-blood shadow-blood fixed right-3 top-3 z-[90] flex h-12 w-12 items-center justify-center rounded-full text-white transition-transform hover:-translate-y-0.5 sm:right-5 sm:top-5"
+      style={{ borderRadius: '9999px' }}
     >
       {mode === 'dark' ? (
-        <Sun className="h-4 w-4 text-foreground" aria-hidden="true" />
+        <Sun className="h-5 w-5" aria-hidden="true" />
       ) : (
-        <Moon className="h-4 w-4 text-foreground" aria-hidden="true" />
+        <Moon className="h-5 w-5" aria-hidden="true" />
       )}
+      <span className="sr-only">Toggle theme</span>
     </button>
   );
 }
