@@ -1,8 +1,23 @@
 'use client';
 
 import Link from 'next/link';
+import { Search } from 'lucide-react';
+import { useState, type FormEvent } from 'react';
 
-const CATEGORIES = [
+type HeroProps = {
+  toolCount: number;
+  categoryCount: number;
+  /** Optional: top categories pulled from useCategories. Falls back to a
+   * static list if not provided. Decorative — used only in the marquee. */
+  marqueeWords?: string[];
+  /** AI search handler — when present, the hero search input fires this.
+   * If absent, the input is omitted entirely (rather than show fake UI). */
+  onAiSearch?: (query: string) => void;
+  aiLoading?: boolean;
+  initialQuery?: string;
+};
+
+const FALLBACK_MARQUEE = [
   'writing', 'design', 'code', 'audio', 'video', 'research',
   'agents', 'automation', '3d', 'vision', 'voice', 'search',
 ];
@@ -10,26 +25,36 @@ const CATEGORIES = [
 export function Hero({
   toolCount,
   categoryCount,
-}: {
-  toolCount: number;
-  categoryCount: number;
-}) {
-  const marqueeItems = [...CATEGORIES, ...CATEGORIES];
+  marqueeWords,
+  onAiSearch,
+  aiLoading,
+  initialQuery = '',
+}: HeroProps) {
+  const [query, setQuery] = useState(initialQuery);
+
+  const words = (marqueeWords && marqueeWords.length >= 6 ? marqueeWords : FALLBACK_MARQUEE).slice(0, 14);
+  const marqueeItems = [...words, ...words];
+
+  const onSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    const q = query.trim();
+    if (!q || !onAiSearch) return;
+    onAiSearch(q);
+  };
 
   return (
     <section className="relative px-4 pt-36 pb-24 sm:pt-40 sm:pb-32">
       <div className="mx-auto max-w-5xl">
         <div className="flex flex-col items-center text-center">
-          {/* Live-tools pill */}
+          {/* Live-tools pill — honest copy, no "indexed live" claim */}
           <div className="ik-pill font-mono-display flex items-center gap-2 rounded-full px-3 py-1.5 text-[10px] uppercase tracking-[0.22em] text-foreground/70">
             <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-foreground/40 opacity-75"></span>
               <span className="relative inline-flex h-2 w-2 rounded-full bg-foreground"></span>
             </span>
             <span>
               <span className="text-foreground">{toolCount.toLocaleString()} tools</span>
               <span className="mx-2 text-foreground/30">·</span>
-              <span>indexed live</span>
+              <span>across {categoryCount}+ categories</span>
             </span>
           </div>
 
@@ -47,13 +72,39 @@ export function Hero({
           </h1>
 
           <p className="mt-8 max-w-xl text-base text-muted-foreground sm:text-lg">
-            A printed catalog of {toolCount.toLocaleString()}+ AI tools across {categoryCount}+ categories.
-            Submitted by builders, ranked by use, indexed live. The web has a spider — and it&apos;s crawling.
+            A directory of {toolCount.toLocaleString()}+ AI tools across {categoryCount}+ categories.
+            Submitted by builders, ranked by use. Browse by room, search by intent.
           </p>
 
-          <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row">
+          {/* AI search input — only renders when a handler is provided */}
+          {onAiSearch && (
+            <form onSubmit={onSubmit} className="mt-8 w-full max-w-xl">
+              <div className="ik-card flex w-full items-center gap-2 rounded-full border bg-card px-4 py-2.5"
+                   style={{ borderColor: 'hsl(var(--border))' }}>
+                <Search className="h-4 w-4 shrink-0 text-foreground/50" aria-hidden="true" />
+                <input
+                  type="text"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Describe what you want to do — e.g. transcribe meetings"
+                  className="font-display-roman flex-1 bg-transparent text-base italic placeholder:text-foreground/40 focus:outline-none"
+                  aria-label="AI search the catalog"
+                  disabled={aiLoading}
+                />
+                <button
+                  type="submit"
+                  disabled={!query.trim() || aiLoading}
+                  className="font-mono-display rounded-full bg-foreground px-3.5 py-1.5 text-[10px] uppercase tracking-[0.2em] text-background transition-opacity hover:opacity-90 disabled:opacity-40"
+                >
+                  {aiLoading ? 'Searching…' : 'Ask →'}
+                </button>
+              </div>
+            </form>
+          )}
+
+          <div className="mt-6 flex flex-col items-center gap-3 sm:flex-row">
             <Link
-              href="#featured"
+              href="/trending"
               className="font-mono-display rounded-full bg-foreground px-6 py-3 text-[11px] uppercase tracking-[0.2em] text-background transition-opacity hover:opacity-90"
             >
               Enter the web →
@@ -67,7 +118,7 @@ export function Hero({
           </div>
 
           {/* Hanging hero spider */}
-          <HangingSpider />
+          <HangingSpider toolCount={toolCount} categoryCount={categoryCount} />
 
           {/* Stat strip */}
           <div className="mt-16 w-full">
@@ -81,7 +132,7 @@ export function Hero({
         <div className="ik-marquee flex w-max items-center gap-10 whitespace-nowrap text-3xl text-foreground/35 sm:text-4xl md:text-5xl">
           {marqueeItems.map((c, i) => (
             <span key={i} className="flex items-center gap-10">
-              <span className="font-display italic">{c}</span>
+              <span className="font-display italic">{c.toLowerCase()}</span>
               <span aria-hidden="true" className="text-foreground/20">✦</span>
             </span>
           ))}
@@ -91,17 +142,15 @@ export function Hero({
   );
 }
 
-function HangingSpider() {
+function HangingSpider({ toolCount, categoryCount }: { toolCount: number; categoryCount: number }) {
   return (
     <div className="relative mt-16 flex h-[26rem] w-full items-start justify-center sm:h-[30rem]">
-      {/* The thread coming down from the top */}
       <div
         aria-hidden="true"
         className="absolute left-1/2 top-0 -translate-x-1/2 ik-thread"
         style={{ width: 1, height: '60%' }}
       />
 
-      {/* The spider itself, with float */}
       <div className="absolute left-1/2 top-[40%] -translate-x-1/2 ik-float-y">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
@@ -115,10 +164,21 @@ function HangingSpider() {
         />
       </div>
 
-      {/* Floating spec chips — three paper pills with mono labels */}
+      {/* Only real-data chips. The "crawled / latency" pair was invented;
+          dropped per spec. Two honest chips for visual balance. */}
       <SpecChip className="left-[8%] top-[18%]" delay="ik-float-y-slow" label="mascot" value="keeda" />
-      <SpecChip className="right-[6%] top-[40%]" delay="ik-float-y" label="crawled" value="218,402 pages" />
-      <SpecChip className="left-[12%] bottom-[12%]" delay="ik-float-y-fast" label="latency" value="12ms" />
+      <SpecChip
+        className="right-[6%] top-[40%]"
+        delay="ik-float-y"
+        label="catalog"
+        value={`${toolCount.toLocaleString()} tools`}
+      />
+      <SpecChip
+        className="left-[12%] bottom-[12%]"
+        delay="ik-float-y-fast"
+        label="rooms"
+        value={`${categoryCount}+ categories`}
+      />
     </div>
   );
 }
@@ -146,7 +206,7 @@ function SpecChip({
 
 function StatStrip({ toolCount, categoryCount }: { toolCount: number; categoryCount: number }) {
   const stats = [
-    { value: toolCount.toLocaleString(), label: 'tools indexed' },
+    { value: toolCount.toLocaleString(), label: 'tools listed' },
     { value: '$10', label: '/mo to list' },
     { value: `${categoryCount}+`, label: 'categories' },
   ];

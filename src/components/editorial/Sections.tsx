@@ -11,48 +11,50 @@ type Corridor = {
   href: string;
 };
 
+// All routes verified against src/app/ — every href is a real page,
+// not an invented destination.
 const CORRIDORS: Corridor[] = [
   {
+    icon: '△',
+    route: '/trending',
+    title: 'Trending this week',
+    desc: 'What builders are picking up right now. Tools climbing the catalog by votes and views.',
+    href: '/trending',
+  },
+  {
+    icon: '★',
+    route: '/top-products',
+    title: 'Top products',
+    desc: 'The highest-rated tools across every category — community-voted and editor-checked.',
+    href: '/top-products',
+  },
+  {
     icon: '✦',
-    route: '/hidden',
-    title: 'Hidden gems',
-    desc: 'Under-the-radar tools that nobody is talking about yet — the long tail of the catalog.',
-    href: '/recently-added',
-  },
-  {
-    icon: '$',
-    route: '/hustles',
-    title: 'Side hustles',
-    desc: 'Tools curated for solo operators, freelancers, and one-person businesses making money on the side.',
-    href: '/best-productivity-tools-for-adhd',
-  },
-  {
-    icon: '%',
-    route: '/deals',
-    title: 'Deals & lifetime',
-    desc: 'Discounted plans, lifetime offers, and limited-time AppSumo-style deals on tools we actually use.',
+    route: '/latest-launches',
+    title: 'Latest launches',
+    desc: 'Fresh AI tools that shipped this week. New releases, public betas, and v1 launches.',
     href: '/latest-launches',
   },
   {
-    icon: '⌘',
-    route: '/automation',
-    title: 'Automation stacks',
-    desc: 'No-code playbooks, n8n recipes, agent chains, and stack diagrams from working operators.',
-    href: '/best-project-management-tools',
-  },
-  {
-    icon: '△',
-    route: '/community',
-    title: 'Community',
-    desc: 'Builders shipping AI products in public. Tips, builds, debates, and weekly link drops.',
-    href: '/discussions',
+    icon: '+',
+    route: '/recently-added',
+    title: 'Recently added',
+    desc: 'Just-listed tools by submission date. Earliest signal for what builders are putting out.',
+    href: '/recently-added',
   },
   {
     icon: '◐',
-    route: '/ai',
-    title: 'Ask the catalog',
-    desc: 'Semantic search across the whole catalog. Describe the workflow, get tools tuned to the task.',
-    href: '/?q=',
+    route: '/categories',
+    title: 'Browse categories',
+    desc: 'Every category indexed — writing, design, code, video, audio, research, agents, and more.',
+    href: '/categories',
+  },
+  {
+    icon: '§',
+    route: '/latest-news',
+    title: 'AI news',
+    desc: 'What is happening in AI this week. Releases, launches, big shifts, and the why behind them.',
+    href: '/latest-news',
   },
 ];
 
@@ -69,8 +71,8 @@ export function Sections() {
           }
         />
         <p className="mt-6 max-w-2xl text-base text-muted-foreground">
-          The catalog is more than a list. Six rooms organize tools by intent, not just category —
-          enter the one that matches what you&apos;re actually trying to do.
+          The catalog is more than a list. Six rooms organize tools by intent — enter the one that
+          matches what you are actually trying to find.
         </p>
 
         <div

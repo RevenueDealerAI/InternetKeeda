@@ -53,7 +53,7 @@ export function FeaturedGrid() {
           }
           rightLink={{
             href: '/top-products',
-            label: `view all ${total.toLocaleString() || ''} →`,
+            label: total > 0 ? `view all ${total.toLocaleString()} →` : 'view all →',
           }}
         />
 
