@@ -44,34 +44,40 @@
     --ring: 358 88% 50%;
     --radius: 0.875rem;
 
-    /* editorial aliases (with hsl() helpers already applied) */
-    --bg:            hsl(48 24% 97%);
-    --bg-elev:       hsl(0 0% 100%);
-    --fg:            hsl(25 12% 12%);
-    --fg-dim:        hsl(25 8% 34%);
-    --muted-color:   hsl(25 5% 50%);
-    --card-color:    hsl(0 0% 100% / 0.85);
-    --card-strong:   hsl(0 0% 100%);
-    --border-color:  hsl(25 12% 12% / 0.10);
-    --border-strong: hsl(25 12% 12% / 0.18);
-    --blood-color:   hsl(358 88% 50%);
-    --blood-deep-color: hsl(354 80% 42%);
-    --blood-glow-color: hsl(358 95% 56%);
-    --blood-soft:    hsl(358 88% 50% / 0.10);
+    /* Editorial aliases — EXACT oklch values ported from the reference.
+       These power every hand-written surface in src/index.css and the
+       editorial components. Modern browsers (Chrome 111+, Safari 15.4+,
+       Firefox 113+) all support oklch natively. */
+    --bg:            oklch(0.985 0.004 80);
+    --bg-elev:       oklch(1 0 0);
+    --fg:            oklch(0.16 0.012 25);
+    --fg-dim:        oklch(0.34 0.012 25);
+    --muted-color:   oklch(0.50 0.010 35);
+    --card-color:    oklch(1 0 0 / 0.85);
+    --card-strong:   oklch(1 0 0);
+    --border-color:  oklch(0.16 0.012 25 / 0.10);
+    --border-strong: oklch(0.16 0.012 25 / 0.18);
+    --blood-color:   oklch(0.55 0.23 27);
+    --blood-deep-color: oklch(0.46 0.21 22);
+    --blood-glow-color: oklch(0.62 0.25 27);
+    --blood-soft:    oklch(0.55 0.23 27 / 0.10);
     --on-blood:      #fff;
 
-    --shadow-soft: 0 1px 2px hsl(25 12% 12% / 0.06), 0 8px 24px -8px hsl(25 12% 12% / 0.12);
-    --shadow-card: 0 1px 0 hsl(0 0% 100% / 0.6) inset, 0 18px 50px -22px hsl(25 12% 12% / 0.18);
-    --shadow-blood: 0 0 0 1px hsl(358 88% 50% / 0.30), 0 18px 50px -20px hsl(358 88% 50% / 0.40);
+    --shadow-soft: 0 1px 2px oklch(0.16 0.012 25 / 0.06), 0 8px 24px -8px oklch(0.16 0.012 25 / 0.12);
+    --shadow-card: 0 1px 0 oklch(1 0 0 / 0.6) inset, 0 18px 50px -22px oklch(0.16 0.012 25 / 0.18);
+    --shadow-blood: 0 0 0 1px oklch(0.55 0.23 27 / 0.30), 0 18px 50px -20px oklch(0.55 0.23 27 / 0.40);
 
-    --backdrop-layer: transparent;
     --grain-opacity: 0;
-    --grid-line:    hsl(25 12% 12% / 0.06);
-    --grain:        hsl(25 12% 12% / 0.04);
-    --vignette-1:   hsl(358 88% 50% / 0.10);
-    --vignette-2:   hsl(354 80% 42% / 0.08);
-    --vignette-3:   hsl(358 88% 50% / 0.06);
-    --spider-filter: drop-shadow(0 18px 30px hsl(25 12% 12% / 0.30));
+    --grid-line:    oklch(0.16 0.012 25 / 0.06);
+    --grain:        oklch(0.16 0.012 25 / 0.04);
+    --vignette-1:   oklch(0.55 0.23 27 / 0.10);
+    --vignette-2:   oklch(0.46 0.21 22 / 0.08);
+    --vignette-3:   oklch(0.55 0.23 27 / 0.06);
+    --spider-filter: drop-shadow(0 18px 30px oklch(0.16 0.012 25 / 0.30));
+    --backdrop-layer:
+      radial-gradient(ellipse 50% 40% at 15% 15%, var(--vignette-1), transparent 60%),
+      radial-gradient(ellipse 45% 35% at 85% 10%, var(--vignette-2), transparent 65%),
+      radial-gradient(ellipse 70% 50% at 50% 110%, var(--vignette-3), transparent 60%);
 
     --logo-mark-bg: linear-gradient(135deg, var(--blood-color), var(--blood-deep-color));
     --logo-mark-fg: #fff;
@@ -112,37 +118,38 @@
     --input: 0 0% 100% / 0.12;
     --ring: 358 92% 53%;
 
-    --bg:            hsl(15 8% 10%);
-    --bg-elev:       hsl(15 8% 14%);
-    --fg:            hsl(60 6% 96%);
-    --fg-dim:        hsl(60 6% 78%);
-    --muted-color:   hsl(60 6% 62%);
-    --card-color:    hsl(15 8% 15% / 0.65);
-    --card-strong:   hsl(15 8% 17% / 0.85);
-    --border-color:  hsl(0 0% 100% / 0.09);
-    --border-strong: hsl(0 0% 100% / 0.16);
-    --blood-color:   hsl(358 92% 53%);
-    --blood-deep-color: hsl(354 88% 47%);
-    --blood-glow-color: hsl(358 95% 60%);
-    --blood-soft:    hsl(358 92% 53% / 0.16);
+    /* DARK editorial aliases — EXACT oklch from reference. */
+    --bg:            oklch(0.13 0.008 20);
+    --bg-elev:       oklch(0.17 0.012 20);
+    --fg:            oklch(0.97 0.005 80);
+    --fg-dim:        oklch(0.78 0.008 60);
+    --muted-color:   oklch(0.62 0.012 60);
+    --card-color:    oklch(0.18 0.012 20 / 0.65);
+    --card-strong:   oklch(0.20 0.014 22 / 0.85);
+    --border-color:  oklch(1 0 0 / 0.09);
+    --border-strong: oklch(1 0 0 / 0.16);
+    --blood-color:   oklch(0.62 0.245 27);
+    --blood-deep-color: oklch(0.5 0.22 22);
+    --blood-glow-color: oklch(0.7 0.27 27);
+    --blood-soft:    oklch(0.62 0.245 27 / 0.16);
 
-    --shadow-soft: 0 1px 2px hsl(0 0% 0% / 0.45), 0 8px 24px -8px hsl(0 0% 0% / 0.55);
-    --shadow-card: 0 1px 0 hsl(0 0% 100% / 0.04) inset, 0 24px 60px -24px hsl(0 0% 0% / 0.75);
-    --shadow-blood: 0 0 0 1px hsl(358 92% 53% / 0.35), 0 20px 60px -20px hsl(358 92% 53% / 0.55);
+    --shadow-soft: 0 1px 2px oklch(0 0 0 / 0.45), 0 8px 24px -8px oklch(0 0 0 / 0.55);
+    --shadow-card: 0 1px 0 oklch(1 0 0 / 0.04) inset, 0 24px 60px -24px oklch(0 0 0 / 0.75);
+    --shadow-blood: 0 0 0 1px oklch(0.62 0.245 27 / 0.35), 0 20px 60px -20px oklch(0.62 0.245 27 / 0.55);
 
-    --backdrop-layer:
-      radial-gradient(ellipse 50% 40% at 15% 15%, hsl(358 92% 53% / 0.18), transparent 60%),
-      radial-gradient(ellipse 45% 35% at 85% 10%, hsl(354 88% 47% / 0.14), transparent 65%),
-      radial-gradient(ellipse 70% 50% at 50% 110%, hsl(358 92% 53% / 0.10), transparent 60%);
     --grain-opacity: 0.18;
-    --grid-line:    hsl(0 0% 100% / 0.045);
-    --grain:        hsl(0 0% 100% / 0.04);
-    --vignette-1:   hsl(358 92% 53% / 0.18);
-    --vignette-2:   hsl(354 88% 47% / 0.14);
-    --vignette-3:   hsl(358 92% 53% / 0.10);
+    --grid-line:    oklch(1 0 0 / 0.045);
+    --grain:        oklch(1 0 0 / 0.04);
+    --vignette-1:   oklch(0.62 0.245 27 / 0.18);
+    --vignette-2:   oklch(0.5 0.22 22 / 0.14);
+    --vignette-3:   oklch(0.62 0.245 27 / 0.10);
     --spider-filter:
-      drop-shadow(0 22px 36px hsl(0 0% 0% / 0.55))
-      drop-shadow(0 0 40px hsl(358 92% 53% / 0.25));
+      drop-shadow(0 22px 36px oklch(0 0 0 / 0.55))
+      drop-shadow(0 0 40px oklch(0.62 0.245 27 / 0.25));
+    --backdrop-layer:
+      radial-gradient(ellipse 50% 40% at 15% 15%, var(--vignette-1), transparent 60%),
+      radial-gradient(ellipse 45% 35% at 85% 10%, var(--vignette-2), transparent 65%),
+      radial-gradient(ellipse 70% 50% at 50% 110%, var(--vignette-3), transparent 60%);
 
     --glass-tint: 0 0% 100%;
     --glass-edge: 0 0% 100% / 0.09;
@@ -162,8 +169,8 @@
 
   body {
     font-family: var(--font-geist-sans), "Inter", system-ui, -apple-system, sans-serif;
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
+    background-color: var(--bg);
+    color: var(--fg);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
@@ -171,7 +178,7 @@
   }
 
   ::selection {
-    background: hsl(var(--blood) / 0.55);
+    background: oklch(0.62 0.245 27 / 0.55);
     color: white;
   }
 
@@ -265,10 +272,10 @@
     -webkit-backdrop-filter: blur(24px) saturate(160%);
   }
 
-  .text-blood { color: hsl(var(--blood)); }
-  .bg-blood { background-color: hsl(var(--blood)); }
+  .text-blood { color: var(--blood-color); }
+  .bg-blood { background-color: var(--blood-color); }
   .bg-gradient-blood {
-    background-image: linear-gradient(135deg, hsl(var(--blood)), hsl(var(--blood-deep)));
+    background-image: linear-gradient(135deg, var(--blood-color), var(--blood-deep-color));
   }
   .shadow-blood { box-shadow: var(--shadow-blood); }
 
@@ -409,7 +416,7 @@
     gap: 8px;
     padding: 12px 20px;
     border-radius: 999px;
-    background: linear-gradient(135deg, hsl(var(--blood)), hsl(var(--blood-deep)));
+    background: linear-gradient(135deg, var(--blood-color), var(--blood-deep-color));
     color: #fff;
     box-shadow: var(--shadow-blood);
     font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
@@ -592,7 +599,7 @@
     cursor: pointer;
   }
   .tab-group button.active {
-    background: linear-gradient(135deg, hsl(var(--blood)), hsl(var(--blood-deep)));
+    background: linear-gradient(135deg, var(--blood-color), var(--blood-deep-color));
     color: #fff;
     box-shadow: var(--shadow-blood);
   }
@@ -607,7 +614,7 @@
     gap: 6px;
     padding: 3px 9px;
     border-radius: 999px;
-    background: linear-gradient(135deg, hsl(var(--blood)), hsl(var(--blood-deep)));
+    background: linear-gradient(135deg, var(--blood-color), var(--blood-deep-color));
     color: #fff;
     font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
     font-size: 9px;
@@ -657,7 +664,8 @@
     display: flex;
     flex-direction: column;
   }
-  .corridor-cell:hover { background: hsl(var(--blood) / 0.06); }
+  .corridor-cell:hover { background: oklch(0.62 0.245 27 / 0.06); }
+  :root:not([data-theme="dark"]) .corridor-cell:hover { background: oklch(0.55 0.23 27 / 0.04); }
 
   /* Pricing tier card */
   .tier-card {
@@ -674,7 +682,7 @@
     box-shadow: var(--shadow-card);
   }
   .tier-card.featured {
-    background: linear-gradient(160deg, hsl(var(--blood)) 0%, hsl(var(--blood-deep)) 100%);
+    background: linear-gradient(160deg, var(--blood-color) 0%, var(--blood-deep-color) 100%);
     color: #fff;
     border-color: transparent;
   }
