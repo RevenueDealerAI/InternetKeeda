@@ -16,9 +16,10 @@ import { useTools } from "@/lib/api/tools";
 import { useInViewReveal } from "@/hooks/useInViewReveal";
 import { Tool } from "@/types/tool";
 import dynamic from "next/dynamic";
-import { HeroSection } from "../components/HeroSection";
 import { Categories as ExploreCategories } from "../components/home/Categories";
 import { FilterBar } from "../components/FilterBar";
+import { Hero as EditorialHero } from "@/components/editorial/Hero";
+import { FeaturedGrid as EditorialFeaturedGrid } from "@/components/editorial/FeaturedGrid";
 import { Sections as EditorialSections } from "@/components/editorial/Sections";
 import { Pricing as EditorialPricing } from "@/components/editorial/Pricing";
 
@@ -27,7 +28,6 @@ import { Pricing as EditorialPricing } from "@/components/editorial/Pricing";
 // on client hooks (useTools, useReducedMotion, useScroll); no SEO loss
 // because the fold-above hero + categories + grid are server-rendered.
 const HowItWorks            = dynamic(() => import("../components/home/HowItWorks").then(m => m.HowItWorks), { ssr: false });
-const FeaturedToolsCarousel = dynamic(() => import("../components/home/FeaturedToolsCarousel").then(m => m.FeaturedToolsCarousel), { ssr: false });
 const TrendingThisWeek      = dynamic(() => import("../components/home/TrendingThisWeek").then(m => m.TrendingThisWeek), { ssr: false });
 const Testimonials          = dynamic(() => import("../components/home/Testimonials").then(m => m.Testimonials), { ssr: false });
 import { ToolCardSkeleton, ToolCardSkeletonGrid } from "../components/ToolCardSkeleton";
@@ -292,6 +292,28 @@ export default function Index() {
     ];
   }, [tools, categoriesData]);
 
+  // Real numbers for the editorial Hero — no invented stats.
+  // totalToolCount: server-side total even when result is limited to 60
+  // categoryCount: real distinct categories the catalog tracks
+  // marqueeWords: top categories by toolCount, used as the hero marquee
+  const totalToolCount = useMemo(
+    () => data?.pagination?.totalCount ?? tools.length,
+    [data?.pagination?.totalCount, tools.length],
+  );
+  const categoryCount = useMemo(
+    () => Math.max(categories.length - 1, (categoriesData?.data?.length ?? 0)),
+    [categories.length, categoriesData?.data?.length],
+  );
+  const marqueeWords = useMemo(() => {
+    const sorted = (categoriesData?.data ?? [])
+      .slice()
+      .sort((a, b) => (b.toolCount ?? 0) - (a.toolCount ?? 0))
+      .map((c) => c.name)
+      .filter((n): n is string => typeof n === 'string' && n.length > 0)
+      .slice(0, 14);
+    return sorted.length >= 6 ? sorted : undefined;
+  }, [categoriesData?.data]);
+
   // Optimize the filtered tools calculation with useMemo
   const filteredTools = useMemo(() => {
     let filtered = [...tools];
@@ -519,20 +541,20 @@ export default function Index() {
 
   return (
     <div className="min-h-screen">
-      <HeroSection
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        setIsSearchOpen={setIsSearchOpen}
-        siteDescription={config?.siteDescription}
+      <EditorialHero
+        toolCount={totalToolCount}
+        categoryCount={categoryCount}
+        marqueeWords={marqueeWords}
         onAiSearch={handleAiSearch}
         aiLoading={aiLoading}
+        initialQuery={aiQuery}
       />
+
+      <EditorialFeaturedGrid />
 
       <ExploreCategories />
 
       <HowItWorks />
-
-      <FeaturedToolsCarousel />
 
       <AdSlot position="content-top" maxAds={4} showTitle={true} />
 
