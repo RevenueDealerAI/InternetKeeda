@@ -1,193 +1,225 @@
 'use client';
 
-import { useMemo } from 'react';
+// Full-page hand-drawn spider web background. Renders four cobweb
+// SVGs in the four corners + tiny accent spiders sitting inside the
+// big webs (visible in the reference screenshots). Sits at z-[-10],
+// pointer-events-none, ivory-on-foreground. Webs extend off the
+// page edges via negative offsets so they wrap around the corner.
 
-type WebProps = {
-  spokeCount: number;
-  ringCount: number;
-  radius: number;
-  startAngle: number;
-  sweep: number;
-  jitterSeed: number;
-};
-
-function jitter(seed: number, i: number, magnitude = 3.2): number {
-  const v = Math.sin((seed + i) * 12.9898) * 43758.5453;
-  return (v - Math.floor(v) - 0.5) * 2 * magnitude;
-}
-
-function buildWebPaths({ spokeCount, ringCount, radius, startAngle, sweep, jitterSeed }: WebProps) {
-  const spokes: string[] = [];
-  const rings: string[] = [];
-
-  const angles: number[] = [];
-  for (let i = 0; i < spokeCount; i++) {
-    const a = startAngle + (sweep * i) / (spokeCount - 1);
-    angles.push((a * Math.PI) / 180);
-  }
-
-  for (let i = 0; i < spokeCount; i++) {
-    const a = angles[i];
-    const x = Math.cos(a) * radius;
-    const y = Math.sin(a) * radius;
-    spokes.push(`M 0 0 L ${x.toFixed(2)} ${y.toFixed(2)}`);
-  }
-
-  for (let r = 1; r <= ringCount; r++) {
-    const ringRadius = (radius * r) / (ringCount + 0.5);
-    let d = '';
-    for (let i = 0; i < spokeCount; i++) {
-      const a = angles[i];
-      const px = Math.cos(a) * ringRadius + jitter(jitterSeed, i * (r + 1), 2.6);
-      const py = Math.sin(a) * ringRadius + jitter(jitterSeed + 7, i * (r + 1), 2.6);
-      if (i === 0) {
-        d += `M ${px.toFixed(2)} ${py.toFixed(2)}`;
-      } else {
-        const prevA = angles[i - 1];
-        const midA = (a + prevA) / 2;
-        const sag = ringRadius * 0.94 + jitter(jitterSeed + r * 3, i, 1.8);
-        const cx = Math.cos(midA) * sag;
-        const cy = Math.sin(midA) * sag;
-        d += ` Q ${cx.toFixed(2)} ${cy.toFixed(2)}, ${px.toFixed(2)} ${py.toFixed(2)}`;
-      }
-    }
-    rings.push(d);
-  }
-
-  return { spokes, rings };
-}
-
-function CornerWeb({
-  position,
-  size,
-  opacity,
-  webProps,
-  swayClass,
-}: {
-  position: 'tl' | 'tr' | 'bl' | 'br';
-  size: number;
-  opacity: number;
-  webProps: WebProps;
-  swayClass: string;
-}) {
-  const { spokes, rings } = useMemo(() => buildWebPaths(webProps), [webProps]);
-
-  // Anchor point inside the SVG is the corner; we rotate the SVG so the
-  // open quadrant points into the page.
-  const transforms: Record<typeof position, string> = {
-    tl: 'translate(0,0)',
-    tr: 'translate(100%,0) scale(-1,1)',
-    bl: 'translate(0,100%) scale(1,-1)',
-    br: 'translate(100%,100%) scale(-1,-1)',
-  };
-
-  const positionClass = {
-    tl: 'top-0 left-0',
-    tr: 'top-0 right-0',
-    bl: 'bottom-0 left-0',
-    br: 'bottom-0 right-0',
-  }[position];
-
-  return (
-    <div
-      className={`absolute ${positionClass} ${swayClass}`}
-      style={{ width: size, height: size, opacity }}
-      aria-hidden="true"
-    >
-      <svg
-        viewBox={`0 0 ${size} ${size}`}
-        width={size}
-        height={size}
-        fill="none"
-        stroke="currentColor"
-        strokeWidth={0.6}
-        strokeLinecap="round"
-        style={{ color: 'hsl(var(--foreground))' }}
-      >
-        <g transform={transforms[position]}>
-          {spokes.map((d, i) => (
-            <path key={`s-${i}`} d={d} opacity={0.85} />
-          ))}
-          {rings.map((d, i) => (
-            <path key={`r-${i}`} d={d} opacity={0.75 - i * 0.04} />
-          ))}
-        </g>
-      </svg>
-    </div>
-  );
-}
+const SPIDER_SRC = '/spider.png';
 
 export function SpiderWeb() {
   return (
     <div
       aria-hidden="true"
       className="pointer-events-none fixed inset-0 overflow-hidden"
-      style={{ zIndex: -10 }}
+      style={{ zIndex: -10, color: 'hsl(var(--foreground))' }}
     >
-      <CornerWeb
-        position="tl"
-        size={460}
-        opacity={0.18}
-        swayClass="ik-web-sway"
-        webProps={{ spokeCount: 14, ringCount: 7, radius: 460, startAngle: 0, sweep: 90, jitterSeed: 13 }}
-      />
-      <CornerWeb
-        position="tr"
-        size={380}
-        opacity={0.14}
-        swayClass="ik-web-sway-2"
-        webProps={{ spokeCount: 12, ringCount: 6, radius: 380, startAngle: 0, sweep: 90, jitterSeed: 47 }}
-      />
-      <CornerWeb
-        position="bl"
-        size={300}
-        opacity={0.12}
-        swayClass="ik-web-sway-3"
-        webProps={{ spokeCount: 11, ringCount: 5, radius: 300, startAngle: 0, sweep: 90, jitterSeed: 91 }}
-      />
-      <BottomRightStrands />
-    </div>
-  );
-}
-
-function BottomRightStrands() {
-  // Just a few thin diagonal strands going to the corner — no rings.
-  const strands = useMemo(() => {
-    const out: { d: string; o: number }[] = [];
-    const seeds = [3, 11, 19, 27, 35];
-    seeds.forEach((seed, i) => {
-      const startX = 220 - i * 16 + jitter(seed, 0, 4);
-      const startY = 220 - i * 8 + jitter(seed, 1, 4);
-      const ctrlX = 160 + jitter(seed, 2, 12);
-      const ctrlY = 160 + jitter(seed, 3, 12);
-      out.push({
-        d: `M 220 220 Q ${ctrlX.toFixed(1)} ${ctrlY.toFixed(1)}, ${startX.toFixed(1)} ${startY.toFixed(1)}`,
-        o: 0.6 - i * 0.08,
-      });
-    });
-    return out;
-  }, []);
-
-  return (
-    <div
-      className="absolute bottom-0 right-0 ik-web-sway-4"
-      style={{ width: 220, height: 220, opacity: 0.16 }}
-      aria-hidden="true"
-    >
+      {/* TOP-LEFT — biggest, densest. 16 spokes, 8 rings. */}
       <svg
-        viewBox="0 0 220 220"
-        width={220}
-        height={220}
+        className="absolute -top-20 -left-20 ik-web-sway opacity-[0.18]"
+        style={{
+          width: '55vw',
+          height: '55vw',
+          maxWidth: 820,
+          maxHeight: 820,
+        }}
+        viewBox="0 0 420 420"
         fill="none"
         stroke="currentColor"
         strokeWidth={0.6}
         strokeLinecap="round"
-        style={{ color: 'hsl(var(--foreground))' }}
       >
-        {strands.map((s, i) => (
-          <path key={i} d={s.d} opacity={s.o} />
+        {Array.from({ length: 16 }).map((_, i) => {
+          const a = (i * Math.PI) / 16;
+          const x2 = Math.cos(a) * 440;
+          const y2 = Math.sin(a) * 440;
+          return <line key={`s-${i}`} x1={0} y1={0} x2={x2} y2={y2} />;
+        })}
+        {[36, 72, 116, 168, 226, 290, 360, 420].map((r, idx) => (
+          <g key={r}>
+            {Array.from({ length: 16 }).map((_, i) => {
+              const a1 = (i * Math.PI) / 16;
+              const a2 = ((i + 1) * Math.PI) / 16;
+              const jitter = (idx % 2 === 0 ? 1 : -1) * (3 + (i % 3));
+              const x1 = Math.cos(a1) * r;
+              const y1 = Math.sin(a1) * r;
+              const x2 = Math.cos(a2) * (r + jitter);
+              const y2 = Math.sin(a2) * (r + jitter);
+              const cx = ((x1 + x2) / 2) * 0.92;
+              const cy = ((y1 + y2) / 2) * 0.92;
+              return (
+                <path key={`r${idx}-${i}`} d={`M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`} />
+              );
+            })}
+          </g>
         ))}
       </svg>
+
+      {/* Tiny accent spider sitting in top-left web */}
+      <AccentSpider top="9vw" left="9vw" size={28} rotate={28} delay="0s" />
+
+      {/* TOP-RIGHT — mirrored, 14 spokes, 6 rings. */}
+      <svg
+        className="absolute -top-16 -right-24 ik-web-sway-2 opacity-[0.14]"
+        style={{
+          width: '46vw',
+          height: '46vw',
+          maxWidth: 720,
+          maxHeight: 720,
+          transform: 'scaleX(-1)',
+        }}
+        viewBox="0 0 420 420"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={0.6}
+        strokeLinecap="round"
+      >
+        {Array.from({ length: 14 }).map((_, i) => {
+          const a = (i * Math.PI) / 14;
+          const x2 = Math.cos(a) * 440;
+          const y2 = Math.sin(a) * 440;
+          return <line key={`s-${i}`} x1={0} y1={0} x2={x2} y2={y2} />;
+        })}
+        {[46, 92, 148, 214, 286, 360].map((r, idx) => (
+          <g key={r}>
+            {Array.from({ length: 14 }).map((_, i) => {
+              const a1 = (i * Math.PI) / 14;
+              const a2 = ((i + 1) * Math.PI) / 14;
+              const jitter = (idx % 2 === 0 ? 1 : -1) * (4 + (i % 2));
+              const x1 = Math.cos(a1) * r;
+              const y1 = Math.sin(a1) * r;
+              const x2 = Math.cos(a2) * (r + jitter);
+              const y2 = Math.sin(a2) * (r + jitter);
+              const cx = ((x1 + x2) / 2) * 0.9;
+              const cy = ((y1 + y2) / 2) * 0.9;
+              return (
+                <path key={`r${idx}-${i}`} d={`M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`} />
+              );
+            })}
+          </g>
+        ))}
+      </svg>
+
+      {/* Tiny accent spider sitting in top-right web */}
+      <AccentSpider top="8vw" right="10vw" size={24} rotate={-15} delay="2s" />
+
+      {/* BOTTOM-LEFT — small full-circle web, 16 spokes, 5 rings. */}
+      <svg
+        className="absolute -bottom-24 -left-16 ik-web-sway-3 opacity-[0.12]"
+        style={{
+          width: '38vw',
+          height: '38vw',
+          maxWidth: 580,
+          maxHeight: 580,
+        }}
+        viewBox="-220 -220 440 440"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={0.55}
+        strokeLinecap="round"
+      >
+        {Array.from({ length: 16 }).map((_, i) => {
+          const a = (i * 2 * Math.PI) / 16;
+          const x2 = Math.cos(a) * 230;
+          const y2 = Math.sin(a) * 230;
+          return <line key={`s-${i}`} x1={0} y1={0} x2={x2} y2={y2} />;
+        })}
+        {[30, 60, 100, 145, 195].map((r, idx) => (
+          <g key={r}>
+            {Array.from({ length: 16 }).map((_, i) => {
+              const a1 = (i * 2 * Math.PI) / 16;
+              const a2 = ((i + 1) * 2 * Math.PI) / 16;
+              const jitter = (idx % 2 === 0 ? 1 : -1) * 3;
+              const x1 = Math.cos(a1) * r;
+              const y1 = Math.sin(a1) * r;
+              const x2 = Math.cos(a2) * (r + jitter);
+              const y2 = Math.sin(a2) * (r + jitter);
+              const cx = ((x1 + x2) / 2) * 0.94;
+              const cy = ((y1 + y2) / 2) * 0.94;
+              return (
+                <path key={`r${idx}-${i}`} d={`M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`} />
+              );
+            })}
+          </g>
+        ))}
+      </svg>
+
+      {/* Tiny accent spider sitting in bottom-left web */}
+      <AccentSpider bottom="7vw" left="7vw" size={22} rotate={-200} delay="4s" />
+
+      {/* BOTTOM-RIGHT — thin strand cluster (no rings, no spider) */}
+      <svg
+        className="absolute bottom-0 right-0 ik-web-sway-4 opacity-[0.13]"
+        style={{
+          width: '36vw',
+          height: '36vw',
+          maxWidth: 520,
+          maxHeight: 520,
+        }}
+        viewBox="0 0 420 420"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={0.55}
+        strokeLinecap="round"
+      >
+        <path d="M 420 420 L 60 400 M 420 420 L 110 340 M 420 420 L 210 290 M 420 420 L 330 190 M 420 420 L 400 50" />
+        <path d="M 90 400 Q 220 370 400 110" />
+        <path d="M 60 380 Q 240 330 400 70" />
+        <path d="M 130 410 Q 280 380 410 220" />
+      </svg>
+    </div>
+  );
+}
+
+// Tiny matte-black spider sitting inside a corner web — uses the
+// same PNG as the mascot, sized way down. Slowly bobs in place.
+function AccentSpider({
+  top,
+  bottom,
+  left,
+  right,
+  size,
+  rotate,
+  delay,
+}: {
+  top?: string;
+  bottom?: string;
+  left?: string;
+  right?: string;
+  size: number;
+  rotate: number;
+  delay: string;
+}) {
+  return (
+    <div
+      className="absolute ik-float-y-slow"
+      style={{
+        top,
+        bottom,
+        left,
+        right,
+        width: size,
+        height: size,
+        animationDelay: delay,
+        opacity: 0.55,
+        transform: `rotate(${rotate}deg)`,
+      }}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={SPIDER_SRC}
+        alt=""
+        width={size}
+        height={size}
+        style={{
+          display: 'block',
+          width: size,
+          height: size,
+          filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.25))',
+        }}
+        draggable={false}
+      />
     </div>
   );
 }
