@@ -29,7 +29,7 @@ export function AgentSection() {
     <section
       id="agent"
       className="relative"
-      style={{ padding: '120px 28px' }}
+      style={{ padding: '160px 28px' }}
     >
       <div className="mx-auto max-w-[1320px] grid grid-cols-1 gap-16 lg:grid-cols-2 lg:items-center">
         {/* Left — copy + bullets + single CTA */}
@@ -49,10 +49,10 @@ export function AgentSection() {
             className="m-0 mt-4"
             style={{
               fontFamily: 'var(--sans)',
-              fontSize: 'clamp(36px, 5vw, 64px)',
+              fontSize: 'clamp(42px, 5.8vw, 76px)',
               fontWeight: 500,
-              lineHeight: 1.05,
-              letterSpacing: '-0.028em',
+              lineHeight: 1.02,
+              letterSpacing: '-0.03em',
               color: 'var(--ink)',
             }}
           >
@@ -126,7 +126,7 @@ export function AgentSection() {
             background: 'var(--bg-2)',
             border: '1px solid var(--rule)',
             boxShadow: 'var(--shadow)',
-            minHeight: 480,
+            minHeight: 640,
           }}
         >
           <NeuralCanvas
@@ -161,35 +161,66 @@ export function AgentSection() {
             riley · concierge
           </div>
 
-          {/* Riley's face — floating portrait in the upper-right */}
+          {/* Riley's face — centered hero portrait, focal point of
+              the panel. Halo + accent ring + soft red glow underneath
+              so it reads as the agent's presence, not a stock photo. */}
           <div
-            className="absolute right-5 top-5 z-10 flex flex-col items-center gap-1.5"
+            className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center"
             aria-hidden="true"
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/branding/riley.jpg"
-              alt=""
-              width={72}
-              height={72}
-              className="h-[72px] w-[72px] rounded-full"
-              style={{
-                objectFit: 'cover',
-                border: '2px solid var(--accent)',
-                boxShadow: 'var(--shadow-accent)',
-              }}
-            />
-            <span
-              style={{
-                fontFamily: 'var(--mono)',
-                fontSize: 9,
-                letterSpacing: '0.22em',
-                textTransform: 'uppercase',
-                color: 'var(--ink-soft)',
-              }}
-            >
-              riley · online
-            </span>
+            <div className="relative flex flex-col items-center">
+              {/* Glow halo behind the portrait */}
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: '-32px',
+                  borderRadius: '9999px',
+                  background:
+                    'radial-gradient(circle, rgba(255,59,59,0.32) 0%, rgba(255,59,59,0.12) 38%, transparent 68%)',
+                  filter: 'blur(8px)',
+                  zIndex: -1,
+                }}
+              />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/branding/riley.jpg"
+                alt=""
+                width={240}
+                height={240}
+                className="rounded-full"
+                style={{
+                  width: 'clamp(180px, 22vw, 260px)',
+                  height: 'clamp(180px, 22vw, 260px)',
+                  objectFit: 'cover',
+                  border: '3px solid var(--accent)',
+                  boxShadow: 'var(--shadow-accent), 0 30px 80px -20px rgba(255,59,59,0.45)',
+                }}
+              />
+              <div
+                className="mt-5 flex items-center gap-2 rounded-full px-3.5 py-1.5"
+                style={{
+                  background: 'rgba(0,0,0,0.55)',
+                  border: '1px solid var(--rule)',
+                  backdropFilter: 'blur(8px)',
+                }}
+              >
+                <span
+                  className="ik-pulse-dot inline-block h-1.5 w-1.5 rounded-full"
+                  style={{ background: '#5ed7ff', boxShadow: '0 0 10px #5ed7ff' }}
+                />
+                <span
+                  style={{
+                    fontFamily: 'var(--mono)',
+                    fontSize: 10,
+                    letterSpacing: '0.24em',
+                    textTransform: 'uppercase',
+                    color: '#f4f3f0',
+                  }}
+                >
+                  riley · online
+                </span>
+              </div>
+            </div>
           </div>
 
           {/* HUD readout — bottom-left */}
