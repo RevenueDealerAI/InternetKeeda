@@ -89,9 +89,9 @@ export function SponsoredTools() {
             >
               {isSponsored ? (
                 <>
-                  Paid{' '}
-                  <span style={{ fontWeight: 600, color: 'var(--accent)' }}>placement</span>,
-                  marked clearly.
+                  In the{' '}
+                  <span style={{ fontWeight: 600, color: 'var(--accent)' }}>spotlight</span>{' '}
+                  this week.
                 </>
               ) : (
                 <>
@@ -107,16 +107,16 @@ export function SponsoredTools() {
             >
               {isSponsored ? (
                 <>
-                  Creators paid to land here via{' '}
+                  Tools we&apos;re putting front-and-center this week. Hand-checked from the
+                  catalog so every slot still earns its place.{' '}
                   <Link href="/#pricing" style={{ color: 'var(--accent)' }}>
-                    Boost or Featured
+                    Want yours featured?
                   </Link>
-                  . Disclosure is intentional — paid slots are always labelled.
                 </>
               ) : (
                 <>
-                  No boosts running this hour, so we&apos;re showing the highest-rated tools
-                  instead. Want this slot for your tool?{' '}
+                  Nothing in the spotlight right now, so we&apos;re showing the highest-rated
+                  tools instead. Want yours here?{' '}
                   <Link href="/#pricing" style={{ color: 'var(--accent)' }}>
                     See pricing
                   </Link>
@@ -141,7 +141,7 @@ export function SponsoredTools() {
               }}
             >
               <Sparkles className="h-3 w-3" strokeWidth={2.4} />
-              Paid placement
+              Spotlight
             </span>
           )}
         </div>
