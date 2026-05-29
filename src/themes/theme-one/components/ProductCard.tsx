@@ -175,7 +175,7 @@ export const ProductCard = ({
 // from the tool name and a deterministic background color seeded by
 // the name so the same tool always gets the same color.
 
-const INITIAL_PALETTE = [
+const INITIAL_PALETTE: ReadonlyArray<readonly [string, string]> = [
   ['#FEE2E2', '#B91C1C'], // red
   ['#FED7AA', '#C2410C'], // orange
   ['#FEF3C7', '#A16207'], // amber
@@ -188,7 +188,7 @@ const INITIAL_PALETTE = [
   ['#F5F5F4', '#374151'], // slate
 ];
 
-function pickPalette(name: string): [string, string] {
+function pickPalette(name: string): readonly [string, string] {
   let hash = 0;
   for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) | 0;
   return INITIAL_PALETTE[Math.abs(hash) % INITIAL_PALETTE.length];
