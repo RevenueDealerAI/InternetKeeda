@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { Search, ArrowRight } from 'lucide-react';
-import { type FormEvent, useState } from 'react';
+import { type CSSProperties, type FormEvent, useEffect, useState } from 'react';
 import { NeuralCanvas } from './NeuralCanvas';
 import { Ticker } from './Ticker';
 
@@ -127,26 +127,10 @@ export function Hero({
         </div>
 
         {/* Headline — Nexus voice. Italic Instrument Serif accents on 1-2
-            words per row. "Everything AI." stays sans + dim. */}
-        <h1
-          className="m-0 mt-10 text-center font-medium"
-          style={{
-            fontFamily: 'var(--sans)',
-            fontSize: 'clamp(56px, 9.5vw, 144px)',
-            lineHeight: 0.92,
-            letterSpacing: '-0.035em',
-            color: '#f4f3f0',
-          }}
-        >
-          <span className="block">
-            Discover.{' '}
-            <span style={{ fontWeight: 600, color: 'var(--accent)' }}>Learn.</span>
-          </span>
-          <span className="block">
-            Earn.{' '}
-            <span style={{ color: 'rgba(244,243,240,0.42)' }}>Everything AI.</span>
-          </span>
-        </h1>
+            words per row. "Everything AI." stays sans + dim. Types out
+            letter-by-letter on first load; instant for prefers-reduced-motion. */}
+        <TypewriterHeadline />
+
 
         {/* Tagline — plain sans, no italic */}
         <p
@@ -321,6 +305,121 @@ export function Hero({
         </div>
       </div>
     </section>
+  );
+}
+
+// Headline segments — each carries text + style. The typewriter walks
+// them in order and reveals N characters total. Layout for both lines
+// is reserved via display:block on the line wrappers, and unrevealed
+// characters render with opacity 0 so the H1's final height is
+// allocated immediately (no layout shift while typing).
+const HEADLINE_LINES: { segs: { text: string; style?: CSSProperties }[] }[] = [
+  {
+    segs: [
+      { text: 'Discover. ' },
+      { text: 'Learn.', style: { fontWeight: 600, color: 'var(--accent)' } },
+    ],
+  },
+  {
+    segs: [
+      { text: 'Earn. ' },
+      { text: 'Everything AI.', style: { color: 'rgba(244,243,240,0.42)' } },
+    ],
+  },
+];
+
+const HEADLINE_TOTAL_CHARS = HEADLINE_LINES.reduce(
+  (acc, line) => acc + line.segs.reduce((a, s) => a + s.text.length, 0),
+  0,
+);
+
+const HEADLINE_PLAINTEXT = HEADLINE_LINES.map((line) =>
+  line.segs.map((s) => s.text).join(''),
+).join(' ');
+
+function TypewriterHeadline() {
+  // SSR-safe: initialize to 0 so server and client agree on first render.
+  // Animation kicks in on mount via useEffect.
+  const [revealed, setRevealed] = useState(0);
+
+  useEffect(() => {
+    if (
+      typeof window !== 'undefined' &&
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    ) {
+      setRevealed(HEADLINE_TOTAL_CHARS);
+      return;
+    }
+
+    // ~55ms per char ≈ 2s for the full ~37-char headline. Fast enough
+    // not to delay the user; slow enough to read as typing.
+    const id = window.setInterval(() => {
+      setRevealed((n) => {
+        if (n >= HEADLINE_TOTAL_CHARS) {
+          window.clearInterval(id);
+          return n;
+        }
+        return n + 1;
+      });
+    }, 55);
+    return () => window.clearInterval(id);
+  }, []);
+
+  const done = revealed >= HEADLINE_TOTAL_CHARS;
+  let remaining = revealed;
+  // Caret lives on the first segment that still has hidden chars, so
+  // it walks with the typing position instead of staying parked at the
+  // tail of the headline.
+  let caretPlaced = false;
+
+  return (
+    <h1
+      className="m-0 mt-10 text-center font-medium"
+      style={{
+        fontFamily: 'var(--sans)',
+        fontSize: 'clamp(56px, 9.5vw, 144px)',
+        lineHeight: 0.92,
+        letterSpacing: '-0.035em',
+        color: '#f4f3f0',
+      }}
+      aria-label={HEADLINE_PLAINTEXT}
+    >
+      {HEADLINE_LINES.map((line, lineIdx) => {
+        return (
+          <span key={lineIdx} className="block" aria-hidden="true">
+            {line.segs.map((seg, segIdx) => {
+              const take = Math.min(seg.text.length, Math.max(0, remaining));
+              remaining -= seg.text.length;
+              const shown = seg.text.slice(0, take);
+              const hidden = seg.text.slice(take);
+              const showCaret = !done && !caretPlaced && hidden.length > 0;
+              if (showCaret) caretPlaced = true;
+              return (
+                <span key={segIdx} style={seg.style}>
+                  {shown}
+                  {showCaret && (
+                    <span
+                      aria-hidden="true"
+                      className="ik-typewriter-caret"
+                      style={{
+                        display: 'inline-block',
+                        width: '0.04em',
+                        marginLeft: '0.06em',
+                        background: 'var(--accent)',
+                        verticalAlign: 'baseline',
+                        height: '0.85em',
+                        transform: 'translateY(0.12em)',
+                      }}
+                    />
+                  )}
+                  <span style={{ opacity: 0 }}>{hidden}</span>
+                </span>
+              );
+            })}
+          </span>
+        );
+      })}
+    </h1>
   );
 }
 

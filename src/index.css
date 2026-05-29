@@ -937,6 +937,14 @@
 }
 .ik-pulse-dot { animation: ik-pulse-dot 2.4s ease-in-out infinite; will-change: transform, opacity; }
 
+/* Blinking caret for the hero typewriter headline */
+@keyframes ik-typewriter-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+.ik-typewriter-caret { animation: ik-typewriter-blink 0.9s steps(1, end) infinite; }
+@media (prefers-reduced-motion: reduce) { .ik-typewriter-caret { animation: none; opacity: 0; } }
+
 @keyframes ik-pulse-orb {
   0%, 100% { transform: scale(1); opacity: 0.85; }
   50%      { transform: scale(1.05); opacity: 1; }
