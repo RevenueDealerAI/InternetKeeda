@@ -69,8 +69,8 @@ export function CtaCard() {
             className="mx-auto mt-5 max-w-[540px] text-[16px] leading-[1.6]"
             style={{ color: 'rgba(244,243,240,0.75)' }}
           >
-            Submit once. Stay in the index for $10/month. Boost when you need a spike. Pricing
-            anchored in USD, payments worldwide.
+            Submit once. Stay in the index for $10/month. One plan, one price, cancel anytime.
+            Honest curation by humans who actually use the tools.
           </p>
           <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
             <Link

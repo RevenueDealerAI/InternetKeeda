@@ -87,7 +87,7 @@ export function BottomCtaBar() {
             className="m-0 max-w-[420px] text-[14px] leading-[1.6]"
             style={{ color: 'var(--ink-2)' }}
           >
-            $10/month for a permanent listing. Boost when you need a spike. Honest curation,
+            $10/month for a permanent listing. One plan, one price. Honest curation,
             real audience.
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-3">

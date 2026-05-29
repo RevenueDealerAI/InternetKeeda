@@ -14,60 +14,27 @@ type Tier = {
   ribbon?: string;
 };
 
+// Single-tier pricing — only the Monthly Listing plan has a live
+// payment flow right now (Cashfree TEST → ₹830/mo, displayed as $10).
+// Boost / Featured tiers will return when their checkout flows are
+// live in production.
 const TIERS: Tier[] = [
   {
     name: 'Monthly Listing',
     price: '$10',
     per: '/ month',
-    desc: 'Recurring listing — stay in the catalog.',
+    desc: 'Recurring listing — stay in the catalog. The only thing you need to be on Internet Keeda.',
     items: [
       'Public listing on internetkeeda.com',
       'Category placement + search index',
       'Real-time analytics dashboard',
+      'Editorial review on submission',
       'Soft-delete safety net for missed payments',
+      'Cancel anytime from your dashboard',
     ],
     cta: { label: 'Submit your tool', href: '/submit-tool' },
-  },
-  {
-    name: 'Boost · Category',
-    price: '$12',
-    per: '/ 7 days',
-    desc: 'Pin to the top of your category page.',
-    items: [
-      'Top slot in your category for 7 days',
-      'Boost badge on the card',
-      'Real-time impressions + clicks',
-      'PayPal or Cashfree, USD-anchored',
-    ],
-    cta: { label: 'Boost category', href: '/submit-tool' },
-  },
-  {
-    name: 'Boost · Home',
-    price: '$30',
-    per: '/ 7 days',
-    desc: 'Land in the home rotation. Most picked.',
-    items: [
-      'Home rotation slot — front-page exposure',
-      'Self-healing webhooks — nothing strands',
-      'Resubmit-safe — keeps your slot on re-edit',
-      'Stacks with the monthly Listing',
-    ],
-    cta: { label: 'Boost now', href: '/submit-tool' },
     featured: true,
-    ribbon: 'most picked',
-  },
-  {
-    name: 'Featured Badge',
-    price: '$60',
-    per: '/ 30 days',
-    desc: 'Wear the crown for a month.',
-    items: [
-      'Featured badge on every surface',
-      'All boost benefits included',
-      'Editorial mention in our roundup',
-      'Newsletter inclusion to our reader list',
-    ],
-    cta: { label: 'Go featured', href: '/submit-tool' },
+    ribbon: 'one plan · one price',
   },
 ];
 
@@ -108,12 +75,12 @@ export function Pricing() {
             className="mx-auto mt-4 text-[16px] leading-[1.6]"
             style={{ color: 'var(--ink-2)' }}
           >
-            USD-anchored. PayPal worldwide. Cashfree for India. Self-healing webhooks so nothing
-            strands.
+            One plan. One price. Cashfree checkout, USD-anchored. Self-healing webhooks so
+            nothing strands. No boosts, no upsells — list well and let the catalog do the work.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mx-auto grid max-w-[460px] grid-cols-1 gap-4">
           {TIERS.map((t) => (
             <TierCard key={t.name} tier={t} />
           ))}
