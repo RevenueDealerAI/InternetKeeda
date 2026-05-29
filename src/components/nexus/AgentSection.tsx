@@ -8,7 +8,7 @@ const BULLETS = [
     icon: Brain,
     title: 'Multi-tool reasoning',
     body:
-      'Ask once. Keeda routes the question across thousands of indexed tools and assembles the stack that actually fits the task.',
+      'Ask once. Riley routes the question across thousands of indexed tools and assembles the stack that actually fits the task.',
   },
   {
     icon: Database,
@@ -43,7 +43,7 @@ export function AgentSection() {
               color: 'var(--accent)',
             }}
           >
-            § 02 — ai keeda · the agent
+            § 02 — riley · the concierge
           </div>
           <h2
             className="m-0 mt-4"
@@ -64,8 +64,9 @@ export function AgentSection() {
             className="mt-5 max-w-[520px] text-[16px] leading-[1.6]"
             style={{ color: 'var(--ink-2)' }}
           >
-            Keeda is the conversational index for the AI internet. Tell it what you&apos;re
-            trying to ship; it returns the toolchain — ranked, cited, and ready to copy.
+            Riley is your concierge for the AI internet. Tell Riley what you&apos;re
+            trying to ship, ask where pricing lives, or get walked to the right
+            section — you get ranked tools, cited sources, and the next place to go.
           </p>
 
           <ul className="m-0 mt-10 grid list-none gap-6 p-0">
@@ -105,7 +106,7 @@ export function AgentSection() {
 
           <button
             type="button"
-            onClick={() => window.dispatchEvent(new Event('ik:open-eli'))}
+            onClick={() => window.dispatchEvent(new Event('ik:open-chat'))}
             className="mt-10 inline-flex items-center gap-2 rounded-full px-6 py-3.5 text-[11px] font-semibold uppercase tracking-[0.18em] transition-transform hover:-translate-y-0.5"
             style={{
               background: 'linear-gradient(135deg, var(--accent), var(--accent-2))',
@@ -114,7 +115,7 @@ export function AgentSection() {
               fontFamily: 'var(--mono)',
             }}
           >
-            Try AI Keeda <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.5} />
+            Try Riley <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.5} />
           </button>
         </div>
 
@@ -157,7 +158,39 @@ export function AgentSection() {
               style={{ background: 'var(--accent)' }}
               aria-hidden="true"
             />
-            keeda · agent
+            riley · concierge
+          </div>
+
+          {/* Maya's face — floating portrait in the upper-right */}
+          <div
+            className="absolute right-5 top-5 z-10 flex flex-col items-center gap-1.5"
+            aria-hidden="true"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/branding/riley.svg"
+              alt=""
+              width={64}
+              height={64}
+              className="h-16 w-16 rounded-full"
+              style={{
+                background: 'linear-gradient(135deg, var(--accent), var(--accent-2))',
+                border: '1px solid var(--rule)',
+                boxShadow: 'var(--shadow-accent)',
+                objectFit: 'cover',
+              }}
+            />
+            <span
+              style={{
+                fontFamily: 'var(--mono)',
+                fontSize: 9,
+                letterSpacing: '0.22em',
+                textTransform: 'uppercase',
+                color: 'var(--ink-soft)',
+              }}
+            >
+              riley · online
+            </span>
           </div>
 
           {/* HUD readout — bottom-left */}

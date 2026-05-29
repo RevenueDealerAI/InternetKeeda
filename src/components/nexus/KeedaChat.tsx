@@ -1,42 +1,52 @@
 'use client';
 
-// "Eli" — the AI Keeda chat bot. Floating launcher at bottom-right of
-// every public route. Click to open a small chat panel.
+// "Riley" — the Internet Keeda routing + concierge agent. Floating
+// launcher at bottom-right of every public route. Click to open a
+// small chat panel.
 //
-// - The "Try AI Keeda" CTA in <AgentSection /> dispatches a window
-//   event `ik:open-eli` that this component listens for, so that
-//   button opens the chat without per-component state plumbing.
-// - Sends user messages to /api/tools/ai-search (the existing route).
-//   Renders matched tools as inline tool cards using <ToolLogo>.
+// - The "Try Riley" CTA in <AgentSection /> dispatches a window event
+//   `ik:open-chat` that this component listens for. The event name is
+//   intentionally name-agnostic so future rebrands stay UI-only.
+// - Sends user messages to /api/tools/ai-search. That route runs Claude
+//   server-side and returns { reply, tools, links }; we render the
+//   reply text, matched tool cards via <ToolLogo>, and any navigation
+//   links Maya surfaced for the user.
 // - Persists open/closed state + conversation in localStorage so the
-//   panel survives navs and reloads.
+//   panel survives navs and reloads. Storage keys are also name-
+//   agnostic (`ik-chat-*`).
 // - Hides itself on /admin routes (admin pages don't need a bot).
 
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type FormEvent } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { MessageCircle, Send, Sparkles, X } from 'lucide-react';
+import { Send, Sparkles, X } from 'lucide-react';
 import { ToolLogo } from './ToolLogo';
 import type { Tool } from '@/types/tool';
 
+type NavLink = { label: string; href: string };
+
 type Message =
-  | { role: 'eli'; kind: 'text'; body: string }
-  | { role: 'eli'; kind: 'tools'; body: string; tools: Tool[] }
+  | { role: 'bot'; kind: 'text'; body: string }
+  | { role: 'bot'; kind: 'tools'; body: string; tools: Tool[]; links?: NavLink[] }
   | { role: 'user'; kind: 'text'; body: string };
 
-const BOT_NAME = 'Eli';
-const BOT_TAG = 'AI Keeda · routing the index';
+const BOT_NAME = 'Riley';
+const BOT_TAG = 'Internet Keeda · concierge';
+// Stable Riley face — saved as a local SVG so it loads instantly and
+// avoids the CORP block DiceBear's CDN sets on cross-origin SVG fetches.
+// Regenerate with: https://api.dicebear.com/9.x/personas/svg?seed=riley-keeda
+const BOT_AVATAR = '/branding/riley.svg';
 const GREET: Message = {
-  role: 'eli',
+  role: 'bot',
   kind: 'text',
   body:
-    "Hey, I'm Eli — AI Keeda's routing agent. Tell me what you're trying to build " +
-    'and I\'ll pull the stack from 5,000+ tools. Try: "lip sync for podcasts" or ' +
-    '"code companion that ships PRs".',
+    "Hey, I'm Riley — your concierge for Internet Keeda. Ask me to find a tool, " +
+    'compare options, walk you through pricing, or take you to a section. ' +
+    'Try: "best image gen for posters" or "how do I list my tool?"',
 };
 
-const LS_OPEN = 'ik-eli-open';
-const LS_MSGS = 'ik-eli-msgs';
+const LS_OPEN = 'ik-chat-open';
+const LS_MSGS = 'ik-chat-msgs';
 
 function readOpen(): boolean {
   if (typeof localStorage === 'undefined') return false;
@@ -99,15 +109,15 @@ export function KeedaChat() {
     }
   }, [messages, open, loading]);
 
-  // External openers ("Try AI Keeda" button in AgentSection dispatches
-  // window 'ik:open-eli'; the existing mobile FAB dispatches
-  // 'ik:open-search' which we also catch).
+  // External openers — name-agnostic event names so future rebrands
+  // don't need to touch this hook. AgentSection dispatches
+  // 'ik:open-chat'; the existing mobile FAB dispatches 'ik:open-search'.
   useEffect(() => {
     const onOpen = () => setOpen(true);
-    window.addEventListener('ik:open-eli', onOpen);
+    window.addEventListener('ik:open-chat', onOpen);
     window.addEventListener('ik:open-search', onOpen);
     return () => {
-      window.removeEventListener('ik:open-eli', onOpen);
+      window.removeEventListener('ik:open-chat', onOpen);
       window.removeEventListener('ik:open-search', onOpen);
     };
   }, []);
@@ -128,18 +138,36 @@ export function KeedaChat() {
       if (!res.ok) throw new Error(`request failed (${res.status})`);
       const data = await res.json();
       const tools = Array.isArray(data?.tools) ? (data.tools as Tool[]).slice(0, 6) : [];
-      const summary =
-        tools.length > 0
-          ? `Routed across the index. Here's the stack I'd reach for:`
-          : `I couldn't find a strong match for that. Try rephrasing what you want to ship?`;
-      setMessages((m) => [...m, { role: 'eli', kind: 'tools', body: summary, tools }]);
+      const links: NavLink[] = Array.isArray(data?.links)
+        ? (data.links as NavLink[])
+            .filter(
+              (l) =>
+                l &&
+                typeof l.label === 'string' &&
+                typeof l.href === 'string' &&
+                (l.href.startsWith('/') || l.href.startsWith('https://wa.me/')),
+            )
+            .slice(0, 4)
+        : [];
+      const reply =
+        typeof data?.reply === 'string' && data.reply.trim().length > 0
+          ? data.reply.trim()
+          : tools.length > 0
+            ? "Here's what I'd reach for:"
+            : links.length > 0
+              ? 'Here are a few places that might help:'
+              : "I couldn't find a strong match. Try rephrasing what you want to do?";
+      setMessages((m) => [
+        ...m,
+        { role: 'bot', kind: 'tools', body: reply, tools, links: links.length > 0 ? links : undefined },
+      ]);
     } catch {
       setMessages((m) => [
         ...m,
         {
-          role: 'eli',
+          role: 'bot',
           kind: 'text',
-          body: "Something went sideways on my end. Try again in a second?",
+          body: 'Something went sideways on my end. Try again in a second?',
         },
       ]);
     } finally {
@@ -156,7 +184,7 @@ export function KeedaChat() {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          aria-label="Open Eli — AI Keeda chat"
+          aria-label={`Open ${BOT_NAME} — Internet Keeda chat`}
           className="fixed bottom-5 right-5 z-[60] inline-flex items-center gap-2 rounded-full px-4 py-3 transition-transform hover:-translate-y-0.5"
           style={{
             background: 'linear-gradient(135deg, var(--accent), var(--accent-2))',
@@ -169,7 +197,16 @@ export function KeedaChat() {
             textTransform: 'uppercase',
           }}
         >
-          <MessageCircle className="h-4 w-4" strokeWidth={2.4} />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={BOT_AVATAR}
+            alt=""
+            aria-hidden="true"
+            width={20}
+            height={20}
+            className="h-5 w-5 rounded-full"
+            style={{ background: 'rgba(255,255,255,0.18)' }}
+          />
           Ask {BOT_NAME}
         </button>
       )}
@@ -178,7 +215,7 @@ export function KeedaChat() {
       {open && (
         <div
           role="dialog"
-          aria-label="AI Keeda chat with Eli"
+          aria-label={`${BOT_NAME} chat — Internet Keeda concierge`}
           className="fixed bottom-5 right-5 z-[60] flex w-[min(380px,calc(100vw-32px))] flex-col overflow-hidden rounded-2xl backdrop-blur-2xl"
           style={{
             background: 'color-mix(in oklab, var(--bg-2) 94%, transparent)',
@@ -193,21 +230,19 @@ export function KeedaChat() {
             style={{ borderColor: 'var(--rule)' }}
           >
             <div className="flex items-center gap-2.5">
-              <span
-                aria-hidden="true"
-                className="grid h-8 w-8 place-items-center rounded-full"
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={BOT_AVATAR}
+                alt={`${BOT_NAME} avatar`}
+                width={36}
+                height={36}
+                className="h-9 w-9 shrink-0 rounded-full"
                 style={{
                   background: 'linear-gradient(135deg, var(--accent), var(--accent-2))',
-                  color: 'var(--on-accent)',
                   boxShadow: 'var(--shadow-accent)',
-                  fontFamily: 'var(--sans)',
-                  fontWeight: 700,
-                  fontSize: 13,
-                  letterSpacing: '-0.01em',
+                  objectFit: 'cover',
                 }}
-              >
-                E
-              </span>
+              />
               <div className="leading-tight">
                 <div
                   className="text-[13px] font-semibold"
@@ -306,7 +341,7 @@ export function KeedaChat() {
               className="mt-2 text-center text-[9px] uppercase tracking-[0.2em]"
               style={{ color: 'var(--ink-soft)', fontFamily: 'var(--mono)' }}
             >
-              powered by ai keeda · {messages.length - 1} message{messages.length - 1 === 1 ? '' : 's'}
+              powered by claude · {messages.length - 1} message{messages.length - 1 === 1 ? '' : 's'}
             </div>
           </form>
         </div>
@@ -390,6 +425,53 @@ function Bubble({ msg }: { msg: Message }) {
                 </span>
               </Link>
             ))}
+          </div>
+        )}
+        {msg.links && msg.links.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {msg.links.map((l) => {
+              const external = !l.href.startsWith('/');
+              const isWhatsApp = l.href.startsWith('https://wa.me/');
+              const className =
+                'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold transition-transform hover:-translate-y-0.5';
+              const style: CSSProperties = isWhatsApp
+                ? {
+                    background: '#25D366',
+                    color: '#fff',
+                    border: '1px solid #25D366',
+                    fontFamily: 'var(--mono)',
+                    letterSpacing: '0.08em',
+                    textTransform: 'uppercase',
+                  }
+                : {
+                    background: 'var(--accent-soft)',
+                    color: 'var(--accent)',
+                    border: '1px solid var(--rule)',
+                    fontFamily: 'var(--mono)',
+                    letterSpacing: '0.08em',
+                    textTransform: 'uppercase',
+                  };
+
+              if (external) {
+                return (
+                  <a
+                    key={l.href}
+                    href={l.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={className}
+                    style={style}
+                  >
+                    {l.label} <span aria-hidden="true">↗</span>
+                  </a>
+                );
+              }
+              return (
+                <Link key={l.href} href={l.href} className={className} style={style}>
+                  {l.label} <span aria-hidden="true">→</span>
+                </Link>
+              );
+            })}
           </div>
         )}
       </div>
