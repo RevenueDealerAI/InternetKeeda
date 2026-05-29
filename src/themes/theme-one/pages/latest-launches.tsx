@@ -6,6 +6,7 @@ import { useTools } from "@/lib/api/tools";
 import { useToolActions } from "@/hooks/useToolActions";
 import { useInViewReveal } from "@/hooks/useInViewReveal";
 import { ToolCardSkeletonGrid } from "../components/ToolCardSkeleton";
+import { getToolLogo } from "@/utils/toolHelpers";
 
 // Helper function to convert pricing type
 const convertPricingType = (type: string): 'Free' | 'Freemium' | 'Paid' => {
@@ -163,7 +164,7 @@ export const LatestLaunches = () => {
                 description={tool.description_ai || tool.description}
                 category={tool.category}
                 votes={tool.votes}
-                imageUrl={tool.logo || ""}
+                imageUrl={getToolLogo(tool)}
                 onVote={(e) => handleVote(e, tool.id, tool.votes)}
                 isFavorite={isSaved(tool.id)}
                 onFavorite={(e) => handleFavorite(e, tool.id)}

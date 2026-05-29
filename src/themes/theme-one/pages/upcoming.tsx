@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useTools } from "@/lib/api/tools";
 import { useToolActions } from "@/hooks/useToolActions";
 import { useInViewReveal } from "@/hooks/useInViewReveal";
+import { getToolLogo } from "@/utils/toolHelpers";
 
 export const Upcoming = () => {
   const { data, isLoading, error } = useTools({ limit: 500, sortBy: 'createdAt', sortOrder: 'desc' });
@@ -120,7 +121,7 @@ export const Upcoming = () => {
                     </h3>
                     <div className="w-16 h-16 rounded-xl overflow-hidden bg-gradient-to-br from-orange-100 to-blue-50 shadow-sm mb-4 relative">
                       <Image
-                        src={tool.logo || ""}
+                        src={getToolLogo(tool)}
                         alt={tool.name}
                         fill
                         className="object-cover"

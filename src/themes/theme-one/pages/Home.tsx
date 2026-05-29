@@ -7,6 +7,7 @@ import { useState } from "react";
 import { useTools } from "@/lib/api/tools";
 import { SoftwareCategories } from "../components/home/SoftwareCategories";
 import { useToolActions } from "@/hooks/useToolActions";
+import { getToolLogo } from "@/utils/toolHelpers";
 
 export const Home = () => {
   const router = useRouter();
@@ -132,7 +133,7 @@ export const Home = () => {
                 description={tool.description_ai || tool.description}
                 category={tool.category}
                 votes={tool.votes}
-                imageUrl={tool.logo || ""}
+                imageUrl={getToolLogo(tool)}
                 onVote={(e) => handleVote(e, tool.id, tool.votes)}
                 isFavorite={isSaved(tool.id)}
                 onFavorite={(e) => handleFavorite(e, tool.id)}
@@ -170,7 +171,7 @@ export const Home = () => {
                 description={tool.description_ai || tool.description}
                 category={tool.category}
                 votes={tool.votes}
-                imageUrl={tool.logo || ""}
+                imageUrl={getToolLogo(tool)}
                 onVote={(e) => handleVote(e, tool.id, tool.votes)}
                 isFavorite={isSaved(tool.id)}
                 onFavorite={(e) => handleFavorite(e, tool.id)}
@@ -213,7 +214,7 @@ export const Home = () => {
                 description={tool.description_ai || tool.description}
                 category={tool.category}
                 votes={tool.votes}
-                imageUrl={tool.logo || ""}
+                imageUrl={getToolLogo(tool)}
                 onVote={(e) => handleVote(e, tool.id, tool.votes)}
                 isFavorite={isSaved(tool.id)}
                 onFavorite={(e) => handleFavorite(e, tool.id)}

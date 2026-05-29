@@ -10,6 +10,7 @@ import { useInViewReveal } from "@/hooks/useInViewReveal";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { ToolCardSkeletonGrid } from "../../components/ToolCardSkeleton";
+import { getToolLogo } from "@/utils/toolHelpers";
 
 export default function CategoryPage() {
   const contextParams = useContext(ParamsContext);
@@ -206,7 +207,7 @@ export default function CategoryPage() {
                       description={tool.description_ai || tool.description}
                       category={tool.category}
                       votes={tool.votes}
-                      imageUrl={tool.logo || ''}
+                      imageUrl={getToolLogo(tool)}
                       onVote={(e) => handleVote(e, tool.id, tool.votes)}
                       isFavorite={isSaved(tool.id)}
                       onFavorite={(e) => {

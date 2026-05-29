@@ -7,6 +7,7 @@ import { useTools } from "@/lib/api/tools";
 import { Tool } from "@/types/tool";
 import { useToolActions } from "@/hooks/useToolActions";
 import { useInViewReveal } from "@/hooks/useInViewReveal";
+import { getToolLogo } from "@/utils/toolHelpers";
 
 const TrendingPage = () => {
   const [timeFilter, setTimeFilter] = useState<'today' | 'week' | 'month'>('today');
@@ -154,7 +155,7 @@ const TrendingPage = () => {
                   description={tool.description_ai || tool.description}
                   category={tool.category}
                   votes={tool.votes}
-                  imageUrl={tool.logo || ""}
+                  imageUrl={getToolLogo(tool)}
                   onVote={(e) => handleVote(e, tool.id, tool.votes)}
                   isFavorite={isSaved(tool.id)}
                   onFavorite={(e) => {

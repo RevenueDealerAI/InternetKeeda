@@ -9,6 +9,7 @@ import { useTools } from "@/lib/api/tools";
 import { useToolActions } from "@/hooks/useToolActions";
 import { useInViewReveal } from "@/hooks/useInViewReveal";
 import { ToolCardSkeletonGrid } from "../components/ToolCardSkeleton";
+import { getToolLogo } from "@/utils/toolHelpers";
 
 const getPricingColor = (type: string) => {
   switch (type.toLowerCase()) {
@@ -200,7 +201,7 @@ export const TopProducts = () => {
             <div className="w-full md:w-1/2">
               <div className="aspect-video rounded-xl bg-white shadow-lg overflow-hidden relative">
                 <Image 
-                  src={featuredTool.logo || ""}
+                  src={getToolLogo(featuredTool)}
                   alt={featuredTool.name}
                   fill
                   className="object-cover"
@@ -258,7 +259,7 @@ export const TopProducts = () => {
                 description={tool.description_ai || tool.description}
                 category={tool.category}
                 votes={tool.votes}
-                imageUrl={tool.logo || ""}
+                imageUrl={getToolLogo(tool)}
                 onVote={(e) => handleVote(e, tool.id, tool.votes)}
                 isFavorite={isSaved(tool.id)}
                 onFavorite={(e) => {
