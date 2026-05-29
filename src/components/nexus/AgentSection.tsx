@@ -29,7 +29,7 @@ export function AgentSection() {
     <section
       id="agent"
       className="relative"
-      style={{ padding: '160px 28px' }}
+      style={{ padding: '200px 28px' }}
     >
       <div className="mx-auto max-w-[1320px] grid grid-cols-1 gap-16 lg:grid-cols-2 lg:items-center">
         {/* Left — copy + bullets + single CTA */}
@@ -37,7 +37,7 @@ export function AgentSection() {
           <div
             style={{
               fontFamily: 'var(--mono)',
-              fontSize: 10,
+              fontSize: 12,
               letterSpacing: '0.3em',
               textTransform: 'uppercase',
               color: 'var(--accent)',
@@ -46,13 +46,13 @@ export function AgentSection() {
             § 02 — riley · the concierge
           </div>
           <h2
-            className="m-0 mt-4"
+            className="m-0 mt-5"
             style={{
               fontFamily: 'var(--sans)',
-              fontSize: 'clamp(42px, 5.8vw, 76px)',
+              fontSize: 'clamp(54px, 7.4vw, 104px)',
               fontWeight: 500,
-              lineHeight: 1.02,
-              letterSpacing: '-0.03em',
+              lineHeight: 1,
+              letterSpacing: '-0.034em',
               color: 'var(--ink)',
             }}
           >
@@ -61,7 +61,7 @@ export function AgentSection() {
             , not ten tabs.
           </h2>
           <p
-            className="mt-5 max-w-[520px] text-[16px] leading-[1.6]"
+            className="mt-7 max-w-[560px] text-[20px] leading-[1.55]"
             style={{ color: 'var(--ink-2)' }}
           >
             Riley is your concierge for the AI internet. Tell Riley what you&apos;re
@@ -69,31 +69,31 @@ export function AgentSection() {
             section — you get ranked tools, cited sources, and the next place to go.
           </p>
 
-          <ul className="m-0 mt-10 grid list-none gap-6 p-0">
+          <ul className="m-0 mt-12 grid list-none gap-8 p-0">
             {BULLETS.map((b) => {
               const Icon = b.icon;
               return (
-                <li key={b.title} className="flex items-start gap-4">
+                <li key={b.title} className="flex items-start gap-5">
                   <span
                     aria-hidden="true"
-                    className="grid h-10 w-10 shrink-0 place-items-center rounded-lg"
+                    className="grid h-14 w-14 shrink-0 place-items-center rounded-xl"
                     style={{
                       background: 'var(--accent-soft)',
                       border: '1px solid var(--rule)',
                       color: 'var(--accent)',
                     }}
                   >
-                    <Icon className="h-4 w-4" strokeWidth={2.2} />
+                    <Icon className="h-6 w-6" strokeWidth={2.2} />
                   </span>
                   <div>
                     <div
-                      className="text-[15px] font-semibold"
-                      style={{ color: 'var(--ink)' }}
+                      className="text-[20px] font-semibold"
+                      style={{ color: 'var(--ink)', letterSpacing: '-0.01em' }}
                     >
                       {b.title}
                     </div>
                     <p
-                      className="m-0 mt-1 text-[14px] leading-[1.55]"
+                      className="m-0 mt-1.5 text-[16px] leading-[1.55]"
                       style={{ color: 'var(--ink-soft)' }}
                     >
                       {b.body}
@@ -107,7 +107,7 @@ export function AgentSection() {
           <button
             type="button"
             onClick={() => window.dispatchEvent(new Event('ik:open-chat'))}
-            className="mt-10 inline-flex items-center gap-2 rounded-full px-6 py-3.5 text-[11px] font-semibold uppercase tracking-[0.18em] transition-transform hover:-translate-y-0.5"
+            className="mt-12 inline-flex items-center gap-2.5 rounded-full px-9 py-5 text-[13px] font-semibold uppercase tracking-[0.18em] transition-transform hover:-translate-y-0.5"
             style={{
               background: 'linear-gradient(135deg, var(--accent), var(--accent-2))',
               color: 'var(--on-accent)',
@@ -115,7 +115,7 @@ export function AgentSection() {
               fontFamily: 'var(--mono)',
             }}
           >
-            Try Riley <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.5} />
+            Try Riley <ArrowRight className="h-4 w-4" strokeWidth={2.5} />
           </button>
         </div>
 
@@ -126,7 +126,7 @@ export function AgentSection() {
             background: 'var(--bg-2)',
             border: '1px solid var(--rule)',
             boxShadow: 'var(--shadow)',
-            minHeight: 640,
+            minHeight: 820,
           }}
         >
           <NeuralCanvas
@@ -173,11 +173,11 @@ export function AgentSection() {
               <div
                 style={{
                   position: 'absolute',
-                  inset: '-32px',
+                  inset: '-56px',
                   borderRadius: '9999px',
                   background:
-                    'radial-gradient(circle, rgba(255,59,59,0.32) 0%, rgba(255,59,59,0.12) 38%, transparent 68%)',
-                  filter: 'blur(8px)',
+                    'radial-gradient(circle, rgba(255,59,59,0.40) 0%, rgba(255,59,59,0.14) 42%, transparent 72%)',
+                  filter: 'blur(14px)',
                   zIndex: -1,
                 }}
               />
@@ -185,15 +185,15 @@ export function AgentSection() {
               <img
                 src="/branding/riley.jpg"
                 alt=""
-                width={240}
-                height={240}
+                width={420}
+                height={420}
                 className="rounded-full"
                 style={{
-                  width: 'clamp(180px, 22vw, 260px)',
-                  height: 'clamp(180px, 22vw, 260px)',
+                  width: 'clamp(280px, 36vw, 440px)',
+                  height: 'clamp(280px, 36vw, 440px)',
                   objectFit: 'cover',
-                  border: '3px solid var(--accent)',
-                  boxShadow: 'var(--shadow-accent), 0 30px 80px -20px rgba(255,59,59,0.45)',
+                  border: '4px solid var(--accent)',
+                  boxShadow: 'var(--shadow-accent), 0 40px 120px -24px rgba(255,59,59,0.55)',
                 }}
               />
               <div
