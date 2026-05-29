@@ -7,10 +7,13 @@ import { useTools } from '@/lib/api/tools';
 import { useCategories } from '@/hooks/useCategories';
 import type { Tool } from '@/types/tool';
 import { Hero } from '@/components/nexus/Hero';
+import { SponsoredTools } from '@/components/nexus/SponsoredTools';
 import { Launches } from '@/components/nexus/Launches';
+import { TrendingTools } from '@/components/nexus/TrendingTools';
 import { AgentSection } from '@/components/nexus/AgentSection';
 import { Pricing } from '@/components/nexus/Pricing';
 import { CtaCard } from '@/components/nexus/CtaCard';
+import { BottomCtaBar } from '@/components/nexus/BottomCtaBar';
 import { ToolLogo } from '@/components/nexus/ToolLogo';
 // Nav + Footer are mounted globally in NextRouterAdapter.
 
@@ -120,10 +123,13 @@ export default function Index() {
         />
       )}
 
+      <SponsoredTools />
       <Launches />
+      <TrendingTools />
       <AgentSection />
       <Pricing />
       <CtaCard />
+      <BottomCtaBar />
     </main>
   );
 }

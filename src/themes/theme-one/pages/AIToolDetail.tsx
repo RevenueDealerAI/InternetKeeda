@@ -5,6 +5,7 @@ import { ParamsContext } from '@/lib/react-router-compat';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import { ToolLogo as NexusToolLogo } from '@/components/nexus/ToolLogo';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -340,19 +341,24 @@ export const AIToolDetail = () => {
                       </div>
                       
                       <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 sm:gap-6">
-                        {/* Tool Image - Centered on mobile */}
+                        {/* Tool Image — uses the shared <ToolLogo /> so
+                            it gets the same getToolLogo URL chain
+                            (clearbit → favicon → ui-avatars) PLUS the
+                            first-letter fallback when the image errors.
+                            Theme-aware via tokens — no hardcoded
+                            red-50/gray-50 gradient that disappeared on
+                            dark. */}
                         <div className="relative">
-                          <div className="w-28 h-28 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-gradient-to-br from-red-100 via-red-50 to-gray-50 ring-1 ring-red-200/60 shadow-sm flex items-center justify-center relative">
-                            <Image
-                              src={getToolLogo(tool)}
-                              alt={tool.name}
-                              fill
-                              sizes="128px"
-                              className="object-contain sm:object-cover p-2"
-                            />
-                          </div>
+                          <NexusToolLogo tool={tool} size={112} radius={20} />
                           {(tool.votes || 0) >= 100 && (
-                            <div className="absolute -bottom-3 -right-3 bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
+                            <div
+                              className="absolute -bottom-3 -right-3 rounded-full px-3 py-1 text-sm font-medium"
+                              style={{
+                                background: 'var(--accent-soft)',
+                                color: 'var(--accent)',
+                                border: '1px solid var(--accent)',
+                              }}
+                            >
                               #{Math.floor((tool.votes || 0) / 100)}
                             </div>
                           )}
