@@ -161,23 +161,22 @@ export function AgentSection() {
             riley · concierge
           </div>
 
-          {/* Maya's face — floating portrait in the upper-right */}
+          {/* Riley's face — floating portrait in the upper-right */}
           <div
             className="absolute right-5 top-5 z-10 flex flex-col items-center gap-1.5"
             aria-hidden="true"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/branding/riley.svg"
+              src="/branding/riley.jpg"
               alt=""
-              width={64}
-              height={64}
-              className="h-16 w-16 rounded-full"
+              width={72}
+              height={72}
+              className="h-[72px] w-[72px] rounded-full"
               style={{
-                background: 'linear-gradient(135deg, var(--accent), var(--accent-2))',
-                border: '1px solid var(--rule)',
-                boxShadow: 'var(--shadow-accent)',
                 objectFit: 'cover',
+                border: '2px solid var(--accent)',
+                boxShadow: 'var(--shadow-accent)',
               }}
             />
             <span

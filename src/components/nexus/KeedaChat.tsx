@@ -32,10 +32,10 @@ type Message =
 
 const BOT_NAME = 'Riley';
 const BOT_TAG = 'Internet Keeda · concierge';
-// Stable Riley face — saved as a local SVG so it loads instantly and
-// avoids the CORP block DiceBear's CDN sets on cross-origin SVG fetches.
-// Regenerate with: https://api.dicebear.com/9.x/personas/svg?seed=riley-keeda
-const BOT_AVATAR = '/branding/riley.svg';
+// Riley's portrait — a photorealistic AI-generated face (StyleGAN2 via
+// thispersondoesnotexist.com), saved locally so it loads instantly and
+// stays consistent across reloads.
+const BOT_AVATAR = '/branding/riley.jpg';
 const GREET: Message = {
   role: 'bot',
   kind: 'text',
@@ -205,7 +205,7 @@ export function KeedaChat() {
             width={20}
             height={20}
             className="h-5 w-5 rounded-full"
-            style={{ background: 'rgba(255,255,255,0.18)' }}
+            style={{ objectFit: 'cover', border: '1.5px solid rgba(255,255,255,0.7)' }}
           />
           Ask {BOT_NAME}
         </button>
@@ -238,9 +238,9 @@ export function KeedaChat() {
                 height={36}
                 className="h-9 w-9 shrink-0 rounded-full"
                 style={{
-                  background: 'linear-gradient(135deg, var(--accent), var(--accent-2))',
-                  boxShadow: 'var(--shadow-accent)',
                   objectFit: 'cover',
+                  border: '2px solid var(--accent)',
+                  boxShadow: 'var(--shadow-accent)',
                 }}
               />
               <div className="leading-tight">
