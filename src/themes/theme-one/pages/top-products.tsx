@@ -1,4 +1,4 @@
-import { TrendingUp, Star, Filter } from "lucide-react";
+﻿import { TrendingUp, Star, Filter } from "lucide-react";
 import Image from 'next/image';
 import { useRouter } from 'next/navigation'
 import { Button } from "@/components/ui/button";
@@ -29,9 +29,9 @@ export const TopProducts = () => {
   const { toggleUpvote, isUpvoted, toggleSave, isSaved } = useToolActions();
 
   // Top Products derivation: Wilson-style ranking that weights rating by
-  // log(votes+1) so a 5★ tool with 1 vote can't outrank a 4.7★ tool with
+  // log(votes+1) so a 5â˜… tool with 1 vote can't outrank a 4.7â˜… tool with
   // 800 votes. Editorial `isTopRated=true` tools pin to the top so admins
-  // can override the data ranking. The sort dropdown still works — it
+  // can override the data ranking. The sort dropdown still works â€” it
   // toggles between the derived score, raw votes, and recency.
   const getFilteredAndSortedTools = () => {
     let filteredTools = [...tools];
@@ -142,7 +142,7 @@ export const TopProducts = () => {
             The <span className="gradient-text">top</span> AI tools.
           </h1>
           <p className="text-gray-600 max-w-2xl text-lg leading-relaxed">
-            Ranked by rating weighted by vote volume — so heavily-loved tools rise to the top without one-vote ratings dominating.
+            Ranked by rating weighted by vote volume â€” so heavily-loved tools rise to the top without one-vote ratings dominating.
           </p>
         </div>
 
@@ -200,7 +200,7 @@ export const TopProducts = () => {
             <div className="w-full md:w-1/2">
               <div className="aspect-video rounded-xl bg-white shadow-lg overflow-hidden relative">
                 <Image 
-                  src={featuredTool.logo || `https://ui-avatars.com/api/?name=${encodeURIComponent(featuredTool.name)}`}
+                  src={featuredTool.logo || ""}
                   alt={featuredTool.name}
                   fill
                   className="object-cover"
@@ -258,7 +258,7 @@ export const TopProducts = () => {
                 description={tool.description_ai || tool.description}
                 category={tool.category}
                 votes={tool.votes}
-                imageUrl={tool.logo || `https://ui-avatars.com/api/?name=${encodeURIComponent(tool.name)}`}
+                imageUrl={tool.logo || ""}
                 onVote={(e) => handleVote(e, tool.id, tool.votes)}
                 isFavorite={isSaved(tool.id)}
                 onFavorite={(e) => {

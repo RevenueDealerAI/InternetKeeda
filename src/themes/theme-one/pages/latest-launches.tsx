@@ -1,4 +1,4 @@
-import { Zap } from "lucide-react";
+﻿import { Zap } from "lucide-react";
 import { ProductCard } from "../components/ProductCard";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -163,7 +163,7 @@ export const LatestLaunches = () => {
                 description={tool.description_ai || tool.description}
                 category={tool.category}
                 votes={tool.votes}
-                imageUrl={tool.logo || `https://ui-avatars.com/api/?name=${encodeURIComponent(tool.name)}`}
+                imageUrl={tool.logo || ""}
                 onVote={(e) => handleVote(e, tool.id, tool.votes)}
                 isFavorite={isSaved(tool.id)}
                 onFavorite={(e) => handleFavorite(e, tool.id)}

@@ -1,5 +1,6 @@
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { useState } from 'react';
 import { Star, ArrowUp, ExternalLink, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -75,18 +76,7 @@ export const ProductCard = ({
           <div className="relative flex-shrink-0">
             <div className="absolute -inset-1 rounded-2xl bg-gradient-to-br from-red-100 via-red-50 to-gray-100 opacity-0 group-hover:opacity-100 blur-md transition-opacity duration-300" aria-hidden />
             <div className="relative w-16 h-16 rounded-2xl overflow-hidden bg-gradient-to-br from-red-50 to-gray-50 ring-1 ring-gray-200/80 group-hover:ring-orange-200 transition-all duration-200">
-              <Image
-                src={imageUrl}
-                alt={name}
-                fill
-                sizes="64px"
-                className="object-cover"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.onerror = null;
-                  target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=DC2626&color=fff&bold=true&format=svg`;
-                }}
-              />
+              <ProductLogo imageUrl={imageUrl} name={name} />
             </div>
             {isNew && (
               <span className="absolute -top-1.5 -right-1.5 inline-flex items-center gap-0.5 text-[9px] font-semibold uppercase tracking-wide bg-gradient-to-r from-orange-500 to-orange-600 text-white px-1.5 py-0.5 rounded-full shadow-sm">
@@ -173,3 +163,83 @@ export const ProductCard = ({
     </article>
   );
 };
+
+
+// ----------------------------------------------------------------------
+// Smart logo cell.
+//
+// Tries the provided imageUrl. If it errors at runtime (Clearbit /
+// ui-avatars / favicon proxies all 5xx fairly often), swaps to a
+// self-contained initials tile — no external service involved, so
+// every tool is guaranteed *something* visible. Picks 1–2 letters
+// from the tool name and a deterministic background color seeded by
+// the name so the same tool always gets the same color.
+
+const INITIAL_PALETTE = [
+  ['#FEE2E2', '#B91C1C'], // red
+  ['#FED7AA', '#C2410C'], // orange
+  ['#FEF3C7', '#A16207'], // amber
+  ['#DCFCE7', '#15803D'], // green
+  ['#CFFAFE', '#0E7490'], // cyan
+  ['#DBEAFE', '#1D4ED8'], // blue
+  ['#E0E7FF', '#4338CA'], // indigo
+  ['#F3E8FF', '#7E22CE'], // purple
+  ['#FCE7F3', '#BE185D'], // pink
+  ['#F5F5F4', '#374151'], // slate
+];
+
+function pickPalette(name: string): [string, string] {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) | 0;
+  return INITIAL_PALETTE[Math.abs(hash) % INITIAL_PALETTE.length];
+}
+
+function getInitials(name: string): string {
+  const cleaned = (name || '').trim();
+  if (!cleaned) return '?';
+  const parts = cleaned.split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }
+  return parts[0].slice(0, 2).toUpperCase();
+}
+
+function ProductLogo({ imageUrl, name }: { imageUrl: string; name: string }) {
+  const [failed, setFailed] = useState(false);
+  const hasUrl = !!imageUrl && /^https?:\/\//i.test(imageUrl);
+
+  if (failed || !hasUrl) {
+    const [bg, fg] = pickPalette(name);
+    const initials = getInitials(name);
+    return (
+      <div
+        role="img"
+        aria-label={`${name} logo`}
+        className="absolute inset-0 grid place-items-center"
+        style={{
+          background: bg,
+          color: fg,
+          fontFamily:
+            'var(--sans), system-ui, -apple-system, "Segoe UI", sans-serif',
+          fontWeight: 700,
+          fontSize: initials.length === 1 ? 26 : 22,
+          letterSpacing: '-0.02em',
+        }}
+      >
+        {initials}
+      </div>
+    );
+  }
+
+  return (
+    <Image
+      src={imageUrl}
+      alt={name}
+      fill
+      sizes="64px"
+      className="object-cover"
+      unoptimized
+      onError={() => setFailed(true)}
+    />
+  );
+}

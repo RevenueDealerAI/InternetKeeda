@@ -405,7 +405,7 @@ export default function SoftwarePageDetail({ staticSlug }: SoftwarePageDetailPro
                       description={tool.description_ai || tool.description}
                       category={tool.category}
                       votes={tool.votes}
-                      imageUrl={tool.logo || `https://ui-avatars.com/api/?name=${encodeURIComponent(tool.name)}`}
+                      imageUrl={tool.logo || ''}
                       onVote={(e) => handleVote(e, tool.id, tool.votes)}
                       isFavorite={isSaved(tool.id)}
                       onFavorite={(e) => handleFavorite(e, tool.id)}

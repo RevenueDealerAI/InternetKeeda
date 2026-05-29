@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+﻿import { useState, useMemo } from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TrendingUp } from "lucide-react";
 import { ToolCardSkeletonGrid } from "../components/ToolCardSkeleton";
@@ -17,7 +17,7 @@ const TrendingPage = () => {
   // Trending derivation: top by total views, with the time filter narrowing
   // to tools added in that window. Editorial `isTrending=true` tools pin
   // to the top regardless of view count so admins can override the data
-  // ranking. Default is "Today" tab → narrowest window, but if that's
+  // ranking. Default is "Today" tab â†’ narrowest window, but if that's
   // empty we silently expand so the page never reads as broken.
   const trendingTools = useMemo(() => {
     const now = new Date();
@@ -154,7 +154,7 @@ const TrendingPage = () => {
                   description={tool.description_ai || tool.description}
                   category={tool.category}
                   votes={tool.votes}
-                  imageUrl={tool.logo || `https://ui-avatars.com/api/?name=${encodeURIComponent(tool.name)}&background=DC2626&color=fff&bold=true&format=svg`}
+                  imageUrl={tool.logo || ""}
                   onVote={(e) => handleVote(e, tool.id, tool.votes)}
                   isFavorite={isSaved(tool.id)}
                   onFavorite={(e) => {

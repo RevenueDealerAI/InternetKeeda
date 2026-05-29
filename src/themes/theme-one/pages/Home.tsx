@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+﻿import { Button } from "@/components/ui/button";
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ProductCard } from "../components/ProductCard";
@@ -132,7 +132,7 @@ export const Home = () => {
                 description={tool.description_ai || tool.description}
                 category={tool.category}
                 votes={tool.votes}
-                imageUrl={tool.logo || `https://ui-avatars.com/api/?name=${encodeURIComponent(tool.name)}`}
+                imageUrl={tool.logo || ""}
                 onVote={(e) => handleVote(e, tool.id, tool.votes)}
                 isFavorite={isSaved(tool.id)}
                 onFavorite={(e) => handleFavorite(e, tool.id)}
@@ -170,7 +170,7 @@ export const Home = () => {
                 description={tool.description_ai || tool.description}
                 category={tool.category}
                 votes={tool.votes}
-                imageUrl={tool.logo || `https://ui-avatars.com/api/?name=${encodeURIComponent(tool.name)}`}
+                imageUrl={tool.logo || ""}
                 onVote={(e) => handleVote(e, tool.id, tool.votes)}
                 isFavorite={isSaved(tool.id)}
                 onFavorite={(e) => handleFavorite(e, tool.id)}
@@ -213,7 +213,7 @@ export const Home = () => {
                 description={tool.description_ai || tool.description}
                 category={tool.category}
                 votes={tool.votes}
-                imageUrl={tool.logo || `https://ui-avatars.com/api/?name=${encodeURIComponent(tool.name)}`}
+                imageUrl={tool.logo || ""}
                 onVote={(e) => handleVote(e, tool.id, tool.votes)}
                 isFavorite={isSaved(tool.id)}
                 onFavorite={(e) => handleFavorite(e, tool.id)}

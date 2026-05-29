@@ -1,4 +1,4 @@
-import { Sparkles, Calendar, Bookmark } from "lucide-react";
+﻿import { Sparkles, Calendar, Bookmark } from "lucide-react";
 import Image from 'next/image';
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,7 @@ export const Upcoming = () => {
   // Recently Added derivation: tools sorted by createdAt desc, with
   // future-dated tools (createdAt > now) pinned to the top and flagged
   // "Coming Soon". Editorial isUpcoming=true also pins. Means the page
-  // is never empty — it shows the launch pipeline when there is one,
+  // is never empty â€” it shows the launch pipeline when there is one,
   // and the newest catalog additions when there isn't.
   const { recentTools, hasUpcoming } = useMemo(() => {
     const now = Date.now();
@@ -92,7 +92,7 @@ export const Upcoming = () => {
         {visibleTools.length === 0 ? (
           <div className="text-center py-16">
             <h3 className="text-xl text-gray-700 mb-4">No tools to show yet.</h3>
-            <p className="text-gray-500">New tools are added regularly — check back soon.</p>
+            <p className="text-gray-500">New tools are added regularly â€” check back soon.</p>
           </div>
         ) : (
           visibleTools.map((tool, index) => {
@@ -120,7 +120,7 @@ export const Upcoming = () => {
                     </h3>
                     <div className="w-16 h-16 rounded-xl overflow-hidden bg-gradient-to-br from-orange-100 to-blue-50 shadow-sm mb-4 relative">
                       <Image
-                        src={tool.logo || `https://ui-avatars.com/api/?name=${encodeURIComponent(tool.name)}`}
+                        src={tool.logo || ""}
                         alt={tool.name}
                         fill
                         className="object-cover"
