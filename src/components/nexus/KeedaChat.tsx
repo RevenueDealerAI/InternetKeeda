@@ -179,22 +179,19 @@ export function KeedaChat() {
 
   return (
     <>
-      {/* Launcher — fixed bottom-right, always present */}
+      {/* Launcher — fixed bottom-right, always present. Larger so it
+          reads as a real persona handle, not a generic chat bubble. */}
       {!open && (
         <button
           type="button"
           onClick={() => setOpen(true)}
           aria-label={`Open ${BOT_NAME} — Internet Keeda chat`}
-          className="fixed bottom-5 right-5 z-[60] inline-flex items-center gap-2 rounded-full px-4 py-3 transition-transform hover:-translate-y-0.5"
+          className="fixed bottom-5 right-5 z-[60] inline-flex items-center gap-3 rounded-full pl-2 pr-6 py-2 transition-transform hover:-translate-y-0.5"
           style={{
             background: 'linear-gradient(135deg, var(--accent), var(--accent-2))',
             color: 'var(--on-accent)',
-            boxShadow: 'var(--shadow-accent)',
+            boxShadow: 'var(--shadow-accent), 0 16px 40px -12px rgba(255,59,59,0.55)',
             fontFamily: 'var(--mono)',
-            fontSize: 11,
-            fontWeight: 600,
-            letterSpacing: '0.14em',
-            textTransform: 'uppercase',
           }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -202,12 +199,38 @@ export function KeedaChat() {
             src={BOT_AVATAR}
             alt=""
             aria-hidden="true"
-            width={20}
-            height={20}
-            className="h-5 w-5 rounded-full"
-            style={{ objectFit: 'cover', border: '1.5px solid rgba(255,255,255,0.7)' }}
+            width={48}
+            height={48}
+            className="h-12 w-12 shrink-0 rounded-full"
+            style={{ objectFit: 'cover', border: '2px solid rgba(255,255,255,0.85)' }}
           />
-          Ask {BOT_NAME}
+          <span className="flex flex-col items-start leading-tight">
+            <span
+              style={{
+                fontSize: 9,
+                letterSpacing: '0.24em',
+                textTransform: 'uppercase',
+                color: 'rgba(255,255,255,0.78)',
+                fontWeight: 500,
+              }}
+            >
+              chat with
+            </span>
+            <span
+              style={{
+                fontSize: 16,
+                letterSpacing: '0.04em',
+                fontWeight: 700,
+              }}
+            >
+              {BOT_NAME}
+            </span>
+          </span>
+          <span
+            aria-hidden="true"
+            className="ik-pulse-dot inline-block h-2 w-2 rounded-full"
+            style={{ background: '#5ed7ff', boxShadow: '0 0 10px #5ed7ff' }}
+          />
         </button>
       )}
 
