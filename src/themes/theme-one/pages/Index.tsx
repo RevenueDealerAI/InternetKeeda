@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useTools } from '@/lib/api/tools';
@@ -9,12 +10,16 @@ import type { Tool } from '@/types/tool';
 import { Hero } from '@/components/nexus/Hero';
 import { SponsoredTools } from '@/components/nexus/SponsoredTools';
 import { Launches } from '@/components/nexus/Launches';
-import { TrendingTools } from '@/components/nexus/TrendingTools';
-import { AgentSection } from '@/components/nexus/AgentSection';
-import { Pricing } from '@/components/nexus/Pricing';
-import { CtaCard } from '@/components/nexus/CtaCard';
-import { BottomCtaBar } from '@/components/nexus/BottomCtaBar';
 import { ToolLogo } from '@/components/nexus/ToolLogo';
+
+// Below-fold sections — split into separate chunks so they don't
+// block the hero + above-fold paint. ssr:false because every one
+// of them is client-driven (data fetches, animations, IntersectionObserver).
+const TrendingTools = dynamic(() => import('@/components/nexus/TrendingTools').then(m => m.TrendingTools), { ssr: false });
+const AgentSection  = dynamic(() => import('@/components/nexus/AgentSection').then(m => m.AgentSection), { ssr: false });
+const Pricing       = dynamic(() => import('@/components/nexus/Pricing').then(m => m.Pricing), { ssr: false });
+const CtaCard       = dynamic(() => import('@/components/nexus/CtaCard').then(m => m.CtaCard), { ssr: false });
+const BottomCtaBar  = dynamic(() => import('@/components/nexus/BottomCtaBar').then(m => m.BottomCtaBar), { ssr: false });
 // Nav + Footer are mounted globally in NextRouterAdapter.
 
 const GLYPHS: Record<string, string> = {
@@ -123,13 +128,29 @@ export default function Index() {
         />
       )}
 
-      <SponsoredTools />
-      <Launches />
-      <TrendingTools />
-      <AgentSection />
-      <Pricing />
-      <CtaCard />
-      <BottomCtaBar />
+      {/* Below-fold blocks wrapped in .ik-cv-auto so the browser
+          skips layout/paint for the ones currently off-screen. */}
+      <div className="ik-cv-auto">
+        <SponsoredTools />
+      </div>
+      <div className="ik-cv-auto">
+        <Launches />
+      </div>
+      <div className="ik-cv-auto">
+        <TrendingTools />
+      </div>
+      <div className="ik-cv-auto">
+        <AgentSection />
+      </div>
+      <div className="ik-cv-auto">
+        <Pricing />
+      </div>
+      <div className="ik-cv-auto">
+        <CtaCard />
+      </div>
+      <div className="ik-cv-auto">
+        <BottomCtaBar />
+      </div>
     </main>
   );
 }

@@ -921,6 +921,15 @@
   .ik-cat-tile:hover svg { transform: none !important; }
 }
 
+/* Defer painting + layout for sections currently off-screen. The
+   browser skips work on these blocks until the user scrolls them
+   into view. Contain-intrinsic-size keeps the scroll height
+   approximately right so the scrollbar doesn't jump. */
+.ik-cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 900px;
+}
+
 /* Nexus pulse — dot + orb */
 @keyframes ik-pulse-dot {
   0%, 100% { transform: scale(1); opacity: 1; box-shadow: 0 0 12px var(--accent-glow); }

@@ -54,6 +54,7 @@ export function NeuralCanvas({
     let mx = -9999;
     let my = -9999;
     let resolvedColor = color;
+    let visible = true; // pause draw loop when off-screen
 
     const resolveColor = (): string => {
       if (color) return color;
@@ -89,6 +90,13 @@ export function NeuralCanvas({
     };
 
     const draw = () => {
+      // Skip the frame entirely while off-screen — particles keep
+      // their last positions; the moment we scroll back in, the
+      // first new frame redraws cleanly.
+      if (!visible) {
+        raf = requestAnimationFrame(draw);
+        return;
+      }
       ctx.clearRect(0, 0, w, h);
 
       // Update positions
@@ -171,9 +179,20 @@ export function NeuralCanvas({
     });
     ro.observe(container);
 
+    // Pause the rAF body while the canvas is off-screen so we don't
+    // burn CPU drawing nodes the user can't see.
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        visible = !!entry?.isIntersecting;
+      },
+      { threshold: 0 },
+    );
+    io.observe(container);
+
     return () => {
       cancelAnimationFrame(raf);
       ro.disconnect();
+      io.disconnect();
       if (interactive) {
         container.removeEventListener('mousemove', onMove);
         container.removeEventListener('mouseleave', onLeave);

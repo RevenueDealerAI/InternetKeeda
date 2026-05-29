@@ -1,13 +1,19 @@
 'use client';
 
 import { Suspense } from 'react';
+import dynamic from 'next/dynamic';
 import { usePathname } from 'next/navigation';
 import { MetaTagsManager } from '@/components/MetaTagsManager';
 import { Analytics } from '@/components/Analytics';
 import { AdSense } from '@/components/AdSense';
 import { Nav } from '@/components/nexus/Nav';
 import { Footer } from '@/components/nexus/Footer';
-import { KeedaChat } from '@/components/nexus/KeedaChat';
+
+// KeedaChat lives in its own chunk — it brings localStorage hydration
+// + a window event listener that aren't critical-path. Defer it.
+const KeedaChat = dynamic(() => import('@/components/nexus/KeedaChat').then(m => m.KeedaChat), {
+  ssr: false,
+});
 
 interface NextRouterAdapterProps {
   children: React.ReactNode;

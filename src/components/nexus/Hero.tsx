@@ -53,9 +53,11 @@ export function Hero({
       className="relative overflow-hidden"
       style={{ background: 'var(--hero-bg)', color: '#f4f3f0' }}
     >
-      {/* Neural backdrop fills the entire hero box */}
+      {/* Neural backdrop fills the entire hero box. Density tuned
+          down from 0.00010 → 0.00006 — 40% fewer particles, still
+          reads as a full field but cuts the per-frame work. */}
       <NeuralCanvas
-        density={0.0001}
+        density={0.00006}
         maxDist={160}
         speed={0.28}
         interactive={false}
