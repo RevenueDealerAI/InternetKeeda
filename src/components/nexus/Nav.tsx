@@ -4,14 +4,127 @@ import Link from 'next/link';
 import { Plus } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import { NavAccount } from './NavAccount';
+import { NavMegaMenu, type MegaMenu } from './NavMegaMenu';
 
-const LINKS = [
-  { label: 'Launches', href: '/latest-launches' },
-  { label: 'Categories', href: '/categories' },
-  { label: 'Products', href: '/top-products' },
-  { label: 'News', href: '/latest-news' },
-  { label: 'Advertise', href: '/advertise' },
-];
+// Mega-menu definitions. Each top-level item with `columns` shows a
+// dropdown panel on hover/focus/click. Items without a menu are
+// rendered as plain links (no caret).
+
+const MENU_LAUNCHES: MegaMenu = {
+  label: 'Launches',
+  href: '/latest-launches',
+  columns: [
+    {
+      title: 'By recency',
+      links: [
+        { label: 'Latest launches', href: '/latest-launches', description: 'Brand-new tools that shipped this week' },
+        { label: 'Trending', href: '/trending', description: 'Rising up the catalog by votes + views' },
+        { label: 'Recently added', href: '/recently-added', description: 'Most recent submissions to the index' },
+      ],
+    },
+    {
+      title: 'By signal',
+      links: [
+        { label: 'Top products', href: '/top-products', description: 'Highest-rated tools across every category' },
+        { label: 'Top categories', href: '/categories', description: 'Browse all curated categories' },
+        { label: 'AI news', href: '/latest-news', description: 'Releases, launches, big shifts' },
+      ],
+    },
+  ],
+  feature: {
+    eyebrow: '§ ai keeda',
+    title: 'Ask Eli, route the index',
+    body: 'Tell our agent what you want to ship. Get the stack back, ranked + cited.',
+    cta: { label: 'Open chat', href: '/?try=eli' },
+  },
+};
+
+const MENU_CATEGORIES: MegaMenu = {
+  label: 'Categories',
+  href: '/categories',
+  columns: [
+    {
+      title: 'Build',
+      links: [
+        { label: 'Writing', href: '/category/writing' },
+        { label: 'Design', href: '/category/design' },
+        { label: 'Code', href: '/category/code' },
+        { label: 'Image', href: '/category/image' },
+        { label: 'Video', href: '/category/video' },
+      ],
+    },
+    {
+      title: 'Think',
+      links: [
+        { label: 'Research', href: '/category/research' },
+        { label: 'Agents', href: '/category/agents' },
+        { label: 'Automation', href: '/category/automation' },
+        { label: 'Audio', href: '/category/audio' },
+        { label: 'Voice', href: '/category/voice' },
+      ],
+    },
+    {
+      title: 'Run',
+      links: [
+        { label: 'Marketing', href: '/category/marketing' },
+        { label: '3D', href: '/category/3d' },
+        { label: 'Vision', href: '/category/vision' },
+        { label: 'All categories', href: '/categories' },
+      ],
+    },
+  ],
+};
+
+const MENU_PRODUCTS: MegaMenu = {
+  label: 'Products',
+  href: '/top-products',
+  columns: [
+    {
+      title: 'Curated lists',
+      links: [
+        { label: 'Top products', href: '/top-products', description: 'Editor + community picks' },
+        { label: 'Best for ADHD', href: '/best-productivity-tools-for-adhd' },
+        { label: 'Best meeting tools', href: '/best-ai-meeting-tools' },
+        { label: 'Best note-taking', href: '/best-ai-note-taking-software' },
+      ],
+    },
+    {
+      title: 'By workflow',
+      links: [
+        { label: 'Daily planning', href: '/best-ai-daily-planning-software' },
+        { label: 'Email management', href: '/best-ai-email-management-tools' },
+        { label: 'Project management', href: '/best-project-management-tools' },
+        { label: 'CRM for teams', href: '/best-crm-software-for-teams' },
+      ],
+    },
+  ],
+};
+
+const MENU_NEWS: MegaMenu = {
+  label: 'News',
+  href: '/latest-news',
+  columns: [
+    {
+      title: 'AI news',
+      links: [
+        { label: 'Latest news', href: '/latest-news', description: 'This week in AI' },
+        { label: 'All news', href: '/news', description: 'Full archive' },
+        { label: 'Blog', href: '/blog', description: 'Long-form writing from operators' },
+      ],
+    },
+    {
+      title: 'Community',
+      links: [
+        { label: 'Guides', href: '/guides' },
+        { label: 'Events', href: '/events' },
+        { label: 'Discussions', href: '/discussions' },
+        { label: 'FAQ', href: '/faq' },
+      ],
+    },
+  ],
+};
+
+const MENUS: MegaMenu[] = [MENU_LAUNCHES, MENU_CATEGORIES, MENU_PRODUCTS, MENU_NEWS];
 
 export function Nav() {
   return (
@@ -20,7 +133,7 @@ export function Nav() {
       style={{ width: 'min(1320px, calc(100% - 24px))' }}
     >
       <nav
-        className="flex items-center justify-between gap-3 rounded-full px-2 py-2 pl-4 backdrop-blur-2xl"
+        className="relative flex items-center justify-between gap-3 rounded-full px-2 py-2 pl-4 backdrop-blur-2xl"
         style={{
           background: 'color-mix(in oklab, var(--bg-2) 78%, transparent)',
           border: '1px solid var(--rule)',
@@ -28,12 +141,11 @@ export function Nav() {
         }}
         aria-label="Primary"
       >
-        {/* Brand — replace text wordmark with the actual logo PNG.
-            Light + dark variants swap via the .ik-logo-* CSS rules. */}
+        {/* Brand — bigger logo per spec */}
         <Link
           href="/"
           aria-label="Internet Keeda — home"
-          className="relative flex h-10 w-[170px] shrink-0 items-center sm:w-[200px]"
+          className="relative flex h-12 w-[200px] shrink-0 items-center sm:h-14 sm:w-[240px]"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -52,28 +164,28 @@ export function Nav() {
           />
         </Link>
 
-        {/* Center links — desktop. No carets: every link is a direct
-            page navigation; there are no dropdown menus. */}
+        {/* Center — mega menus + plain link. Hidden on mobile. */}
         <ul className="hidden list-none items-center gap-0.5 p-0 lg:flex">
-          {LINKS.map((l) => (
-            <li key={l.label} className="list-none">
-              <Link
-                href={l.href}
-                className="inline-flex items-center rounded-full px-3.5 py-2 text-[13px] font-medium transition-colors"
-                style={{ color: 'var(--ink-2)' }}
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLElement).style.color = 'var(--accent)';
-                  (e.currentTarget as HTMLElement).style.background = 'var(--accent-soft)';
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLElement).style.color = 'var(--ink-2)';
-                  (e.currentTarget as HTMLElement).style.background = 'transparent';
-                }}
-              >
-                {l.label}
-              </Link>
-            </li>
+          {MENUS.map((menu) => (
+            <NavMegaMenu key={menu.label} menu={menu} />
           ))}
+          <li className="list-none">
+            <Link
+              href="/advertise"
+              className="inline-flex items-center rounded-full px-3.5 py-2 text-[13px] font-medium transition-colors"
+              style={{ color: 'var(--ink-2)' }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLElement).style.color = 'var(--accent)';
+                (e.currentTarget as HTMLElement).style.background = 'var(--accent-soft)';
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.color = 'var(--ink-2)';
+                (e.currentTarget as HTMLElement).style.background = 'transparent';
+              }}
+            >
+              Advertise
+            </Link>
+          </li>
         </ul>
 
         {/* Right cluster */}

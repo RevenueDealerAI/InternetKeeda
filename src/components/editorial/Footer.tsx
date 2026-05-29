@@ -63,7 +63,7 @@ export function Footer() {
             className="m-0 text-[14px] leading-[1.55]"
             style={{ color: 'var(--fg-dim)', maxWidth: 360 }}
           >
-            Built by people who use AI tools daily. Operated by Viom Global Inc. — a hub, not a
+            Built by people who use AI tools daily. Operated by Revenue Dealer MarTech Pvt Ltd. — a hub, not a
             directory; opinionated, not algorithmic.
             <span
               className="mt-2 block font-mono-display text-[10px] uppercase tracking-[0.22em]"
@@ -113,7 +113,7 @@ export function Footer() {
           className="font-mono-display text-[10px] uppercase tracking-[0.22em]"
           style={{ color: 'var(--muted-color)' }}
         >
-          © 2026 viom global inc · all webs reserved
+          © 2026 revenue dealer martech pvt ltd · all webs reserved
         </div>
         <div
           className="font-display-roman text-[14px] italic"

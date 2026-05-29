@@ -37,7 +37,11 @@ export const BRAND = {
   defaultMetaDescription:
     "Internet Keeda — the directory of AI tools that actually ship. 5,000+ tools, ranked and reviewed.",
   /** Legal entity name for footer / terms / privacy. */
-  legalEntity: "Viom Global Inc",
+  legalEntity: "Revenue Dealer MarTech Pvt Ltd",
+  /** Legal entity short form for tight surfaces (mobile footer, copyright line). */
+  legalEntityShort: "Revenue Dealer MarTech",
+  /** Registered jurisdiction — used in legal-page boilerplate. */
+  jurisdiction: "India",
   /** Support / contact email — used in CTAs and error states. */
   supportEmail: "hello@internetkeeda.com",
 } as const;

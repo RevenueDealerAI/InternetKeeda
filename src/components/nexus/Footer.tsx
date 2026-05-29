@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { BRAND } from '@/lib/brand';
 
 const COLS: { title: string; links: { label: string; href: string }[] }[] = [
   {
@@ -27,8 +28,14 @@ const COLS: { title: string; links: { label: string; href: string }[] }[] = [
       { label: 'About', href: '/about' },
       { label: 'Pricing', href: '/#pricing' },
       { label: 'Advertise', href: '/advertise' },
-      { label: 'Privacy', href: '/privacy' },
-      { label: 'Terms', href: '/terms' },
+    ],
+  },
+  {
+    title: 'Legal',
+    links: [
+      { label: 'Privacy policy', href: '/privacy' },
+      { label: 'Terms of service', href: '/terms' },
+      { label: 'Refund policy', href: '/refunds' },
     ],
   },
 ];
@@ -44,15 +51,15 @@ export function Footer() {
       }}
     >
       <div
-        className="mx-auto grid max-w-[1320px] grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr]"
+        className="mx-auto grid max-w-[1320px] grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr_1fr]"
       >
         <div>
-          {/* Brand logo — image, theme-aware */}
-          <div className="relative h-14 w-[230px]">
+          {/* Brand logo — image, theme-aware. Bigger per spec. */}
+          <div className="relative h-20 w-[300px]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/branding/logo-light.png"
-              alt="Internet Keeda"
+              alt={BRAND.name}
               className="ik-logo-light block h-full w-auto object-contain"
               draggable={false}
             />
@@ -75,14 +82,14 @@ export function Footer() {
             className="m-0 mt-5 max-w-[400px] text-[14px] leading-[1.55]"
             style={{ color: 'var(--ink-2)' }}
           >
-            Built by humans who use AI tools daily. Operated by Viom Global Inc. — a hand-curated
-            atlas of the AI internet.
+            Built by humans who use AI tools daily. Operated by {BRAND.legalEntity} — a
+            hand-curated atlas of the AI internet.
           </p>
           <div
             className="mt-3 text-[10px] uppercase tracking-[0.22em]"
             style={{ color: 'var(--ink-soft)', fontFamily: 'var(--mono)' }}
           >
-            internetkeeda.com
+            {BRAND.domain}
           </div>
         </div>
 
@@ -125,7 +132,7 @@ export function Footer() {
           className="text-[10px] uppercase tracking-[0.22em]"
           style={{ color: 'var(--ink-soft)', fontFamily: 'var(--mono)' }}
         >
-          © 2026 viom global inc · all webs reserved
+          © 2026 {BRAND.legalEntity.toLowerCase()} · all webs reserved
         </div>
         <div
           className="text-[13px]"
