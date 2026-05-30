@@ -188,12 +188,15 @@ export function Nav() {
           </li>
         </ul>
 
-        {/* Right cluster */}
-        <div className="flex items-center gap-1.5">
+        {/* Right cluster. On mobile the Submit pill becomes a
+         * 44×44 icon-only tap target (Apple HIG min) so the header
+         * doesn't crowd the logo or wrap into the row below. */}
+        <div className="flex items-center gap-3 md:gap-1.5">
           <ThemeToggle />
           <Link
             href="/submit-tool"
-            className="inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.16em] transition-transform hover:-translate-y-0.5"
+            aria-label="Submit your tool"
+            className="inline-flex items-center justify-center gap-2 rounded-full text-[11px] font-semibold uppercase tracking-[0.16em] transition-transform hover:-translate-y-0.5 h-11 w-11 md:h-auto md:w-auto md:px-4 md:py-2.5"
             style={{
               background: 'linear-gradient(135deg, var(--accent), var(--accent-2))',
               color: 'var(--on-accent)',
@@ -201,9 +204,8 @@ export function Nav() {
               fontFamily: 'var(--mono)',
             }}
           >
-            <Plus className="h-3.5 w-3.5" strokeWidth={2.5} />
-            <span className="hidden sm:inline">Submit your tool</span>
-            <span className="sm:hidden">Submit</span>
+            <Plus className="h-4 w-4 md:h-3.5 md:w-3.5" strokeWidth={2.5} />
+            <span className="hidden md:inline">Submit your tool</span>
           </Link>
           <NavAccount />
         </div>
