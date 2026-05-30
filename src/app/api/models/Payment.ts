@@ -46,6 +46,13 @@ export interface IPayment {
   metadata: Record<string, unknown>;
   paidAt?: Date;
   refundedAt?: Date;
+  /** Manual admin override stamp for the "Mark Failed" action on
+   * a pending row. Used when neither the webhook nor the provider's
+   * order-status API gives us anything useful and the admin chooses
+   * to force-resolve the row. `manuallyMarkedBy` is the admin's
+   * Clerk userId. */
+  manuallyMarkedAt?: Date;
+  manuallyMarkedBy?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -85,6 +92,8 @@ const paymentSchema = new mongoose.Schema<IPayment>({
   metadata: { type: mongoose.Schema.Types.Mixed, default: {} },
   paidAt: { type: Date },
   refundedAt: { type: Date },
+  manuallyMarkedAt: { type: Date },
+  manuallyMarkedBy: { type: String },
 }, {
   timestamps: true,
 });
