@@ -333,6 +333,10 @@ export async function POST(req: NextRequest) {
       // not to dig through axios stack traces.
       const cfBody = axiosLike.response?.data as { code?: string } | undefined;
       if (cfBody?.code === "plan_not_found") {
+        console.error(
+          "Cashfree plan missing in LIVE — run scripts/cashfree-create-plans.ts",
+          { planId: PRICING.MONTHLY_LISTING.planId },
+        );
         return NextResponse.json(
           {
             error: "PLAN_MISSING",

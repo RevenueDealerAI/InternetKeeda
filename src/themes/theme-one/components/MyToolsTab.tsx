@@ -28,6 +28,10 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { WhatsAppSupportButton } from "@/components/nexus/WhatsAppSupportButton";
+import {
+  PhoneRequiredDialog,
+  fetchProfileStatus,
+} from "@/components/nexus/PhoneRequiredDialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -128,6 +132,7 @@ export function MyToolsTab() {
   const [pickerTarget, setPickerTarget] = useState<MyTool | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
   const [showDeleted, setShowDeleted] = useState(false);
+  const [phoneRequiredOpen, setPhoneRequiredOpen] = useState(false);
   const createSub = useCreateSubscription();
   const cancelSub = useCancelSubscription();
   const { data: subData } = useMySubscriptions();
@@ -304,10 +309,22 @@ export function MyToolsTab() {
   // provider, dispatch immediately. With two+, open the picker and
   // let the user choose; the picker fires handleActivateWithProvider
   // for the chosen one.
-  const handleActivate = (tool: MyTool) => {
+  //
+  // Pre-flight phone check is intentionally Cashfree-only: PayPal
+  // subscriptions don't require a phone, and adding the modal in
+  // front of the PayPal path would push users to add a phone they
+  // don't actually need for their chosen provider.
+  const handleActivate = async (tool: MyTool) => {
     const enabled = enabledProviders();
     if (enabled.length <= 1) {
       const only = enabled[0]?.id ?? "cashfree";
+      if (only === "cashfree") {
+        const status = await fetchProfileStatus();
+        if (status && !status.hasVerifiedPhone) {
+          setPhoneRequiredOpen(true);
+          return;
+        }
+      }
       handleActivateWithProvider(tool, only);
     } else {
       setPickerTarget(tool);
@@ -344,10 +361,37 @@ export function MyToolsTab() {
       return;
     }
     // provider === 'cashfree' — existing flow.
+    // Pre-flight phone check (matches the gate on /handleActivate
+    // for the single-provider case). The server returns 400
+    // PHONE_REQUIRED if missing; this just avoids the round-trip.
+    const phoneStatus = await fetchProfileStatus();
+    if (phoneStatus && !phoneStatus.hasVerifiedPhone) {
+      setPhoneRequiredOpen(true);
+      return;
+    }
     let session;
     try {
       session = await createSub.mutateAsync({ toolId: tool.id });
     } catch (err) {
+      // Defense in depth: if the server returns PHONE_REQUIRED
+      // anyway (race against profile-update or stale Clerk session),
+      // surface the modal instead of the generic error toast.
+      const msg = err instanceof Error ? err.message : "";
+      if (msg.includes("PHONE_REQUIRED")) {
+        setPhoneRequiredOpen(true);
+        return;
+      }
+      // SUBSCRIPTIONS_DISABLED → friendlier "try again shortly"
+      // toast. The kill-switch path returns 503 + this error code.
+      if (msg.includes("SUBSCRIPTIONS_DISABLED")) {
+        toast({
+          title: "Subscriptions temporarily unavailable",
+          description:
+            "Please try again in a few minutes. If this persists, contact us on WhatsApp.",
+          variant: "destructive",
+        });
+        return;
+      }
       toast({
         title: "Could not start subscription",
         description: err instanceof Error ? err.message : "Unknown error",
@@ -788,6 +832,11 @@ export function MyToolsTab() {
           setDeleteTarget(null);
           router.push("/dashboard");
         }}
+      />
+
+      <PhoneRequiredDialog
+        open={phoneRequiredOpen}
+        onOpenChange={setPhoneRequiredOpen}
       />
       </div>
     </>

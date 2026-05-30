@@ -30,6 +30,10 @@ import {
 } from "@/lib/payment/providers";
 import { BOOST_TIERS } from "@/lib/pricing/boost";
 import { formatUsd } from "@/lib/format/money";
+import {
+  PhoneRequiredDialog,
+  fetchProfileStatus,
+} from "@/components/nexus/PhoneRequiredDialog";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare global { interface Window { Cashfree?: any } }
@@ -87,6 +91,7 @@ export function PlansModal({
     null,
   );
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [phoneRequiredOpen, setPhoneRequiredOpen] = useState(false);
 
   const selectedBoostTier = selectedBoost
     ? BOOST_TIERS.find((t) => t.productType === selectedBoost) ?? null
@@ -148,11 +153,32 @@ export function PlansModal({
       }
       return;
     }
-    // Cashfree subscription flow.
+    // Cashfree subscription flow. Pre-flight phone check matches
+    // the server-side precondition — surfaces the
+    // PhoneRequiredDialog instead of letting a 400 fire mid-checkout.
+    const phoneStatus = await fetchProfileStatus();
+    if (phoneStatus && !phoneStatus.hasVerifiedPhone) {
+      setPhoneRequiredOpen(true);
+      return;
+    }
     let session;
     try {
       session = await createSub.mutateAsync({ toolId });
     } catch (err) {
+      const msg = err instanceof Error ? err.message : "";
+      if (msg.includes("PHONE_REQUIRED")) {
+        setPhoneRequiredOpen(true);
+        return;
+      }
+      if (msg.includes("SUBSCRIPTIONS_DISABLED")) {
+        toast({
+          title: "Subscriptions temporarily unavailable",
+          description:
+            "Please try again in a few minutes. If this persists, contact us on WhatsApp.",
+          variant: "destructive",
+        });
+        return;
+      }
       toast({
         title: "Could not start subscription",
         description: err instanceof Error ? err.message : "Unknown error",
@@ -436,6 +462,11 @@ export function PlansModal({
           onCancel={() => setPickerOpen(false)}
         />
       )}
+
+      <PhoneRequiredDialog
+        open={phoneRequiredOpen}
+        onOpenChange={setPhoneRequiredOpen}
+      />
     </>
   );
 }
