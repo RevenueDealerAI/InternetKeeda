@@ -135,7 +135,7 @@ export default function AutoScraperPage() {
                                 <CheckCircle className="h-4 w-4 text-green-600" />
                                 <AlertTitle className="text-green-800">Success</AlertTitle>
                                 <AlertDescription className="text-green-700">
-                                    Scraper triggered successfully. New tools will appear in the <a href="/admin/submissions" className="underline font-medium hover:text-green-900">Tool Submissions</a> page for review.
+                                    Scraper triggered successfully. New tools will appear in the <a href="/admin/moderation" className="underline font-medium hover:text-green-900">Moderation</a> queue for review.
                                 </AlertDescription>
                             </Alert>
                         )}

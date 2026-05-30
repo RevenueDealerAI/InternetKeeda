@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useSubmitTool } from "@/lib/api/submissions";
+import { useSubmitTool } from "@/lib/api/tool-submit";
 import { TOOL_CATEGORIES } from "@/lib/schemas/tool.schema";
 
 interface SubmitToolModalProps {

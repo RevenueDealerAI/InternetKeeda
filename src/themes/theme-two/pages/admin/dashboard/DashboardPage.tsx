@@ -31,7 +31,6 @@ const API_URL = ''; // Use relative URLs since APIs are handled by Next.js API r
 
 interface DashboardStats {
   totalTools: number;
-  pendingSubmissions: number;
   categoryCounts: Array<{ _id: string; count: number }>;
   recentTools: Array<{ _id: string; name: string; category: string; createdAt: string; slug?: string }>;
   popularTools: Array<{ _id: string; name: string; views: number; slug?: string }>;
@@ -54,6 +53,19 @@ export default function DashboardPage() {
   const { data: stats, isLoading, error } = useQuery<DashboardStats, Error>({
     queryKey: ['dashboard-stats'],
     queryFn: fetchDashboardStats
+  });
+  // Pending counter sources from the admin-guarded endpoint, not the
+  // public /api/tools/stats — matches theme-one's dashboard and
+  // keeps pending-queue identifiers behind admin auth.
+  const pendingQuery = useQuery<{ total: number }, Error>({
+    queryKey: ['admin-pending-tools', 'count'],
+    queryFn: async () => {
+      const r = await fetch('/api/admin/tools/pending?limit=1', {
+        credentials: 'include',
+      });
+      if (!r.ok) throw new Error('Failed to load pending count');
+      return r.json();
+    },
   });
 
   if (isLoading) {
@@ -124,7 +136,7 @@ export default function DashboardPage() {
             </div>
           </CardHeader>
           <CardContent className="px-6 py-2">
-            <div className="text-3xl font-bold text-gray-900">{stats.pendingSubmissions}</div>
+            <div className="text-3xl font-bold text-gray-900">{pendingQuery.data?.total ?? '—'}</div>
             <p className="text-xs text-gray-500 mt-1">Awaiting review</p>
           </CardContent>
         </Card>

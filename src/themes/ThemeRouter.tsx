@@ -47,7 +47,6 @@ import ThemeTwoToolsManagementPage from './theme-two/pages/admin/tools/ToolsMana
 import ThemeTwoUsersManagementPage from './theme-two/pages/admin/users/UsersManagementPage';
 import ThemeTwoBlogManagementPage from './theme-two/pages/admin/blog/BlogManagementPage';
 import ThemeTwoNewsManagementPage from './theme-two/pages/admin/news/NewsManagementPage';
-import ThemeTwoSubmissionsManagementPage from './theme-two/pages/admin/submissions/SubmissionsManagementPage';
 import ThemeTwoInquiriesManagementPage from './theme-two/pages/admin/inquiries/InquiriesManagementPage';
 import ThemeTwoReviewManagementPage from './theme-two/pages/admin/reviews/ReviewManagementPage';
 import ThemeTwoNewsletterManagementPage from './theme-two/pages/admin/newsletter/NewsletterManagementPage';
@@ -61,7 +60,6 @@ import ToolsManagementPage from './theme-one/pages/admin/tools/ToolsManagementPa
 import UsersManagementPage from './theme-one/pages/admin/users/UsersManagementPage';
 import BlogManagementPage from './theme-one/pages/admin/blog/BlogManagementPage';
 import NewsManagementPage from './theme-one/pages/admin/news/NewsManagementPage';
-import SubmissionsManagementPage from './theme-one/pages/admin/submissions/SubmissionsManagementPage';
 import InquiriesManagementPage from './theme-one/pages/admin/inquiries/InquiriesManagementPage';
 import ReviewManagementPage from './theme-one/pages/admin/reviews/ReviewManagementPage';
 import NewsletterManagementPage from './theme-one/pages/admin/newsletter/NewsletterManagementPage';
@@ -156,7 +154,6 @@ export const ThemeRouter: React.FC<ThemeRouterProps> = ({ isAdminRoute }) => {
               <Route path="blog" element={<BlogManagementPage />} />
               <Route path="news" element={<NewsManagementPage />} />
               <Route path="users" element={<UsersManagementPage />} />
-              <Route path="submissions" element={<SubmissionsManagementPage />} />
               <Route path="reviews" element={<ReviewManagementPage />} />
               <Route path="inquiries" element={<InquiriesManagementPage />} />
               <Route path="newsletter" element={<NewsletterManagementPage />} />
@@ -172,7 +169,6 @@ export const ThemeRouter: React.FC<ThemeRouterProps> = ({ isAdminRoute }) => {
               <Route path="blog" element={<ThemeTwoBlogManagementPage />} />
               <Route path="news" element={<ThemeTwoNewsManagementPage />} />
               <Route path="users" element={<ThemeTwoUsersManagementPage />} />
-              <Route path="submissions" element={<ThemeTwoSubmissionsManagementPage />} />
               <Route path="reviews" element={<ThemeTwoReviewManagementPage />} />
               <Route path="inquiries" element={<ThemeTwoInquiriesManagementPage />} />
               <Route path="newsletter" element={<ThemeTwoNewsletterManagementPage />} />

@@ -34,14 +34,13 @@ export async function GET(req: NextRequest) {
                 { $group: { _id: '$pricing.type', count: { $sum: 1 } } },
                 { $sort: { count: -1 } }
             ]),
-            // Recent pending submissions — surface the moderation queue
-            // directly on the admin dashboard so admins don't have to
-            // navigate to /admin/submissions to see what's waiting.
-            Tool.find({ status: 'pending' })
-                .sort({ createdAt: -1 })
-                .limit(5)
-                .select('name category createdAt slug _id ownerUserId')
-                .lean()
+            // Reserved slot — was `recentSubmissions` (5 most recent
+            // pending tools). Removed when the admin dashboard moved
+            // that surface to the guarded /api/admin/tools/pending
+            // endpoint so pending-queue identifiers stop leaking via
+            // this public endpoint. Kept as a no-op aggregate to
+            // preserve stats[7] indexing for any old consumer.
+            Promise.resolve([])
         ]);
 
         return NextResponse.json(
@@ -53,7 +52,11 @@ export async function GET(req: NextRequest) {
                 popularTools: stats[4],
                 statusCounts: stats[5],
                 pricingCounts: stats[6],
-                recentSubmissions: stats[7],
+                // recentSubmissions removed — moved behind admin auth
+                // at /api/admin/tools/pending. Keeping the response
+                // shape forward-compatible: callers that destructure
+                // stats[7] would have already broken when we made the
+                // dashboard use the guarded endpoint.
             },
             {
                 headers: {

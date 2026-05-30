@@ -35,15 +35,11 @@ import { RejectToolDialog } from '@/components/admin/moderation/RejectToolDialog
 
 interface DashboardStats {
   totalTools: number;
-  pendingSubmissions: number;
-  recentSubmissions: Array<{
-    _id: string;
-    name: string;
-    category: string;
-    createdAt: string;
-    slug?: string;
-    ownerUserId?: string;
-  }>;
+  // pendingSubmissions / recentSubmissions used to come from the
+  // public /api/tools/stats endpoint. Both are now sourced from the
+  // admin-guarded /api/admin/tools/pending query below so the
+  // dashboard doesn't disclose pending-queue identifiers through a
+  // public endpoint.
 }
 
 interface RevenueSummary {
@@ -235,14 +231,17 @@ export default function DashboardPage() {
     onSettled: () => setActingId(null),
   });
 
-  // Submissions in last 7 days from recentSubmissions list.
+  // Submissions in last 7 days. The guarded /api/admin/tools/pending
+  // returns ordered-by-createdAt-desc pending tools — same set the
+  // moderation queue uses — so filtering its items by the 7-day
+  // cutoff matches what the operator sees in /admin/moderation.
   const newThisWeek = useMemo(() => {
-    if (!stats.data) return 0;
+    if (!pending.data) return 0;
     const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
-    return stats.data.recentSubmissions.filter(
+    return pending.data.items.filter(
       (s) => new Date(s.createdAt).getTime() >= cutoff,
     ).length;
-  }, [stats.data]);
+  }, [pending.data]);
 
   const chartData = useMemo(() => {
     if (!series.data) return [];
@@ -292,7 +291,7 @@ export default function DashboardPage() {
         <Kpi
           label="Tools"
           value={stats.isLoading ? '—' : compact(stats.data?.totalTools ?? 0)}
-          hint={stats.data ? `${stats.data.pendingSubmissions} pending review` : undefined}
+          hint={pending.data ? `${pending.data.total} pending review` : undefined}
           icon={Wrench}
         />
         <Kpi
@@ -338,27 +337,27 @@ export default function DashboardPage() {
             <Button
               variant="keedaGhost"
               size="keedaSm"
-              onClick={() => router.push('/admin/submissions')}
+              onClick={() => router.push('/admin/moderation')}
             >
               View all <ArrowUpRight className="w-3.5 h-3.5 ml-1" />
             </Button>
           </div>
           <div className="divide-y divide-slate-100">
-            {stats.isLoading && (
+            {pending.isLoading && (
               <div className="p-5 flex items-center justify-center text-slate-400">
                 <Loader2 className="w-4 h-4 animate-spin" />
               </div>
             )}
-            {stats.data && stats.data.recentSubmissions.length === 0 && (
+            {pending.data && pending.data.items.length === 0 && (
               <div className="p-8 text-center text-sm text-slate-500">
                 No submissions yet.
               </div>
             )}
-            {stats.data?.recentSubmissions.slice(0, 6).map((s) => (
+            {pending.data?.items.slice(0, 6).map((s) => (
               <button
                 type="button"
-                key={s._id}
-                onClick={() => router.push(`/admin/submissions`)}
+                key={s.id}
+                onClick={() => router.push('/admin/moderation')}
                 className="w-full flex items-center justify-between gap-3 px-5 py-3 text-left hover:bg-slate-50 transition-colors duration-150"
               >
                 <div className="min-w-0">
