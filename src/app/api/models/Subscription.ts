@@ -61,6 +61,12 @@ export interface ISubscription {
   failedRenewalCount: number;
   /** Anything else Cashfree sends in webhook payloads — keep raw. */
   metadata: Record<string, unknown>;
+  /** Gateway mode at create time. Provider-specific: only one of
+   * the two is populated per row, matched to `provider`. Optional
+   * because rows written before this field shipped won't have it —
+   * audit code must tolerate `undefined` as "legacy / unknown". */
+  cashfreeMode?: "TEST" | "LIVE";
+  paypalMode?: "TEST" | "LIVE";
   createdAt: Date;
   updatedAt: Date;
 }
@@ -96,6 +102,8 @@ const subscriptionSchema = new mongoose.Schema<ISubscription>({
   cancelledAt: { type: Date },
   failedRenewalCount: { type: Number, default: 0 },
   metadata: { type: mongoose.Schema.Types.Mixed, default: {} },
+  cashfreeMode: { type: String, enum: ["TEST", "LIVE"] },
+  paypalMode: { type: String, enum: ["TEST", "LIVE"] },
 }, {
   timestamps: true,
 });

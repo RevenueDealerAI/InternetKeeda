@@ -5,7 +5,7 @@ import { connectDB } from "@/app/api/lib/db";
 import { requireAuth, errorResponse, getAuth } from "@/app/api/lib/auth";
 import { Tool } from "@/app/api/models/Tool";
 import { Subscription } from "@/app/api/models/Subscription";
-import { getCashfreeClient, PRICING } from "@/lib/cashfree";
+import { getCashfreeClient, getCashfreeMode, PRICING } from "@/lib/cashfree";
 
 const RESUME_WINDOW_MS = 10 * 60 * 1000;
 
@@ -164,6 +164,7 @@ export async function POST(req: NextRequest) {
       currency: PRICING.MONTHLY_LISTING.currency,
       status: "initialized",
       billingCycle: "monthly",
+      cashfreeMode: getCashfreeMode(),
     });
     log("sub.row.created", { dbId: String(sub._id), subscriptionId });
 

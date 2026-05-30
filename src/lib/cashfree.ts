@@ -44,6 +44,13 @@ export function getCashfreeClient(): Cashfree {
 export const CASHFREE_MODE_LABEL = (): "TEST" | "PROD" =>
   readMode() === CFEnvironment.PRODUCTION ? "PROD" : "TEST";
 
+/** Persisted on Payment/Subscription rows at create time so the audit
+ * surface can read TEST vs LIVE without inferring from URL hosts or
+ * cross-referencing the dashboard. Use the LIVE spelling (not PROD)
+ * to match paypalMode and the Payment schema enum. */
+export const getCashfreeMode = (): "TEST" | "LIVE" =>
+  readMode() === CFEnvironment.PRODUCTION ? "LIVE" : "TEST";
+
 /**
  * Pricing source of truth (Cashfree-side amounts).
  *

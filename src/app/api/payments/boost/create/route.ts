@@ -7,6 +7,7 @@ import { Payment } from "@/app/api/models/Payment";
 import {
   getCashfreeClient,
   getBoostPricing,
+  getCashfreeMode,
   type BoostProductType,
 } from "@/lib/cashfree";
 
@@ -74,6 +75,7 @@ export async function POST(req: NextRequest) {
       productType,
       boostDurationDays: pricing.days,
       status: "pending",
+      cashfreeMode: getCashfreeMode(),
     });
 
     const orderId = `boost_${payment._id.toString()}_${Date.now()}`;

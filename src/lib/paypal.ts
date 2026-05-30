@@ -21,6 +21,13 @@ export function paypalBaseUrl(): string {
   return process.env.PAYPAL_MODE === "LIVE" ? LIVE_BASE : SANDBOX_BASE;
 }
 
+/** Persisted on Payment/Subscription rows at create time so the audit
+ * surface can read TEST vs LIVE without inferring from approve-URL
+ * hosts. Matches the spelling used by getCashfreeMode. */
+export function getPaypalMode(): "TEST" | "LIVE" {
+  return process.env.PAYPAL_MODE === "LIVE" ? "LIVE" : "TEST";
+}
+
 export class PayPalError extends Error {
   constructor(
     public readonly httpStatus: number,

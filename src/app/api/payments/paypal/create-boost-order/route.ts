@@ -6,7 +6,7 @@ import { errorResponse } from "@/app/api/lib/auth";
 import { requireUser } from "@/lib/auth/user";
 import { Tool } from "@/app/api/models/Tool";
 import { Payment } from "@/app/api/models/Payment";
-import { createOneTimeOrder, PayPalError } from "@/lib/paypal";
+import { createOneTimeOrder, getPaypalMode, PayPalError } from "@/lib/paypal";
 import { getBoostTier } from "@/lib/pricing/boost";
 
 const bodySchema = z.object({
@@ -83,6 +83,7 @@ export async function POST(req: NextRequest) {
       productType,
       boostDurationDays: tier.durationDays,
       status: "pending",
+      paypalMode: getPaypalMode(),
     });
 
     const origin = siteOrigin(req);

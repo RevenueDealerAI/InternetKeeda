@@ -6,7 +6,7 @@ import { errorResponse } from "@/app/api/lib/auth";
 import { requireUser } from "@/lib/auth/user";
 import { Tool } from "@/app/api/models/Tool";
 import { Subscription } from "@/app/api/models/Subscription";
-import { createSubscription, PayPalError } from "@/lib/paypal";
+import { createSubscription, getPaypalMode, PayPalError } from "@/lib/paypal";
 
 const bodySchema = z.object({
   toolId: z.string().min(1, "toolId is required"),
@@ -114,6 +114,7 @@ export async function POST(req: NextRequest) {
       currency: "USD",
       status: "initialized",
       billingCycle: "monthly",
+      paypalMode: getPaypalMode(),
     });
 
     const origin = siteOrigin(req);

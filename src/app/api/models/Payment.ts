@@ -61,6 +61,12 @@ export interface IPayment {
   cfRefundId?: string;
   /** PayPal's refund id from /v2/payments/captures/{id}/refund. */
   paypalRefundId?: string;
+  /** Gateway mode at create time. Provider-specific: only one of
+   * the two is populated per row, matched to `provider`. Optional
+   * because rows written before this field shipped won't have it —
+   * audit code must tolerate `undefined` as "legacy / unknown". */
+  cashfreeMode?: "TEST" | "LIVE";
+  paypalMode?: "TEST" | "LIVE";
   /** Manual admin override stamp for the "Mark Failed" action on
    * a pending row. Used when neither the webhook nor the provider's
    * order-status API gives us anything useful and the admin chooses
@@ -116,6 +122,8 @@ const paymentSchema = new mongoose.Schema<IPayment>({
   refundAmount: { type: Number },
   cfRefundId: { type: String, index: true, sparse: true },
   paypalRefundId: { type: String, index: true, sparse: true },
+  cashfreeMode: { type: String, enum: ["TEST", "LIVE"] },
+  paypalMode: { type: String, enum: ["TEST", "LIVE"] },
   manuallyMarkedAt: { type: Date },
   manuallyMarkedBy: { type: String },
 }, {
