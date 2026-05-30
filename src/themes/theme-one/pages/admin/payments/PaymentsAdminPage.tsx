@@ -92,10 +92,29 @@ const STATUS_STYLES: Record<string, string> = {
   refunded: "bg-purple-50 text-purple-700 ring-purple-200/60",
 };
 
-const PROVIDER_STYLES: Record<string, string> = {
-  cashfree: "bg-sky-50 text-sky-700 ring-sky-200/60",
-  paypal: "bg-indigo-50 text-indigo-700 ring-indigo-200/60",
+// Neutral monochrome — matches the Freemium/Free chip family the
+// admin uses elsewhere. No brand colors: providers come and go,
+// the admin's restrained palette doesn't.
+const PROVIDER_BADGE_CLASS =
+  "bg-gray-50 text-gray-700 ring-gray-200/60 capitalize";
+
+const PROVIDER_LABEL: Record<string, string> = {
+  cashfree: "cashfree",
+  paypal: "paypal",
+  stripe: "stripe",
 };
+
+function providerOf(p: AdminPayment): string | null {
+  if (p.provider && PROVIDER_LABEL[p.provider]) return p.provider;
+  // Legacy fallback: infer from whichever provider-specific id is
+  // populated. The Payment model only has Cashfree + PayPal id fields
+  // today; stripePaymentIntentId is here for forward-compat.
+  const r = p as AdminPayment & { stripePaymentIntentId?: string };
+  if (r.paypalOrderId) return "paypal";
+  if (r.stripePaymentIntentId) return "stripe";
+  if (p.orderId) return "cashfree";
+  return null;
+}
 
 type DialogTarget =
   | { kind: "verify"; payment: AdminPayment }
@@ -251,9 +270,7 @@ export default function PaymentsAdminPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Payments</h1>
-          <p className="text-sm text-gray-500">
-            One-time boost payments via Cashfree (INR) and PayPal (USD).
-          </p>
+          <p className="text-sm text-gray-500">One-time boost payments.</p>
         </div>
         <Select
           value={status}
@@ -279,8 +296,8 @@ export default function PaymentsAdminPage() {
             <TableRow>
               <TableHead>Tool</TableHead>
               <TableHead>Product</TableHead>
-              <TableHead>Provider</TableHead>
               <TableHead>Amount</TableHead>
+              <TableHead className="hidden md:table-cell">Provider</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Created</TableHead>
               <TableHead className="text-right">Actions</TableHead>
@@ -320,15 +337,21 @@ export default function PaymentsAdminPage() {
                     {p.boostDurationDays}d
                   </TableCell>
                   <TableCell>
-                    <Badge
-                      className={`ring-1 capitalize ${
-                        PROVIDER_STYLES[p.provider] || ""
-                      }`}
-                    >
-                      {p.provider}
-                    </Badge>
+                    <div className="flex flex-col gap-1">
+                      <span>{formatMoney(p.amount, p.currency)}</span>
+                      {/* On narrow viewports the Provider column is
+                       * hidden — surface it under the amount instead
+                       * so the row never leaves the operator guessing
+                       * by currency symbol alone. */}
+                      <ProviderTag
+                        provider={providerOf(p)}
+                        className="md:hidden"
+                      />
+                    </div>
                   </TableCell>
-                  <TableCell>{formatMoney(p.amount, p.currency)}</TableCell>
+                  <TableCell className="hidden md:table-cell">
+                    <ProviderTag provider={providerOf(p)} />
+                  </TableCell>
                   <TableCell>
                     <Badge
                       className={`ring-1 ${STATUS_STYLES[p.status] || ""}`}
@@ -395,6 +418,25 @@ function toolNameOf(payment: AdminPayment): string {
     return payment.toolId.name;
   }
   return "this tool";
+}
+
+function ProviderTag({
+  provider,
+  className,
+}: {
+  provider: string | null;
+  className?: string;
+}) {
+  if (!provider) {
+    return (
+      <span className={cn("text-xs text-gray-400", className)}>—</span>
+    );
+  }
+  return (
+    <Badge className={cn("ring-1", PROVIDER_BADGE_CLASS, className)}>
+      {PROVIDER_LABEL[provider] || provider}
+    </Badge>
+  );
 }
 
 function dialogCopyFor(target: DialogTarget) {
