@@ -184,18 +184,21 @@ async function restoreTool(toolId: string) {
   return response.json();
 }
 
-async function updateToolStatus(token: string, toolId: string, status: Tool['status']) {
-  const response = await fetch(`/api/tools/${toolId}/status`, {
+async function updateToolStatus(_token: string, toolId: string, status: Tool['status']) {
+  // Admin-only endpoint. Session cookie travels via credentials:
+  // 'include'; no bearer needed. The legacy /api/tools/[id]/status
+  // route was unguarded and is gone — see
+  // commit fix(security): remove unguarded tool-status endpoints.
+  const response = await fetch(`/api/admin/tools/${toolId}/status`, {
     method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
     body: JSON.stringify({ status }),
   });
 
   if (!response.ok) {
-    throw new Error('Failed to update tool status');
+    const body = await response.json().catch(() => ({}));
+    throw new Error(body?.error || 'Failed to update tool status');
   }
 
   return response.json();
