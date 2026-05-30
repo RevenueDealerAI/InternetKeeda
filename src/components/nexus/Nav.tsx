@@ -133,7 +133,7 @@ export function Nav() {
       style={{ width: 'min(1320px, calc(100% - 24px))' }}
     >
       <nav
-        className="relative flex items-center justify-between gap-3 rounded-full px-2 py-2 pl-4 backdrop-blur-2xl"
+        className="relative flex items-center justify-between gap-2 rounded-full py-2 pr-2 pl-3 backdrop-blur-2xl md:gap-3 md:pl-4"
         style={{
           background: 'color-mix(in oklab, var(--bg-2) 78%, transparent)',
           border: '1px solid var(--rule)',
@@ -141,11 +141,13 @@ export function Nav() {
         }}
         aria-label="Primary"
       >
-        {/* Brand — bigger logo per spec */}
+        {/* Brand. Logo size scales up at each breakpoint — the 200px
+         * desktop logo was eating ~60% of a 375px viewport and
+         * crowding the right cluster into overflow. */}
         <Link
           href="/"
           aria-label="Internet Keeda — home"
-          className="relative flex h-12 w-[200px] shrink-0 items-center sm:h-14 sm:w-[240px]"
+          className="relative flex h-9 w-[140px] shrink-0 items-center sm:h-12 sm:w-[200px] md:h-14 md:w-[240px]"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -188,15 +190,17 @@ export function Nav() {
           </li>
         </ul>
 
-        {/* Right cluster. On mobile the Submit pill becomes a
-         * 44×44 icon-only tap target (Apple HIG min) so the header
-         * doesn't crowd the logo or wrap into the row below. */}
-        <div className="flex items-center gap-3 md:gap-1.5">
+        {/* Right cluster. Submit pill is icon-only on <md, sized to
+         * match the ThemeToggle + NavAccount neighbours (40×40) so
+         * the three buttons form a visually coherent trio instead
+         * of the previous oversized red blob next to two small
+         * circles. 40px is still well within touch-target range. */}
+        <div className="flex items-center gap-1.5">
           <ThemeToggle />
           <Link
             href="/submit-tool"
             aria-label="Submit your tool"
-            className="inline-flex items-center justify-center gap-2 rounded-full text-[11px] font-semibold uppercase tracking-[0.16em] transition-transform hover:-translate-y-0.5 h-11 w-11 md:h-auto md:w-auto md:px-4 md:py-2.5"
+            className="inline-flex h-10 w-10 items-center justify-center gap-2 rounded-full text-[11px] font-semibold uppercase tracking-[0.16em] transition-transform hover:-translate-y-0.5 md:h-auto md:w-auto md:px-4 md:py-2.5"
             style={{
               background: 'linear-gradient(135deg, var(--accent), var(--accent-2))',
               color: 'var(--on-accent)',
