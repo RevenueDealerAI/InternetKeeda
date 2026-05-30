@@ -6,8 +6,9 @@ import Link from "next/link";
 import Script from "next/script";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Rocket, Plus, Sparkles, XCircle, Edit, ChevronDown, ChevronUp, Trash2 } from "lucide-react";
+import { Rocket, Plus, Sparkles, XCircle, Edit, ChevronDown, ChevronUp, Trash2, LayoutGrid } from "lucide-react";
 import { BoostModal } from "./BoostModal";
+import { PlansModal } from "./PlansModal";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCreateSubscription, useMySubscriptions, useCancelSubscription } from "@/lib/api/subscriptions";
 import { toast } from "@/components/ui/use-toast";
@@ -90,6 +91,7 @@ function pillFor(
 
 export function MyToolsTab() {
   const [boostTarget, setBoostTarget] = useState<MyTool | null>(null);
+  const [plansTarget, setPlansTarget] = useState<MyTool | null>(null);
   const [editTarget, setEditTarget] = useState<MyTool | null>(null);
   const [expandedReason, setExpandedReason] = useState<Record<string, boolean>>({});
   const [sdkReady, setSdkReady] = useState(false);
@@ -451,6 +453,18 @@ export function MyToolsTab() {
                       {sdkReady ? "Activate $10/mo" : "Loading…"}
                     </Button>
                   )}
+                  {!blockedByModeration && t.listingStatus !== "free-seeded" && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setPlansTarget(t)}
+                      disabled={!sdkReady}
+                      title="View all plans"
+                    >
+                      <LayoutGrid className="w-4 h-4 mr-1" />
+                      All plans
+                    </Button>
+                  )}
                   {needsRetry && (
                     <Button
                       size="sm"
@@ -558,6 +572,20 @@ export function MyToolsTab() {
           toolId={boostTarget.id}
           toolName={boostTarget.name}
           sdkReady={sdkReady}
+        />
+      )}
+
+      {plansTarget && (
+        <PlansModal
+          open={!!plansTarget}
+          onOpenChange={(o) => !o && setPlansTarget(null)}
+          toolId={plansTarget.id}
+          toolName={plansTarget.name}
+          sdkReady={sdkReady}
+          listingActive={
+            plansTarget.listingStatus === "paid-active" &&
+            subsByTool.get(plansTarget.id)?.status === "active"
+          }
         />
       )}
 
