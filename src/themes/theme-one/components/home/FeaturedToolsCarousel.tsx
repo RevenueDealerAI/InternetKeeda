@@ -2,11 +2,10 @@
 
 import { useMemo, useRef } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { useTools } from "@/lib/api/tools";
 import { useInViewReveal } from "@/hooks/useInViewReveal";
-import { getToolLogo } from "@/utils/toolHelpers";
+import { ToolLogo } from "@/components/nexus/ToolLogo";
 import { Tool } from "@/types/tool";
 
 /** Horizontal snap carousel — top 8-10 tools by rating × log(votes + 1).
@@ -99,15 +98,8 @@ export const FeaturedToolsCarousel = () => {
                         className="gradient-border group block h-full bg-white rounded-2xl border border-gray-200 p-5 hover:shadow-[0_18px_40px_-20px_rgba(220,38,38,0.25)] hover:-translate-y-1 transition-all duration-200"
                       >
                         <div className="flex items-center gap-3">
-                          <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-gradient-to-br from-red-50 to-gray-50 ring-1 ring-gray-200/80 shrink-0">
-                            <Image
-                              src={getToolLogo(tool)}
-                              alt={tool.name}
-                              fill
-                              sizes="56px"
-                              className="object-cover"
-                            />
-                          </div>
+                          <ToolLogo tool={tool} size={56} radius={12} />
+
                           <div className="min-w-0 flex-1">
                             <h3 className="text-sm font-semibold text-gray-900 truncate group-hover:text-orange-600 transition-colors">
                               {tool.name}

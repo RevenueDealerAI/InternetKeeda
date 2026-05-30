@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { X, Search } from "lucide-react";
-import Image from 'next/image';
-import { 
-  Dialog, 
+import {
+  Dialog,
   DialogContent,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -10,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { useSearchTools } from "@/lib/api/tools";
 import { Tool } from "@/types/tool";
 import { useDebounce } from "use-debounce";
-import { getToolLogo } from "@/utils/toolHelpers";
+import { ToolLogo } from "@/components/nexus/ToolLogo";
 
 interface SearchDialogProps {
   open: boolean;
@@ -102,21 +101,8 @@ export const SearchDialog = ({
                 onClick={() => handleSelectTool(tool)}
               >
                 <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center relative">
-                    {tool.logo ? (
-                      <Image
-                        src={getToolLogo(tool as Tool)}
-                        alt={tool.name}
-                        fill
-                        sizes="48px"
-                        className="object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-green-100 text-green-800 flex items-center justify-center font-bold">
-                        {tool.name.charAt(0)}
-                      </div>
-                    )}
-                  </div>
+                  <ToolLogo tool={tool as Tool} size={48} radius={8} />
+
                   <div className="flex-1 min-w-0">
                     <h3 className="text-lg font-medium text-gray-900">{tool.name}</h3>
                     <p className="text-sm text-gray-600 mt-1 line-clamp-3 leading-relaxed">{tool.description_ai || tool.description}</p>

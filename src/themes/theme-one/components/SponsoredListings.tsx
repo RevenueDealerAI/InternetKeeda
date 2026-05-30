@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import Link from 'next/link';
-import Image from 'next/image';
 import { Star, Eye, ThumbsUp } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
@@ -8,6 +7,8 @@ import { useToolActions } from "@/hooks/useToolActions";
 import { Button } from "@/components/ui/button";
 import mongoose from "mongoose";
 import { toast } from "sonner";
+import { ToolLogo } from "@/components/nexus/ToolLogo";
+import type { Tool } from "@/types/tool";
 
 interface PopulatedToolInfoForCard {
   _id: string;
@@ -87,13 +88,16 @@ export const SponsoredListings: React.FC<SponsoredListingsProps> = ({ listings }
                   <Link href={`/ai-tools/${listing.slug}`} className="block">
                     <div className="p-3 sm:p-4">
                       <div className="flex items-start mb-3">
-                        <div className="w-12 h-12 bg-white rounded-md flex items-center justify-center overflow-hidden mr-3 flex-shrink-0 relative">
-                          <Image 
-                            src={`https://www.google.com/s2/favicons?domain=${listing.url}&sz=128`} 
-                            alt={`${listing.name} logo`}
-                            fill
-                            sizes="64px"
-                            className="object-contain p-1"
+                        <div className="mr-3 flex-shrink-0">
+                          <ToolLogo
+                            tool={{
+                              name: listing.name,
+                              logo: listing.logo,
+                              websiteUrl: listing.url,
+                              slug: listing.slug,
+                            } as Tool}
+                            size={48}
+                            radius={6}
                           />
                         </div>
                         <div className="flex-1 min-w-0">

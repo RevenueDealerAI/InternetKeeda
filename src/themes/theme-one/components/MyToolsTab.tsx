@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import Script from "next/script";
+import { ToolLogo } from "@/components/nexus/ToolLogo";
+import type { Tool } from "@/types/tool";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Rocket, Plus, Sparkles, XCircle, Edit, ChevronDown, ChevronUp, Trash2, LayoutGrid } from "lucide-react";
@@ -410,15 +411,8 @@ export function MyToolsTab() {
           return (
             <div key={t.id} className="bg-white border border-gray-200 rounded-xl p-4">
               <div className="flex items-center gap-4">
-                <div className="relative w-12 h-12 shrink-0 rounded-lg overflow-hidden bg-gradient-to-br from-orange-50 to-gray-50 ring-1 ring-gray-200/80">
-                  {t.logo ? (
-                    <Image src={t.logo} alt={t.name} fill sizes="48px" className="object-cover" unoptimized />
-                  ) : (
-                    <div className="absolute inset-0 grid place-items-center text-orange-500 font-bold">
-                      {t.name.slice(0, 1).toUpperCase()}
-                    </div>
-                  )}
-                </div>
+                <ToolLogo tool={t as unknown as Tool} size={48} radius={8} />
+
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <h3 className="text-sm font-semibold text-gray-900 truncate">{t.name}</h3>

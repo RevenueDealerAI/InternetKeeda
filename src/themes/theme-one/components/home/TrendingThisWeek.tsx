@@ -2,11 +2,10 @@
 
 import { useMemo } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { TrendingUp, ArrowRight } from "lucide-react";
 import { useTools } from "@/lib/api/tools";
 import { useInViewReveal } from "@/hooks/useInViewReveal";
-import { getToolLogo } from "@/utils/toolHelpers";
+import { ToolLogo } from "@/components/nexus/ToolLogo";
 import { Tool } from "@/types/tool";
 
 const GRADIENT_RING = [
@@ -74,15 +73,8 @@ export const TrendingThisWeek = () => {
                     />
                     <div className="relative h-full bg-white rounded-2xl border border-white p-6 sm:p-7 hover:-translate-y-1 transition-transform duration-200 shadow-[0_1px_2px_rgba(15,23,42,0.05)]">
                       <div className="flex items-start gap-3">
-                        <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-gradient-to-br from-red-50 to-gray-50 ring-1 ring-gray-200/80 shrink-0">
-                          <Image
-                            src={getToolLogo(tool)}
-                            alt={tool.name}
-                            fill
-                            sizes="56px"
-                            className="object-cover"
-                          />
-                        </div>
+                        <ToolLogo tool={tool} size={56} radius={12} />
+
                         <div className="flex-1 min-w-0">
                           <h3 className="text-lg font-bold text-gray-900 truncate group-hover:text-orange-600 transition-colors">
                             {tool.name}
