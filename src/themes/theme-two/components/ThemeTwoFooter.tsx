@@ -241,9 +241,12 @@ export const ThemeTwoFooter: React.FC = () => {
               {footerText}
             </p>
             <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
-              <div className="flex gap-6 text-sm">
+              <div className="flex flex-wrap gap-4 sm:gap-6 text-sm">
                 <Link href="/terms" className="text-gray-400 hover:text-white transition-colors">Terms</Link>
                 <Link href="/privacy" className="text-gray-400 hover:text-white transition-colors">Privacy</Link>
+                <Link href="/refund" className="text-gray-400 hover:text-white transition-colors">Refund</Link>
+                <Link href="/shipping-delivery" className="text-gray-400 hover:text-white transition-colors">Shipping</Link>
+                <Link href="/pricing" className="text-gray-400 hover:text-white transition-colors">Pricing</Link>
                 <Link href="/about" className="text-gray-400 hover:text-white transition-colors">About</Link>
                 <Link href="/faq" className="text-gray-400 hover:text-white transition-colors">FAQ</Link>
               </div>

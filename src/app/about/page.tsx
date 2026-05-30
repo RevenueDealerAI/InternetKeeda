@@ -1,6 +1,8 @@
 'use client';
 
 import { LegalPage } from '@/components/nexus/LegalPage';
+import { LegalEntityBlock } from '@/components/nexus/LegalEntityBlock';
+import { WhatsAppSupportButton } from '@/components/nexus/WhatsAppSupportButton';
 import { BRAND } from '@/lib/brand';
 
 export default function AboutPage() {
@@ -91,16 +93,21 @@ export default function AboutPage() {
           id: 'contact',
           heading: 'Contact',
           body: (
-            <p className="m-0">
-              <strong>{BRAND.legalEntity}</strong>
-              <br />
-              Email:{' '}
-              <a href={`mailto:${BRAND.supportEmail}`} style={{ color: 'var(--accent)' }}>
-                {BRAND.supportEmail}
-              </a>
-              <br />
-              Site: <a href="https://internetkeeda.com" style={{ color: 'var(--accent)' }}>{BRAND.domain}</a>
-            </p>
+            <>
+              <p className="m-0">
+                {BRAND.name} ·{' '}
+                <a href="https://internetkeeda.com" style={{ color: 'var(--accent)' }}>
+                  {BRAND.domain}
+                </a>
+              </p>
+              <p className="mt-3">Need help? Reach us on WhatsApp.</p>
+              <div className="mt-4">
+                <WhatsAppSupportButton />
+              </div>
+              <div className="mt-6">
+                <LegalEntityBlock includeUK />
+              </div>
+            </>
           ),
         },
       ]}

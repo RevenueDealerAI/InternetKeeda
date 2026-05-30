@@ -11,16 +11,17 @@
  *                            things: URL-derived contexts,
  *                            slug-like identifiers, log prefixes.
  *
- * The DOMAIN is always "internetkeeda.com" (URL form, never
- * spaced) — kept here so consumers don't reach for a literal
- * string with the wrong casing.
+ * Merchant of record varies by currency / gateway:
+ *   - INR (Cashfree)   → Revenue Dealer MarTech Pvt Ltd (India)
+ *   - USD (PayPal)     → Viom Global Inc (Delaware, USA)
+ *   - UK corporate ref → Revenue Dealer Limited (London) — used in
+ *                        About + Privacy DPO references only
  *
- * Things this constant does NOT replace:
- *   - env var names (NEXT_PUBLIC_SITE_URL, etc.) — those are
- *     identifiers, not display copy
- *   - Mongo DB name "internetkeeda" — DB-level identifier
- *   - Vercel project name "internet-keeda" — vendor-level
- *   - File / variable / class names in code
+ * Legal pages (Terms, Privacy, Refund, Shipping, Pricing) consume
+ * the structured `LEGAL_ENTITIES` block below. The legacy single
+ * `legalEntity` string is kept for back-compat with surfaces that
+ * haven't been updated to the dual-entity model yet (footer
+ * copyright pre-2026-05-30, etc.).
  */
 export const BRAND = {
   /** User-facing display name. Two words. Use everywhere except the contexts listed below. */
@@ -36,12 +37,62 @@ export const BRAND = {
   /** Default meta description for surfaces that don't set their own. */
   defaultMetaDescription:
     "Internet Keeda — the directory of AI tools that actually ship. 5,000+ tools, ranked and reviewed.",
-  /** Legal entity name for footer / terms / privacy. */
+  /** Legacy single-entity name. Prefer LEGAL_ENTITIES for new copy. */
   legalEntity: "Revenue Dealer MarTech Pvt Ltd",
   /** Legal entity short form for tight surfaces (mobile footer, copyright line). */
   legalEntityShort: "Revenue Dealer MarTech",
-  /** Registered jurisdiction — used in legal-page boilerplate. */
+  /** Registered jurisdiction — used in legacy legal-page boilerplate. */
   jurisdiction: "India",
-  /** Support / contact email — used in CTAs and error states. */
-  supportEmail: "hello@internetkeeda.com",
+  /** Corporate inbox. Used ONLY for the Data Protection Officer
+   *  line in the Privacy Policy — regulators require an email
+   *  contact for DPDP / GDPR rights exercise. Every other support
+   *  touchpoint routes through WhatsAppSupportButton. */
+  corpEmail: "info@revenuedealer.com",
+} as const;
+
+export const LEGAL_ENTITIES = {
+  inr: {
+    name: "Revenue Dealer MarTech Pvt Ltd",
+    address:
+      "Plot No. D-107, Sector 2, Noida, Gautam Buddha Nagar, Uttar Pradesh 201301, India",
+    addressLines: [
+      "Plot No. D-107, Sector 2",
+      "Noida, Gautam Buddha Nagar",
+      "Uttar Pradesh 201301, India",
+    ],
+    country: "India",
+    /** Cashfree settles charges to this entity. */
+    gateway: "Cashfree (INR)",
+  },
+  usd: {
+    name: "Viom Global Inc",
+    address: "8 The Green Ste 10231, Dover, DE 19901, United States",
+    addressLines: [
+      "8 The Green Ste 10231",
+      "Dover, DE 19901",
+      "United States",
+    ],
+    country: "United States",
+    /** PayPal settles charges to this entity. */
+    gateway: "PayPal (USD)",
+  },
+  /** UK corporate reference — not a merchant of record. Used in About
+   *  and Privacy DPO sections only. */
+  uk: {
+    name: "Revenue Dealer Limited",
+    address: "71-75 Shelton Street, Covent Garden, London, WC2H 9JQ, UK",
+    addressLines: [
+      "71-75 Shelton Street",
+      "Covent Garden",
+      "London, WC2H 9JQ, UK",
+    ],
+    country: "United Kingdom",
+  },
+} as const;
+
+export const LEGAL_JURISDICTION = {
+  /** Indian customers — courts of Gautam Buddha Nagar, UP. */
+  india: "courts of Gautam Buddha Nagar, Uttar Pradesh, India",
+  /** International (non-Indian) customers — Delaware, USA. */
+  international: "the State of Delaware, United States of America",
 } as const;
