@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useDebounce } from 'use-debounce';
-import Image from 'next/image';
 import { Tool } from "@/types/tool";
+import { ToolLogo } from "@/components/nexus/ToolLogo";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -54,20 +54,10 @@ export default function ToolsManagementPage() {
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('updatedAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
-
-  const getToolImageUrl = (tool: Tool) => {
-    if (tool.logo) return tool.logo;
-    if (tool.websiteUrl) {
-      try {
-        const hostname = new URL(tool.websiteUrl).hostname;
-        return `https://www.google.com/s2/favicons?domain=${hostname}&sz=128`;
-      } catch {
-        const domain = tool.websiteUrl.replace(/^https?:\/\//, '').split('/')[0];
-        return `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
-      }
-    }
-    return `https://ui-avatars.com/api/?name=${encodeURIComponent(tool.name || 'Tool')}`;
-  };
+  // Default to hiding soft-deleted tools so the admin sees an
+  // immediate visual change after pressing Delete. Toggle on when
+  // restoring or auditing.
+  const [showDeleted, setShowDeleted] = useState(false);
 
   // Build query parameters - only search if 2+ characters to avoid unnecessary API calls
   const queryParams: ToolsQueryParams = {
@@ -78,9 +68,10 @@ export default function ToolsManagementPage() {
     category: categoryFilter === 'all' ? undefined : categoryFilter,
     sortBy,
     sortOrder,
-    // Admin view: include soft-deleted rows so the operator can
-    // see what's gone and restore if needed.
-    includeDeleted: true,
+    // Default: hide soft-deleted so Delete produces an obvious row
+    // removal. Operator can flip the Show deleted toggle to audit /
+    // restore.
+    includeDeleted: showDeleted,
   };
 
   // Fetch tools with pagination
@@ -296,12 +287,24 @@ export default function ToolsManagementPage() {
               </SelectContent>
             </Select>
 
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="sm"
               onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
             >
               {sortOrder === 'asc' ? '↑' : '↓'}
+            </Button>
+
+            <Button
+              variant={showDeleted ? "default" : "outline"}
+              size="sm"
+              onClick={() => {
+                setShowDeleted((v) => !v);
+                setCurrentPage(1);
+              }}
+              title={showDeleted ? "Hide soft-deleted tools" : "Show soft-deleted tools (for restore / audit)"}
+            >
+              {showDeleted ? "Hide deleted" : "Show deleted"}
             </Button>
           </div>
 
@@ -334,15 +337,8 @@ export default function ToolsManagementPage() {
                   <TableRow key={tool.id} className={isDeleted ? "opacity-60" : undefined}>
                     <TableCell>
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 relative">
-                          <Image
-                            src={getToolImageUrl(tool)}
-                            alt={tool.name || 'Tool logo'}
-                            fill
-                            className="object-cover"
-                            unoptimized
-                          />
-                        </div>
+                        <ToolLogo tool={tool} size={40} radius={6} />
+
                         <div>
                           <div className={cn("font-medium", isDeleted && "line-through text-gray-500")}>{tool.name}</div>
                           <div className="text-sm text-gray-500 truncate max-w-[300px]">

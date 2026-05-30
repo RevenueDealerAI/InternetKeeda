@@ -286,8 +286,24 @@ export function useDeleteTool() {
       const token = await getToken();
       return deleteTool(token, toolId);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tools'] });
+    onSuccess: async (data) => {
+      // Invalidate every list cache key so admin + public surfaces
+      // refetch. refetchType: 'active' forces the table to redraw
+      // immediately instead of waiting until the next focus.
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['tools'], refetchType: 'active' }),
+        queryClient.invalidateQueries({ queryKey: ['all-tools'], refetchType: 'active' }),
+        queryClient.invalidateQueries({ queryKey: ['search-tools'], refetchType: 'active' }),
+        queryClient.invalidateQueries({ queryKey: ['ai-search-tools'], refetchType: 'active' }),
+      ]);
+      // Surface the server's response for diagnostics — a silent
+      // success toast without a deletedAt means the route did not
+      // actually persist the soft-delete.
+      if (data && typeof data === 'object' && 'deletedAt' in data && (data as { deletedAt?: unknown }).deletedAt) {
+        console.log('[useDeleteTool] server confirmed soft-delete', data);
+      } else {
+        console.warn('[useDeleteTool] server returned 200 with no deletedAt — investigate', data);
+      }
     },
   });
 }
