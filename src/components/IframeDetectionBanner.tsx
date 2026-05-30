@@ -41,7 +41,10 @@ export function IframeDetectionBanner() {
         <div className={cn(
             "fixed bottom-0 left-0 right-0 z-[9999]",
             "bg-gradient-to-r from-orange-600 via-pink-500 to-orange-600",
-            "text-white shadow-lg"
+            "text-white shadow-lg",
+            // pb-safe-area: keeps the banner above the home-indicator
+            // on devices with bottom safe-area inset (iPhone X+).
+            "pb-[env(safe-area-inset-bottom)]"
         )}>
             <div className="container mx-auto px-4 py-3">
                 <div className="flex items-center justify-between gap-4">
