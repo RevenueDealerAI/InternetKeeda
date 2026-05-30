@@ -166,6 +166,55 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // Phone precondition — runs BEFORE we insert the Subscription
+    // row so a phone-less user never leaves an orphan row to clean
+    // up. Cashfree subscriptions need a verified phone for the
+    // UPI Autopay collect-request / e-mandate mandate flow; the
+    // previous test-only placeholder fallback was masking this
+    // requirement and routing the mandate request to a number the
+    // customer doesn't own.
+    const clerkUser = await getAuth();
+    log("clerk.user", {
+      hasUser: !!clerkUser,
+      hasEmail: !!clerkUser?.emailAddresses?.[0]?.emailAddress,
+      hasPhone: !!clerkUser?.phoneNumbers?.[0]?.phoneNumber,
+    });
+    const verifiedPhone = clerkUser?.phoneNumbers?.find(
+      (p) => p?.verification?.status === "verified",
+    );
+    if (!verifiedPhone?.phoneNumber) {
+      log("phone.required");
+      return NextResponse.json(
+        {
+          error: "PHONE_REQUIRED",
+          message:
+            "A verified phone number is required to start a subscription. Please add one in your profile.",
+        },
+        { status: 400 },
+      );
+    }
+    const customerPhone = verifiedPhone.phoneNumber.trim();
+    // Defense-in-depth: the precondition above should have already
+    // caught anything malformed, but if Clerk ever returns something
+    // un-E.164 we refuse the call rather than ship junk to Cashfree.
+    if (!/^\+\d{8,15}$/.test(customerPhone)) {
+      log("phone.invalid", { sample: customerPhone.slice(0, 4) });
+      return NextResponse.json(
+        {
+          error: "PHONE_INVALID",
+          message:
+            "Phone number is not in international format. Please re-add it in your profile.",
+        },
+        { status: 400 },
+      );
+    }
+    const customerEmail =
+      clerkUser?.emailAddresses?.[0]?.emailAddress ||
+      `${auth.userId}@no-email.internetkeeda.com`;
+    const customerName =
+      `${clerkUser?.firstName ?? ""} ${clerkUser?.lastName ?? ""}`.trim() ||
+      undefined;
+
     // Pre-generate the ObjectId so subscription_id is unique on
     // first insert — no "pending" placeholder, no E11000 retry hazard.
     const dbId = new mongoose.Types.ObjectId();
@@ -185,33 +234,10 @@ export async function POST(req: NextRequest) {
     });
     log("sub.row.created", { dbId: String(sub._id), subscriptionId });
 
-    const clerkUser = await getAuth();
-    log("clerk.user", {
-      hasUser: !!clerkUser,
-      hasEmail: !!clerkUser?.emailAddresses?.[0]?.emailAddress,
-      hasPhone: !!clerkUser?.phoneNumbers?.[0]?.phoneNumber,
-    });
-    const customerEmail =
-      clerkUser?.emailAddresses?.[0]?.emailAddress ||
-      `${auth.userId}@no-email.internetkeeda.com`;
-    const customerPhone =
-      clerkUser?.phoneNumbers?.[0]?.phoneNumber?.replace(/^\+91/, "") ||
-      "9999999999";
-    const customerName =
-      `${clerkUser?.firstName ?? ""} ${clerkUser?.lastName ?? ""}`.trim() ||
-      undefined;
-
     const origin = siteOrigin(req);
-    // Cashfree subscription_amount is in MAJOR units (dollars for USD,
-    // rupees for INR) — we divide our stored minor-unit value by 100.
-    const planAmountMajor = PRICING.MONTHLY_LISTING.amountMinorUnit / 100;
-    const planMaxAmountMajor = PRICING.MONTHLY_LISTING.maxAmountMinorUnit / 100;
 
     log("cf.about_to_call", {
       subscriptionId,
-      planAmountMajor,
-      planMaxAmountMajor,
-      currency: PRICING.MONTHLY_LISTING.currency,
       planId: PRICING.MONTHLY_LISTING.planId,
       customerEmail,
       customerPhonePresent: !!customerPhone,
@@ -229,6 +255,17 @@ export async function POST(req: NextRequest) {
       // by id only. Inlining was causing Cashfree to inherit the
       // payload's plan config every call, which the dashboard then
       // surfaced as "plan_not_found" when looked up directly.
+      //
+      // notification_channel: required so Cashfree's hosted checkout
+      //   can deliver the UPI Autopay collect request via SMS / EMAIL.
+      //   Without it, UPI Autopay options are filtered out → "No
+      //   Payment Mode Available".
+      // authorization_amount: ₹1 in paise. Required for card-mandate
+      //   auth — Cashfree filters card-recurring out without it.
+      // subscription_first_charge_time: explicit "now + 60s" so the
+      //   PERIODIC flow has an unambiguous first cycle time across
+      //   timezones / clock skew.
+      const firstChargeAt = new Date(Date.now() + 60_000).toISOString();
       const cfResp = await cf.SubsCreateSubscription({
         subscription_id: subscriptionId,
         customer_details: {
@@ -237,12 +274,17 @@ export async function POST(req: NextRequest) {
           ...(customerName ? { customer_name: customerName } : {}),
         },
         plan_details: { plan_id: PRICING.MONTHLY_LISTING.planId },
+        authorization_details: {
+          authorization_amount: 100,
+        },
+        subscription_first_charge_time: firstChargeAt,
         subscription_meta: {
           // Bounce via /subscription/return-bounce — that route
           // accepts Cashfree's form POST and 303-redirects to the
           // GET-only page at /subscription/return with the
           // subscription_id parsed out of the body as a query param.
           return_url: `${origin}/subscription/return-bounce`,
+          notification_channel: ["EMAIL", "SMS"],
         },
       });
 

@@ -84,16 +84,39 @@ export async function POST(req: NextRequest) {
     // for accuracy and convert once at the API boundary.
     const orderAmountRupees = Math.round(pricing.paise) / 100;
 
-    // Pull customer info from Clerk. Cashfree requires phone — fall
-    // back to a placeholder if the user hasn't set one. Sandbox accepts
-    // 9999999999; in prod the user will be prompted to update their
-    // profile after the first failed attempt.
+    // Pull customer info from Clerk. Cashfree requires customer_phone
+    // for boost orders — same precondition the subscription create
+    // route enforces. No placeholder fallback: routing payment-status
+    // SMS / mandate requests to a number the customer doesn't own is
+    // exactly the bug the subscription path was suffering from.
     const clerkUser = await getAuth();
+    const verifiedPhone = clerkUser?.phoneNumbers?.find(
+      (p) => p?.verification?.status === "verified",
+    );
+    if (!verifiedPhone?.phoneNumber) {
+      return NextResponse.json(
+        {
+          error: "PHONE_REQUIRED",
+          message:
+            "A verified phone number is required for boost checkout. Please add one in your profile.",
+        },
+        { status: 400 },
+      );
+    }
+    const customerPhone = verifiedPhone.phoneNumber.trim();
+    if (!/^\+\d{8,15}$/.test(customerPhone)) {
+      return NextResponse.json(
+        {
+          error: "PHONE_INVALID",
+          message:
+            "Phone number is not in international format. Please re-add it in your profile.",
+        },
+        { status: 400 },
+      );
+    }
     const customerEmail =
-      clerkUser?.emailAddresses?.[0]?.emailAddress || `${auth.userId}@no-email.internetkeeda.com`;
-    const customerPhone =
-      clerkUser?.phoneNumbers?.[0]?.phoneNumber?.replace(/^\+91/, "") ||
-      "9999999999";
+      clerkUser?.emailAddresses?.[0]?.emailAddress ||
+      `${auth.userId}@no-email.internetkeeda.com`;
     const customerName =
       `${clerkUser?.firstName ?? ""} ${clerkUser?.lastName ?? ""}`.trim() ||
       undefined;
