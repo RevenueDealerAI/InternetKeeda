@@ -181,6 +181,14 @@ export function BoostModal({ open, onOpenChange, toolId, toolName, sdkReady }: B
             })}
           </div>
 
+          <p className="mt-3 text-[11px] text-gray-500">
+            Payments are non-refundable. See our{' '}
+            <a href="/refund" target="_blank" rel="noopener noreferrer" className="underline">
+              Refund Policy
+            </a>
+            .
+          </p>
+
           <div className="mt-4 flex items-center justify-end gap-2">
             <Button variant="ghost" onClick={() => onOpenChange(false)}>
               Cancel

@@ -44,7 +44,7 @@ export async function POST(
 ) {
   try {
     await connectDB();
-    await requireAdmin(req);
+    const auth = await requireAdmin(req);
     const { id } = await params;
 
     const payment = await Payment.findById(id);
@@ -74,10 +74,10 @@ export async function POST(
 
     const provider = payment.provider || "cashfree";
     if (provider === "cashfree") {
-      return await refundCashfree(payment);
+      return await refundCashfree(payment, auth.userId);
     }
     if (provider === "paypal") {
-      return await refundPaypal(payment);
+      return await refundPaypal(payment, auth.userId);
     }
     return NextResponse.json(
       { error: `Unknown provider "${provider}"` },
@@ -91,7 +91,7 @@ export async function POST(
   }
 }
 
-async function refundCashfree(payment: PaymentDocument) {
+async function refundCashfree(payment: PaymentDocument, adminUserId: string) {
   let cf;
   try {
     cf = getCashfreeClient();
@@ -130,6 +130,7 @@ async function refundCashfree(payment: PaymentDocument) {
       ...(payment.metadata || {}),
       adminRefund: {
         requestedAt: new Date().toISOString(),
+        requestedBy: adminUserId,
         refundId,
         cashfreeResponse: data,
       },
@@ -164,7 +165,7 @@ async function refundCashfree(payment: PaymentDocument) {
   }
 }
 
-async function refundPaypal(payment: PaymentDocument) {
+async function refundPaypal(payment: PaymentDocument, adminUserId: string) {
   // PayPal refunds happen against captures, not orders. If we never
   // stored the capture id (e.g. capture happened via webhook before
   // the field was added), fetch the order and pull the capture out
@@ -223,6 +224,7 @@ async function refundPaypal(payment: PaymentDocument) {
       ...(payment.metadata || {}),
       adminRefund: {
         requestedAt: new Date().toISOString(),
+        requestedBy: adminUserId,
         refundRequestId,
         paypalResponse: refund,
       },

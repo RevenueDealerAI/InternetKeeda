@@ -271,6 +271,14 @@ export default function PaymentsAdminPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Payments</h1>
           <p className="text-sm text-gray-500">One-time boost payments.</p>
+          <p
+            className="text-xs italic text-gray-400 mt-1 max-w-2xl"
+            role="note"
+          >
+            Refunds are discretionary. Public policy is non-refundable —
+            issue only for proven service failure, duplicate charges, or
+            chargeback prevention. Logged + auditable.
+          </p>
         </div>
         <Select
           value={status}
@@ -471,10 +479,10 @@ function dialogCopyFor(target: DialogTarget) {
     };
   }
   return {
-    title: `Refund ${money} for ${name}?`,
-    body: `This calls ${
+    title: `Issue a discretionary refund for ${name} · ${money}?`,
+    body: `Calls ${
       target.payment.provider === "paypal" ? "PayPal" : "Cashfree"
-    } to issue a full refund against order ${target.payment.orderId}. The boost is removed from ${name} when the refund webhook confirms. This cannot be undone.`,
+    } to issue a full refund against order ${target.payment.orderId}. The boost is removed from ${name} when the refund webhook confirms. Logged as admin-initiated — the customer was not promised a refund under our policy. This cannot be undone.`,
     confirmLabel: "Refund",
     busyLabel: "Refunding…",
   };

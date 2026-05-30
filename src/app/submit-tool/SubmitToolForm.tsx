@@ -174,6 +174,19 @@ export function SubmitToolForm() {
               {busy ? "Submitting…" : (<>Submit <ArrowRight className="w-4 h-4 ml-1" /></>)}
             </Button>
           </div>
+          <p className="mt-3 text-[11px] text-gray-500">
+            Submission is free. Boost and subscription payments are
+            non-refundable — see our{' '}
+            <a
+              href="/refund"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline"
+            >
+              Refund Policy
+            </a>
+            .
+          </p>
         </form>
       </div>
     </main>
