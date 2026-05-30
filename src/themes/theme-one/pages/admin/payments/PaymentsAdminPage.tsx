@@ -60,12 +60,29 @@ interface AdminPayment {
   provider: "cashfree" | "paypal";
   paypalOrderId?: string;
   paypalCaptureId?: string;
+  refundStatus?: "SUCCESS" | "PENDING" | "ONHOLD" | "FAILED";
+  refundAmount?: number;
+  cfRefundId?: string;
+  paypalRefundId?: string;
   paidAt?: string;
   refundedAt?: string;
   manuallyMarkedAt?: string;
   manuallyMarkedBy?: string;
   createdAt: string;
 }
+
+const REFUND_STYLES: Record<string, string> = {
+  SUCCESS: "bg-purple-50 text-purple-700 ring-purple-200/60",
+  PENDING: "bg-amber-50 text-amber-700 ring-amber-200/60",
+  ONHOLD: "bg-amber-50 text-amber-700 ring-amber-200/60",
+  FAILED: "bg-red-50 text-red-700 ring-red-200/60",
+};
+const REFUND_LABELS: Record<string, string> = {
+  SUCCESS: "Refunded",
+  PENDING: "Refund pending",
+  ONHOLD: "Refund on hold",
+  FAILED: "Refund failed",
+};
 
 const STATUS_STYLES: Record<string, string> = {
   pending: "bg-amber-50 text-amber-700 ring-amber-200/60",
@@ -455,6 +472,22 @@ function RowActions({
     );
   }
   if (payment.status === "success") {
+    // Once a refund is in flight (SUCCESS or PENDING), the row
+    // shows the status badge instead of a fresh Refund button so
+    // the admin doesn't double-fire. FAILED is allowed to retry.
+    if (
+      payment.refundStatus === "SUCCESS" ||
+      payment.refundStatus === "PENDING" ||
+      payment.refundStatus === "ONHOLD"
+    ) {
+      return (
+        <Badge
+          className={`ring-1 ${REFUND_STYLES[payment.refundStatus] || ""}`}
+        >
+          {REFUND_LABELS[payment.refundStatus] || payment.refundStatus}
+        </Badge>
+      );
+    }
     return (
       <Button
         size="sm"
@@ -466,6 +499,13 @@ function RowActions({
       </Button>
     );
   }
-  // failed / dropped / refunded — no actions surfaced.
+  if (payment.status === "refunded") {
+    return (
+      <Badge className={`ring-1 ${REFUND_STYLES.SUCCESS}`}>
+        {REFUND_LABELS.SUCCESS}
+      </Badge>
+    );
+  }
+  // failed / dropped — no actions surfaced.
   return null;
 }

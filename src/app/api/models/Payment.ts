@@ -46,6 +46,21 @@ export interface IPayment {
   metadata: Record<string, unknown>;
   paidAt?: Date;
   refundedAt?: Date;
+  /** Provider-reported refund state. SUCCESS / PENDING / ONHOLD /
+   * FAILED. Distinct from `status: 'refunded'` because Cashfree (and
+   * some PayPal flows) return PENDING for UPI mandate refunds — the
+   * money isn't back in the buyer's account yet but a refund IS in
+   * flight, so the admin must NOT see a fresh Refund button. */
+  refundStatus?: "SUCCESS" | "PENDING" | "ONHOLD" | "FAILED";
+  /** Amount we asked the provider to refund. Stored in the same
+   * minor units as `amount`. Currently always equals `amount`
+   * (full refund only) but stored explicitly so partial refunds
+   * later don't require schema work. */
+  refundAmount?: number;
+  /** Cashfree's refund_id from PGOrderCreateRefund. */
+  cfRefundId?: string;
+  /** PayPal's refund id from /v2/payments/captures/{id}/refund. */
+  paypalRefundId?: string;
   /** Manual admin override stamp for the "Mark Failed" action on
    * a pending row. Used when neither the webhook nor the provider's
    * order-status API gives us anything useful and the admin chooses
@@ -92,6 +107,15 @@ const paymentSchema = new mongoose.Schema<IPayment>({
   metadata: { type: mongoose.Schema.Types.Mixed, default: {} },
   paidAt: { type: Date },
   refundedAt: { type: Date },
+  refundStatus: {
+    type: String,
+    enum: ["SUCCESS", "PENDING", "ONHOLD", "FAILED"],
+    index: true,
+    sparse: true,
+  },
+  refundAmount: { type: Number },
+  cfRefundId: { type: String, index: true, sparse: true },
+  paypalRefundId: { type: String, index: true, sparse: true },
   manuallyMarkedAt: { type: Date },
   manuallyMarkedBy: { type: String },
 }, {

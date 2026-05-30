@@ -306,6 +306,54 @@ export function captureOrder(id: string): Promise<PayPalOrder> {
   });
 }
 
+export interface PayPalRefund {
+  id: string;
+  status:
+    | "CANCELLED"
+    | "FAILED"
+    | "PENDING"
+    | "COMPLETED";
+  amount?: { value: string; currency_code: string };
+  create_time?: string;
+  update_time?: string;
+  links?: Array<{ href: string; rel: string; method: string }>;
+}
+
+export interface RefundCaptureOpts {
+  /** PayPal capture id (purchase_units[].payments.captures[].id). NOT
+   * the order id — refunds happen against captures, not orders. */
+  captureId: string;
+  /** Amount string like "30.00". Required for the explicit-amount form;
+   * PayPal also accepts an empty body for a full refund, but always
+   * sending the amount makes the audit trail self-evident. */
+  amountValue: string;
+  currencyCode: string;
+  noteToPayer?: string;
+  /** Idempotency key — PayPal honors `PayPal-Request-Id` on this
+   * endpoint, so a retry against the same id returns the original
+   * refund instead of double-charging. */
+  requestId?: string;
+}
+
+export function refundCapture(opts: RefundCaptureOpts): Promise<PayPalRefund> {
+  const headers: Record<string, string> = {};
+  if (opts.requestId) headers["PayPal-Request-Id"] = opts.requestId;
+  return paypalFetch<PayPalRefund>(
+    `/v2/payments/captures/${opts.captureId}/refund`,
+    {
+      method: "POST",
+      headers,
+      json: {
+        amount: {
+          value: opts.amountValue,
+          currency_code: opts.currencyCode,
+        },
+        note_to_payer: opts.noteToPayer || "Refund issued by Internet Keeda admin",
+      },
+    },
+  );
+}
+
 /* ============================== webhook verify ============================= */
 
 export interface VerifyWebhookOpts {
