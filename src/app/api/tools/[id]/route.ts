@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { connectDB } from '../../lib/db';
 import { requireAuth, errorResponse } from '../../lib/auth';
 import { requireUser } from '@/lib/auth/user';
+import { requireAdmin } from '@/lib/auth/admin';
 import { formatTool } from '../../lib/formatTool';
 import { Tool } from '../../models/Tool';
+import { Category } from '../../models/Category';
 import { Subscription } from '../../models/Subscription';
 import { Payment } from '../../models/Payment';
 import { cancelSubscription as cancelPayPalSubscription, PayPalError } from '@/lib/paypal';
@@ -128,26 +131,40 @@ export async function PATCH(
 /**
  * DELETE /api/tools/[id]
  *
- * Owner-scoped soft-delete for tools the user hasn't yet paid for.
- * Gates:
- *   - signed-in (requireUser)
- *   - id resolves to an ObjectId-keyed tool (no slug shortcut; admin
- *     DELETE at /api/admin/tools/[id] handles edge cases)
- *   - ownerUserId === auth.userId
- *   - listingStatus is NOT paid-active (currently-paying tools must
- *     be cancelled via the subscription cancel flow first — prevents
- *     refund gaming by deleting a tool that's mid-billing)
- *   - listingStatus is NOT free-seeded (those are seeded directory
- *     rows the user doesn't own anyway)
+ * Owner self-delete (or admin escape hatch) with payment-history
+ * guards. Soft-delete only; Payment + Subscription rows referencing
+ * the tool stay intact.
  *
- * Side effects:
- *   - Mongo Tool: deletedAt = now, status preserved so admin can audit
- *   - Any Subscription in {initialized, paused, failed} for this
- *     toolId+userId is flipped to cancelled (PayPal subs also get a
- *     best-effort cancelSubscription API call — APPROVAL_PENDING
- *     subs that error are silently ignored since they'll expire)
- *   - Any pending Payment rows are flipped to dropped so they don't
- *     leak into admin pending-payments view
+ * Body: { confirmForfeitBoost?: boolean }
+ *
+ * Response codes:
+ *   200 → { deletedAt }
+ *   401 → unauthenticated
+ *   403 → { error: 'NOT_OWNER' }
+ *   409 → { error: 'ACTIVE_SUBSCRIPTION', subscriptionId }
+ *   409 → { error: 'BOOST_FORFEIT_NOT_CONFIRMED', earliestBoostExpiresAt }
+ *
+ * Guard order (first match wins):
+ *   1. Ownership (skipped for admin)
+ *   2. Active subscription (status in ['active', 'paused']) — block
+ *      unless caller confirms via the subscription-cancel flow first
+ *   3. Active boost (Tool.activeBoosts non-empty AND any
+ *      Tool.boostExpiresAt[slot] > now) — require
+ *      confirmForfeitBoost === true to proceed
+ *   4. Otherwise → soft-delete
+ *
+ * Side effects on success:
+ *   - Tool: deletedAt = now, deletedBy = auth.userId,
+ *     deletionSource = 'user' | 'admin'
+ *   - Initialized / paused / failed Subscription rows for this
+ *     tool + user flip to 'cancelled' (best-effort PayPal cancel
+ *     for paypal rows). Active subs are NOT auto-cancelled —
+ *     guard 2 blocks delete in that case.
+ *   - Pending Payment rows flip to 'dropped' so they don't loiter
+ *     in admin pending-payments. Successful / refunded rows stay.
+ *   - revalidatePath() for every surface that lists this tool so
+ *     the catalog reflects the removal within seconds, not the
+ *     React-Query staleTime.
  */
 export async function DELETE(
   req: NextRequest,
@@ -169,32 +186,83 @@ export async function DELETE(
     if (!tool || tool.deletedAt) {
       return NextResponse.json({ error: 'Tool not found' }, { status: 404 });
     }
-    if (tool.ownerUserId !== auth.userId) {
-      return NextResponse.json({ error: 'Not your tool' }, { status: 403 });
+
+    // Admin escape hatch: an admin user can delete any tool through
+    // this route too. The dedicated /api/admin/tools/[id] route has
+    // richer cleanup (Cashfree subscription cancel + comprehensive
+    // revalidation); admins should prefer that one, but this route
+    // accepts admin callers so an admin-as-owner edge case doesn't
+    // 403 itself.
+    const adminCheck = await requireAdmin();
+    const isAdmin = adminCheck.kind === 'ok';
+    if (!isAdmin && tool.ownerUserId !== auth.userId) {
+      return NextResponse.json({ error: 'NOT_OWNER' }, { status: 403 });
     }
-    if (tool.listingStatus === 'paid-active') {
+    if (!isAdmin && tool.listingStatus === 'free-seeded') {
+      // Seeded directory rows have no real owner. Bail before the
+      // sub/boost guards so the error reads correctly.
+      return NextResponse.json({ error: 'NOT_OWNER' }, { status: 403 });
+    }
+
+    // ── Guard 2: active subscription ──────────────────────────────
+    const activeSub = await Subscription.findOne({
+      toolId: tool._id,
+      status: { $in: ['active', 'paused'] },
+    })
+      .select('subscriptionId status nextBillingDate')
+      .lean();
+    if (activeSub) {
       return NextResponse.json(
         {
-          error:
-            'Cancel your subscription first before deleting a tool that is currently live.',
+          error: 'ACTIVE_SUBSCRIPTION',
+          subscriptionId: activeSub.subscriptionId,
+          nextBillingDate: activeSub.nextBillingDate ?? null,
         },
         { status: 409 },
       );
     }
-    if (tool.listingStatus === 'free-seeded') {
+
+    // ── Guard 3: active boost ────────────────────────────────────
+    const now = new Date();
+    const slots: Array<'category-top' | 'home-rotation' | 'featured-badge'> = [
+      'category-top',
+      'home-rotation',
+      'featured-badge',
+    ];
+    let earliestBoostExpiresAt: Date | null = null;
+    for (const slot of slots) {
+      const exp = tool.boostExpiresAt?.[slot];
+      if (exp && new Date(exp) > now) {
+        if (!earliestBoostExpiresAt || exp < earliestBoostExpiresAt) {
+          earliestBoostExpiresAt = exp;
+        }
+      }
+    }
+    let confirmForfeitBoost = false;
+    try {
+      const body = await req.json().catch(() => ({}));
+      confirmForfeitBoost = body?.confirmForfeitBoost === true;
+    } catch {
+      /* no body — defaults to false */
+    }
+    if (earliestBoostExpiresAt && !confirmForfeitBoost) {
       return NextResponse.json(
-        { error: 'Seeded directory tools cannot be deleted by users.' },
-        { status: 403 },
+        {
+          error: 'BOOST_FORFEIT_NOT_CONFIRMED',
+          earliestBoostExpiresAt: earliestBoostExpiresAt.toISOString(),
+        },
+        { status: 409 },
       );
     }
 
-    // Best-effort gateway cleanup for any initialized PayPal sub
-    // before we mark the local row cancelled. APPROVAL_PENDING subs
-    // on PayPal cannot be cancelled via the cancel API — swallow
-    // those errors; PayPal expires them server-side anyway.
+    // ── Soft-delete + cleanup ────────────────────────────────────
+    // Best-effort gateway cleanup for any initialized PayPal sub.
+    // APPROVAL_PENDING subs on PayPal cannot be cancelled via the
+    // cancel API — swallow those errors; PayPal expires them
+    // server-side anyway.
     const orphanSubs = await Subscription.find({
       toolId: tool._id,
-      userId: auth.userId,
+      userId: tool.ownerUserId ?? auth.userId,
       status: { $in: ['initialized', 'paused', 'failed'] },
     });
     for (const s of orphanSubs) {
@@ -202,7 +270,7 @@ export async function DELETE(
         try {
           await cancelPayPalSubscription(
             s.paypalSubscriptionId,
-            'Tool deleted by owner before activation',
+            'Tool deleted by owner',
           );
         } catch (err) {
           if (err instanceof PayPalError) {
@@ -220,27 +288,60 @@ export async function DELETE(
     await Subscription.updateMany(
       {
         toolId: tool._id,
-        userId: auth.userId,
+        userId: tool.ownerUserId ?? auth.userId,
         status: { $in: ['initialized', 'paused', 'failed'] },
       },
       { $set: { status: 'cancelled', cancelledAt: new Date() } },
     );
 
-    // Pending boost payment rows for this tool flip to dropped so
-    // they don't loiter in admin pending-payments. Successful /
-    // refunded rows stay untouched (audit trail).
     await Payment.updateMany(
-      { toolId: tool._id, userId: auth.userId, status: 'pending' },
+      { toolId: tool._id, userId: tool.ownerUserId ?? auth.userId, status: 'pending' },
       { $set: { status: 'dropped' } },
     );
 
-    tool.deletedAt = new Date();
+    tool.deletedAt = now;
+    tool.deletedBy = auth.userId;
+    tool.deletionSource = isAdmin && tool.ownerUserId !== auth.userId ? 'admin' : 'user';
     await tool.save();
+    console.log('[tools/delete] soft-deleted', {
+      id: String(tool._id),
+      slug: tool.slug,
+      by: auth.userId,
+      source: tool.deletionSource,
+      forfeitedBoost: !!earliestBoostExpiresAt,
+    });
+
+    // Cache-bust every public surface that might surface this tool.
+    const pathsToRevalidate: string[] = [
+      '/',
+      '/ai-tools',
+      `/ai-tools/${tool.slug}`,
+      '/trending',
+      '/latest-launches',
+      '/top-products',
+      '/upcoming',
+      '/recently-added',
+      '/dashboard',
+    ];
+    if (tool.category) {
+      const cat = await Category.findOne({ name: tool.category })
+        .select('slug')
+        .lean();
+      if (cat?.slug) pathsToRevalidate.push(`/category/${cat.slug}`);
+    }
+    for (const p of pathsToRevalidate) {
+      try {
+        revalidatePath(p);
+      } catch (e) {
+        console.warn('[tools/delete] revalidatePath failed', p, e);
+      }
+    }
 
     return NextResponse.json({
       ok: true,
       id: String(tool._id),
       deletedAt: tool.deletedAt,
+      forfeitedBoost: !!earliestBoostExpiresAt,
     });
   } catch (err) {
     console.error('tools/[id] DELETE error:', err);

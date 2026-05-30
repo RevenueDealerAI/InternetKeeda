@@ -24,7 +24,12 @@ export async function GET(req: NextRequest) {
         const frontendUrl = determineFrontendUrl(req);
         
         const [tools, blogPosts, newsPosts] = await Promise.all([
-            Tool.find({ status: { $in: ['published', 'approved'] } }).select('slug updatedAt createdAt').sort({ updatedAt: -1 }),
+            Tool.find({
+                status: { $in: ['published', 'approved'] },
+                deletedAt: null,
+            })
+                .select('slug updatedAt createdAt')
+                .sort({ updatedAt: -1 }),
             BlogPost.find({ status: 'published' }).select('slug updatedAt date').sort({ updatedAt: -1 }),
             NewsPost.find({ status: 'published' }).select('slug updatedAt date').sort({ updatedAt: -1 })
         ]);

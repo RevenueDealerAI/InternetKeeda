@@ -53,7 +53,7 @@ export async function GET(req: NextRequest) {
     let countMap = new Map<string, number>();
     if (includeToolCount) {
       const toolCounts = await Tool.aggregate([
-        { $match: { status: 'published' } },
+        { $match: { status: 'published', deletedAt: null } },
         { $group: { _id: '$category', count: { $sum: 1 } } }
       ]);
 

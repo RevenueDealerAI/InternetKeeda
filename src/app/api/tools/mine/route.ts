@@ -14,13 +14,23 @@ export async function GET(req: NextRequest) {
     await connectDB();
     const auth = await requireAuth(req);
 
-    // Exclude soft-deleted rows — once the owner deletes a pending
-    // tool it should disappear from My Tools immediately. Admin can
-    // still see them via /api/admin/tools?includeDeleted=true.
-    const tools = await Tool.find({
-      ownerUserId: auth.userId,
-      $or: [{ deletedAt: null }, { deletedAt: { $exists: false } }],
-    })
+    // ?deletedOnly=true → return only soft-deleted rows (powers the
+    // "Show deleted" tab on /dashboard/my-tools).
+    // Default → return only live rows (the dashboard's primary view).
+    // No ?includeDeleted flag — the two views render as separate lists,
+    // so a single endpoint with a one-or-the-other switch keeps the
+    // contract obvious instead of mixing both in one response.
+    const deletedOnly = req.nextUrl.searchParams.get("deletedOnly") === "true";
+    const filter = deletedOnly
+      ? {
+          ownerUserId: auth.userId,
+          deletedAt: { $ne: null, $exists: true },
+        }
+      : {
+          ownerUserId: auth.userId,
+          $or: [{ deletedAt: null }, { deletedAt: { $exists: false } }],
+        };
+    const tools = await Tool.find(filter)
       .sort({ createdAt: -1 })
       .lean();
 
@@ -40,6 +50,7 @@ export async function GET(req: NextRequest) {
         rejectionReason: t.rejectionReason,
         rejectedAt: t.rejectedAt,
         createdAt: t.createdAt,
+        deletedAt: t.deletedAt ?? undefined,
       })),
     });
   } catch (err) {

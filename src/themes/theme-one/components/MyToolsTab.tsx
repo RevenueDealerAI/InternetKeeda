@@ -3,11 +3,12 @@
 import { useState } from "react";
 import Link from "next/link";
 import Script from "next/script";
+import { formatDistanceToNow, format as formatDate } from "date-fns";
 import { ToolLogo } from "@/components/nexus/ToolLogo";
 import type { Tool } from "@/types/tool";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Rocket, Plus, Sparkles, XCircle, Edit, ChevronDown, ChevronUp, Trash2, LayoutGrid } from "lucide-react";
+import { Rocket, Plus, Sparkles, XCircle, Edit, ChevronDown, ChevronUp, Trash2, LayoutGrid, Loader2 } from "lucide-react";
 import { BoostModal } from "./BoostModal";
 import { PlansModal } from "./PlansModal";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -16,11 +17,24 @@ import { toast } from "@/components/ui/use-toast";
 import { PaymentMethodPicker } from "@/components/payment/PaymentMethodPicker";
 import { enabledProviders, type PaymentProvider } from "@/lib/payment/providers";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { WhatsAppSupportButton } from "@/components/nexus/WhatsAppSupportButton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCategories } from "@/hooks/useCategories";
+import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 
 // Cashfree's hosted-checkout JS SDK. Same loader and version as
 // BoostModal — only the SDK *method* differs (subscriptionsCheckout
@@ -45,6 +59,17 @@ interface MyTool {
   rejectionReason?: string;
   rejectedAt?: string;
   createdAt: string;
+  deletedAt?: string;
+}
+
+type DeleteStage = "A" | "B" | "C";
+interface DeleteTarget {
+  tool: MyTool;
+  stage: DeleteStage;
+  /** Set on the State C upgrade so the modal shows the actual
+   *  earliest expiry the server returned, even if the client-side
+   *  boostExpiresAt was missing or stale. */
+  serverEarliestBoostExpiresAt?: string;
 }
 
 /**
@@ -101,31 +126,51 @@ export function MyToolsTab() {
   // is auto-skipped and we go straight to the Cashfree flow — see
   // handleActivate.
   const [pickerTarget, setPickerTarget] = useState<MyTool | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
+  const [showDeleted, setShowDeleted] = useState(false);
   const createSub = useCreateSubscription();
   const cancelSub = useCancelSubscription();
   const { data: subData } = useMySubscriptions();
   const qc = useQueryClient();
   const { data: catData } = useCategories();
   const categories = catData?.data ?? [];
+  const router = useRouter();
 
   const deleteToolMut = useMutation({
-    mutationFn: async (toolId: string) => {
-      const r = await fetch(`/api/tools/${toolId}`, {
+    mutationFn: async (input: { toolId: string; confirmForfeitBoost?: boolean }) => {
+      const r = await fetch(`/api/tools/${input.toolId}`, {
         method: "DELETE",
         credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          confirmForfeitBoost: input.confirmForfeitBoost === true,
+        }),
       });
+      const body = await r.json().catch(() => ({}));
       if (!r.ok) {
-        const body = await r.json().catch(() => ({}));
-        throw new Error(body.error || "Delete failed");
+        // Surface the structured error code so the modal can branch.
+        const err = new Error(body?.error || "Delete failed") as Error & {
+          code?: string;
+          payload?: Record<string, unknown>;
+        };
+        err.code = body?.error;
+        err.payload = body;
+        throw err;
       }
-      return r.json();
+      return body;
     },
     onSuccess: () => {
       toast({ title: "Tool deleted" });
       qc.invalidateQueries({ queryKey: ["my-tools"] });
+      qc.invalidateQueries({ queryKey: ["my-tools", "deleted"] });
       qc.invalidateQueries({ queryKey: ["my-subscriptions"] });
     },
     onError: (err) => {
+      // Suppress the toast for the 409 forfeit-not-confirmed signal —
+      // the modal upgrades to State C in-place instead of toasting an
+      // error the user can't act on.
+      const code = (err as Error & { code?: string }).code;
+      if (code === "BOOST_FORFEIT_NOT_CONFIRMED") return;
       toast({
         title: "Delete failed",
         description: err instanceof Error ? err.message : "Unknown error",
@@ -134,9 +179,61 @@ export function MyToolsTab() {
     },
   });
 
+  /** Pick which dialog stage to show, using already-fetched data
+   *  on the page (no extra round-trip). Server is the final word —
+   *  if it disagrees (race against subscription cancel landing
+   *  mid-modal) the catch block in confirmDelete upgrades the
+   *  dialog to the right stage. */
+  const stageFor = (tool: MyTool, sub?: { status?: string }): DeleteStage => {
+    if (sub && (sub.status === "active" || sub.status === "paused")) return "B";
+    const now = Date.now();
+    const hasActiveBoost = Object.values(tool.boostExpiresAt || {}).some(
+      (iso) => iso && new Date(iso).getTime() > now,
+    );
+    if (hasActiveBoost) return "C";
+    return "A";
+  };
+
   const handleDelete = (tool: MyTool) => {
-    if (!confirm(`Delete "${tool.name}"? This cannot be undone.`)) return;
-    deleteToolMut.mutate(tool.id);
+    const sub = subsByTool.get(tool.id);
+    setDeleteTarget({ tool, stage: stageFor(tool, sub) });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      await deleteToolMut.mutateAsync({
+        toolId: deleteTarget.tool.id,
+        confirmForfeitBoost: deleteTarget.stage === "C",
+      });
+      setDeleteTarget(null);
+    } catch (err) {
+      const code = (err as Error & { code?: string }).code;
+      const payload = (err as Error & {
+        payload?: { earliestBoostExpiresAt?: string; subscriptionId?: string };
+      }).payload;
+      // Server raced ahead of the client view — upgrade the dialog
+      // in place to the stage the server demands rather than closing
+      // and forcing the operator to re-click Delete.
+      if (code === "BOOST_FORFEIT_NOT_CONFIRMED") {
+        setDeleteTarget((t) =>
+          t
+            ? {
+                ...t,
+                stage: "C",
+                serverEarliestBoostExpiresAt: payload?.earliestBoostExpiresAt,
+              }
+            : null,
+        );
+        return;
+      }
+      if (code === "ACTIVE_SUBSCRIPTION") {
+        setDeleteTarget((t) => (t ? { ...t, stage: "B" } : null));
+        return;
+      }
+      // Other errors fall through to the mutation's onError toast.
+      setDeleteTarget(null);
+    }
   };
 
   const resubmitMut = useMutation({
@@ -178,6 +275,17 @@ export function MyToolsTab() {
     queryFn: async (): Promise<{ tools: MyTool[] }> => {
       const r = await fetch("/api/tools/mine", { credentials: "include" });
       if (!r.ok) throw new Error("Failed to fetch your tools");
+      return r.json();
+    },
+  });
+  const deletedQuery = useQuery({
+    queryKey: ["my-tools", "deleted"],
+    enabled: showDeleted,
+    queryFn: async (): Promise<{ tools: MyTool[] }> => {
+      const r = await fetch("/api/tools/mine?deletedOnly=true", {
+        credentials: "include",
+      });
+      if (!r.ok) throw new Error("Failed to fetch deleted tools");
       return r.json();
     },
   });
@@ -369,14 +477,28 @@ export function MyToolsTab() {
         onLoad={() => setSdkReady(true)}
       />
       <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
         <h2 className="text-2xl font-semibold text-gray-900">My Tools</h2>
-        <Link href="/submit-tool">
-          <Button variant="outline">
-            <Plus className="w-4 h-4 mr-1" />
-            Submit another
+        <div className="flex items-center gap-2">
+          <Button
+            variant={showDeleted ? "default" : "outline"}
+            size="sm"
+            onClick={() => setShowDeleted((v) => !v)}
+            title={
+              showDeleted
+                ? "Hide deleted tools"
+                : "Show tools you have deleted (admin can restore)"
+            }
+          >
+            {showDeleted ? "Hide deleted" : "Show deleted"}
           </Button>
-        </Link>
+          <Link href="/submit-tool">
+            <Button variant="outline">
+              <Plus className="w-4 h-4 mr-1" />
+              Submit another
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <div className="grid gap-3">
@@ -541,6 +663,66 @@ export function MyToolsTab() {
         })}
       </div>
 
+      {showDeleted && (
+        <section className="mt-8">
+          <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+            Deleted tools
+          </h3>
+          <p className="mt-1 text-xs text-gray-500">
+            Soft-deleted by you. No actions available here — admin can
+            restore on request via the Contact button.
+          </p>
+          <div className="mt-3 grid gap-3">
+            {deletedQuery.isLoading && (
+              <div className="text-sm text-gray-500 py-6 text-center">
+                Loading deleted tools…
+              </div>
+            )}
+            {!deletedQuery.isLoading &&
+              (deletedQuery.data?.tools ?? []).length === 0 && (
+                <div className="text-sm text-gray-500 py-6 text-center bg-white border border-dashed border-gray-300 rounded-xl">
+                  Nothing deleted yet.
+                </div>
+              )}
+            {(deletedQuery.data?.tools ?? []).map((t) => (
+              <div
+                key={t.id}
+                className="bg-white border border-gray-200 rounded-xl p-4 opacity-60"
+              >
+                <div className="flex items-center gap-4">
+                  <ToolLogo tool={t as unknown as Tool} size={48} radius={8} />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h4 className="text-sm font-semibold text-gray-900 truncate line-through">
+                        {t.name}
+                      </h4>
+                      <Badge className="bg-slate-100 text-slate-700 ring-1 ring-slate-200/60">
+                        Deleted
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-gray-500 truncate">{t.category}</p>
+                    <p className="text-[11px] text-gray-400 mt-1">
+                      Deleted{" "}
+                      {t.deletedAt
+                        ? formatDistanceToNow(new Date(t.deletedAt), {
+                            addSuffix: true,
+                          })
+                        : "—"}
+                      . Contact us to restore.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {(deletedQuery.data?.tools ?? []).length > 0 && (
+              <div className="pt-2">
+                <WhatsAppSupportButton label="Request restore on WhatsApp" size="sm" />
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
       {/* Edit & resubmit modal */}
       <Dialog open={!!editTarget} onOpenChange={(o) => !o && setEditTarget(null)}>
         <DialogContent className="sm:max-w-lg">
@@ -594,8 +776,149 @@ export function MyToolsTab() {
           onCancel={() => setPickerTarget(null)}
         />
       )}
+
+      <DeleteToolDialog
+        target={deleteTarget}
+        busy={deleteToolMut.isPending}
+        onCancel={() => {
+          if (!deleteToolMut.isPending) setDeleteTarget(null);
+        }}
+        onConfirm={confirmDelete}
+        onManageSubscription={() => {
+          setDeleteTarget(null);
+          router.push("/dashboard");
+        }}
+      />
       </div>
     </>
+  );
+}
+
+interface DeleteToolDialogProps {
+  target: DeleteTarget | null;
+  busy: boolean;
+  onCancel: () => void;
+  onConfirm: () => void | Promise<void>;
+  onManageSubscription: () => void;
+}
+
+function DeleteToolDialog({
+  target,
+  busy,
+  onCancel,
+  onConfirm,
+  onManageSubscription,
+}: DeleteToolDialogProps) {
+  if (!target) {
+    return (
+      <AlertDialog open={false} onOpenChange={() => onCancel()}>
+        <AlertDialogContent />
+      </AlertDialog>
+    );
+  }
+  const { tool, stage } = target;
+  // Format the active-boost expiry. Prefer the server-confirmed value
+  // (set after a State-A → State-C upgrade) and fall back to the
+  // client-side earliest boost expiry.
+  const expiryIso =
+    target.serverEarliestBoostExpiresAt ??
+    Object.values(tool.boostExpiresAt || {})
+      .filter((iso): iso is string => !!iso)
+      .filter((iso) => new Date(iso).getTime() > Date.now())
+      .sort()[0];
+  const expiryLong = expiryIso
+    ? formatDate(new Date(expiryIso), "PPP")
+    : "the expiry date";
+  return (
+    <AlertDialog
+      open
+      onOpenChange={(open) => {
+        if (!open && !busy) onCancel();
+      }}
+    >
+      <AlertDialogContent>
+        {stage === "A" && (
+          <>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete {tool.name}?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This permanently removes your tool from Internet Keeda.
+                Your past payment history is kept for our records but no
+                longer visible to others. This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={busy}>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={(e) => {
+                  e.preventDefault();
+                  void onConfirm();
+                }}
+                disabled={busy}
+                className={cn(buttonVariants({ variant: "destructive" }), "gap-2")}
+              >
+                {busy && <Loader2 className="h-4 w-4 animate-spin" />}
+                {busy ? "Deleting…" : "Delete permanently"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </>
+        )}
+        {stage === "B" && (
+          <>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Cancel subscription first</AlertDialogTitle>
+              <AlertDialogDescription>
+                {tool.name} has an active subscription. Cancel the
+                subscription before deleting the tool.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={(e) => {
+                  e.preventDefault();
+                  onManageSubscription();
+                }}
+                className={cn(buttonVariants({ variant: "default" }))}
+              >
+                Manage subscription
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </>
+        )}
+        {stage === "C" && (
+          <>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                Delete {tool.name} and forfeit active boost?
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                Your boost is active until {expiryLong}. Deleting now
+                forfeits the remaining time. Per our{" "}
+                <a href="/refund" className="underline" target="_blank" rel="noopener noreferrer">
+                  Refund Policy
+                </a>
+                , this is non-refundable. This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={busy}>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={(e) => {
+                  e.preventDefault();
+                  void onConfirm();
+                }}
+                disabled={busy}
+                className={cn(buttonVariants({ variant: "destructive" }), "gap-2")}
+              >
+                {busy && <Loader2 className="h-4 w-4 animate-spin" />}
+                {busy ? "Deleting…" : "Forfeit boost and delete"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </>
+        )}
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
 

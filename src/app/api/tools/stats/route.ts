@@ -8,29 +8,35 @@ export async function GET(req: NextRequest) {
         await connectDB();
 
         const stats = await Promise.all([
-            Tool.countDocuments({ status: 'published' }),
-            Tool.countDocuments({ status: 'pending' }),
+            // Every read filters out soft-deleted rows. Without the
+            // `deletedAt: null` clause the count widgets inflate by
+            // any tool a user has self-deleted (or admin has Archived
+            // via Delete) and the categoryCounts pie misattributes
+            // them to live categories.
+            Tool.countDocuments({ status: 'published', deletedAt: null }),
+            Tool.countDocuments({ status: 'pending', deletedAt: null }),
             Tool.aggregate([
-                { $match: { status: 'published' } },
+                { $match: { status: 'published', deletedAt: null } },
                 { $group: { _id: '$category', count: { $sum: 1 } } },
                 { $sort: { count: -1 } }
             ]),
-            Tool.find({ status: 'published' })
+            Tool.find({ status: 'published', deletedAt: null })
                 .sort({ createdAt: -1 })
                 .limit(5)
                 .select('name category createdAt slug _id')
                 .lean(),
-            Tool.find({ status: 'published' })
+            Tool.find({ status: 'published', deletedAt: null })
                 .sort({ views: -1 })
                 .limit(5)
                 .select('name views slug _id')
                 .lean(),
             Tool.aggregate([
+                { $match: { deletedAt: null } },
                 { $group: { _id: '$status', count: { $sum: 1 } } },
                 { $sort: { count: -1 } }
             ]),
             Tool.aggregate([
-                { $match: { status: 'published' } },
+                { $match: { status: 'published', deletedAt: null } },
                 { $group: { _id: '$pricing.type', count: { $sum: 1 } } },
                 { $sort: { count: -1 } }
             ]),

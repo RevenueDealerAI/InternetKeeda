@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
         const searchParams = req.nextUrl.searchParams;
         const search = searchParams.get('search');
 
-        const query: any = { status: 'published' };
+        const query: any = { status: 'published', deletedAt: null };
         if (search) {
             query.name = { $regex: search, $options: 'i' };
         }

@@ -66,6 +66,14 @@ export interface ITool {
    * trail), and any active subscription is cancelled at delete
    * time. Restore by clearing this field. */
   deletedAt?: Date;
+  /** Clerk userId of whoever soft-deleted the tool — admin id for
+   *  admin-side Archive, owner id for owner-side Delete. Null on
+   *  legacy soft-deletes that landed before this column shipped. */
+  deletedBy?: string;
+  /** Which surface initiated the delete. Lets admin views
+   *  distinguish between Archive (admin) and Delete (user) without
+   *  cross-referencing the deletedBy id against User.isAdmin. */
+  deletionSource?: 'user' | 'admin';
   createdAt: Date;
   updatedAt: Date;
 }
@@ -123,6 +131,8 @@ const toolSchema = new mongoose.Schema<ITool>({
   rejectedAt: { type: Date },
   rejectedBy: { type: String, index: true },
   deletedAt: { type: Date },
+  deletedBy: { type: String },
+  deletionSource: { type: String, enum: ['user', 'admin'] },
 }, {
   timestamps: true // This will add createdAt and updatedAt fields automatically
 });
