@@ -122,7 +122,7 @@ const toolSchema = new mongoose.Schema<ITool>({
   rejectionReason: { type: String },
   rejectedAt: { type: Date },
   rejectedBy: { type: String, index: true },
-  deletedAt: { type: Date, index: true },
+  deletedAt: { type: Date },
 }, {
   timestamps: true // This will add createdAt and updatedAt fields automatically
 });
