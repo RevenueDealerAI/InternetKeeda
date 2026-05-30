@@ -53,6 +53,23 @@ export async function POST(req: NextRequest) {
   const log = (step: string, payload?: unknown) =>
     console.error("[sub-create]", step, payload ?? "");
 
+  // Kill switch. The Cashfree subscription path is being re-rolled
+  // out behind a feature flag — the route returns 503 until the
+  // operator flips SUBSCRIPTIONS_ENABLED=true in Vercel env after
+  // the live smoke test passes. Boost (one-time) checkout is
+  // unaffected; this gate only covers recurring subscriptions.
+  if ((process.env.SUBSCRIPTIONS_ENABLED || "false").toLowerCase() !== "true") {
+    log("kill-switch", { enabled: process.env.SUBSCRIPTIONS_ENABLED ?? "<unset>" });
+    return NextResponse.json(
+      {
+        error: "SUBSCRIPTIONS_DISABLED",
+        message:
+          "Subscriptions temporarily unavailable — try again shortly.",
+      },
+      { status: 503 },
+    );
+  }
+
   try {
     log("start");
     await connectDB();
