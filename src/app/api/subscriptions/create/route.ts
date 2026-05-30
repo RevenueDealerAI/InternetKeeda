@@ -224,6 +224,11 @@ export async function POST(req: NextRequest) {
     try {
       const cf = getCashfreeClient();
       log("cf.client.created");
+      // No inline plan_details — the plan is provisioned out of
+      // band by scripts/cashfree-create-plans.ts and referenced
+      // by id only. Inlining was causing Cashfree to inherit the
+      // payload's plan config every call, which the dashboard then
+      // surfaced as "plan_not_found" when looked up directly.
       const cfResp = await cf.SubsCreateSubscription({
         subscription_id: subscriptionId,
         customer_details: {
@@ -231,17 +236,7 @@ export async function POST(req: NextRequest) {
           customer_phone: customerPhone,
           ...(customerName ? { customer_name: customerName } : {}),
         },
-        plan_details: {
-          plan_id: PRICING.MONTHLY_LISTING.planId,
-          plan_name: "Monthly Tool Listing",
-          plan_type: "PERIODIC",
-          plan_currency: PRICING.MONTHLY_LISTING.currency,
-          plan_amount: planAmountMajor,
-          plan_max_amount: planMaxAmountMajor,
-          plan_max_cycles: 0, // 0 = unlimited
-          plan_intervals: 1,
-          plan_interval_type: "MONTH",
-        },
+        plan_details: { plan_id: PRICING.MONTHLY_LISTING.planId },
         subscription_meta: {
           // Bounce via /subscription/return-bounce — that route
           // accepts Cashfree's form POST and 303-redirects to the
@@ -290,6 +285,19 @@ export async function POST(req: NextRequest) {
           dbId: String(sub._id),
           err: delErr instanceof Error ? delErr.message : String(delErr),
         });
+      }
+      // Specific signal for the plan-not-provisioned case so the
+      // operator knows the fix is to run the provisioning script,
+      // not to dig through axios stack traces.
+      const cfBody = axiosLike.response?.data as { code?: string } | undefined;
+      if (cfBody?.code === "plan_not_found") {
+        return NextResponse.json(
+          {
+            error: "PLAN_MISSING",
+            message: `Cashfree plan "${PRICING.MONTHLY_LISTING.planId}" is missing — run scripts/cashfree-create-plans.ts against LIVE to provision it, then retry.`,
+          },
+          { status: 500 },
+        );
       }
       return errorResponse("Failed to create Cashfree subscription", 502);
     }
