@@ -1,8 +1,20 @@
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useDebounce } from 'use-debounce';
 import { Tool } from "@/types/tool";
 import { ToolLogo } from "@/components/nexus/ToolLogo";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Loader2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -58,6 +70,19 @@ export default function ToolsManagementPage() {
   // immediate visual change after pressing Delete. Toggle on when
   // restoring or auditing.
   const [showDeleted, setShowDeleted] = useState(false);
+  // Confirmation modal target for Delete. Setting this opens the
+  // styled AlertDialog; null means the modal is closed. Replaces the
+  // old window.confirm() that broke the admin's design language.
+  const [deleteTarget, setDeleteTarget] = useState<Tool | null>(null);
+  // Tools that have just been deleted but whose refetch hasn't landed
+  // yet. We hide them from the rendered list immediately so the row
+  // vanishes the moment the modal closes — refetch is the reconciler,
+  // not the redraw trigger. Cleared on next successful refetch / page
+  // navigation.
+  const [optimisticallyDeleted, setOptimisticallyDeleted] = useState<
+    ReadonlySet<string>
+  >(() => new Set());
+  const router = useRouter();
 
   // Build query parameters - only search if 2+ characters to avoid unnecessary API calls
   const queryParams: ToolsQueryParams = {
@@ -76,8 +101,24 @@ export default function ToolsManagementPage() {
 
   // Fetch tools with pagination
   const { data, isLoading, error } = useTools(queryParams);
-  const tools = data?.data || [];
-  const pagination = data?.pagination;
+  // Optimistic-removal layer: hide rows that the operator just
+  // confirmed Delete for. The list reconciles when the invalidated
+  // useTools query refetches and the deleted ids drop out naturally.
+  const tools = (data?.data || []).filter(
+    (t) => !optimisticallyDeleted.has(String(t.id || t._id)),
+  );
+  const pagination = data?.pagination
+    ? {
+        ...data.pagination,
+        // Decrement the header count by however many rows we are
+        // hiding optimistically so it doesn't lag by 1 for the
+        // half-second between confirm and refetch.
+        totalCount: Math.max(
+          0,
+          data.pagination.totalCount - optimisticallyDeleted.size,
+        ),
+      }
+    : undefined;
 
   // Show loading state when typing (before debounce completes)
   const isSearching = searchQuery !== debouncedSearchQuery;
@@ -148,15 +189,42 @@ export default function ToolsManagementPage() {
     setFormOpen(true);
   };
 
-  const handleDelete = async (tool: Tool) => {
-    if (window.confirm(`Are you sure you want to delete ${tool.name}?`)) {
+  // Just opens the styled confirmation modal — actual DELETE happens
+  // in confirmDelete after the operator clicks through.
+  const handleDelete = (tool: Tool) => {
+    setDeleteTarget(tool);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    const target = deleteTarget;
+    const id = String(target.id || target._id);
+    try {
+      await deleteToolMutation.mutateAsync(target.id);
+      // Optimistic hide. Refetch (already kicked off inside
+      // useDeleteTool's onSuccess) will reconcile this away when the
+      // server response with the soft-deleted row lands — or the row
+      // simply never reappears because the default filter excludes
+      // deletedAt.
+      setOptimisticallyDeleted((prev) => {
+        const next = new Set(prev);
+        next.add(id);
+        return next;
+      });
+      // Best-effort RSC reconciliation for any layout/header counts
+      // that are server-rendered. No-op on a fully client-rendered
+      // tree, which is what this admin page is today.
       try {
-        await deleteToolMutation.mutateAsync(tool.id);
-        toast.success("Tool deleted successfully");
-      } catch (error) {
-        console.error('Error deleting tool:', error);
-        toast.error("Failed to delete tool");
+        router.refresh();
+      } catch {
+        /* router.refresh has no real failure path in app router */
       }
+      toast.success(`Deleted ${target.name}`);
+    } catch (err) {
+      console.error("Error deleting tool:", err);
+      toast.error(err instanceof Error ? err.message : "Failed to delete tool");
+    } finally {
+      setDeleteTarget(null);
     }
   };
 
@@ -508,6 +576,53 @@ export default function ToolsManagementPage() {
         onSubmit={handleSubmit}
         initialData={selectedTool}
       />
+
+      <AlertDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => {
+          // Block dismissal while the DELETE is in flight so the
+          // operator can't escape into a half-confirmed state.
+          if (!open && deleteToolMutation.isPending) return;
+          if (!open) setDeleteTarget(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Delete {deleteTarget?.name ?? "tool"}?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This soft-deletes the tool and hides it from every public
+              surface (home, trending, category pages, search). You can
+              restore it later from the &quot;Show deleted&quot; view.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteToolMutation.isPending}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                // Don't let Radix auto-close; confirmDelete handles
+                // the close itself in its `finally` so the modal
+                // stays put while the mutation is in flight.
+                e.preventDefault();
+                void confirmDelete();
+              }}
+              disabled={deleteToolMutation.isPending}
+              className={cn(
+                buttonVariants({ variant: "destructive" }),
+                "gap-2",
+              )}
+            >
+              {deleteToolMutation.isPending && (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              )}
+              {deleteToolMutation.isPending ? "Deleting…" : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
-} 
+}
