@@ -44,13 +44,15 @@ export function MobileNav({ menus }: MobileNavProps) {
         <button
           type="button"
           aria-label="Open menu"
-          className="grid h-10 w-10 place-items-center rounded-full transition-colors lg:hidden"
+          // 36×36 to match ThemeToggle + NavAccount siblings so the
+          // right cluster reads as one visual row.
+          className="grid h-9 w-9 place-items-center rounded-full transition-colors lg:hidden"
           style={{
             background: 'transparent',
             color: 'var(--ink)',
           }}
         >
-          <Menu className="h-5 w-5" strokeWidth={2} />
+          <Menu className="h-4 w-4" strokeWidth={2} />
         </button>
       </SheetTrigger>
       <SheetContent

@@ -131,7 +131,10 @@ export function Nav() {
   return (
     <header
       className="fixed left-1/2 top-4 z-50 -translate-x-1/2 px-3"
-      style={{ width: 'min(1320px, calc(100% - 24px))' }}
+      // Widened on mobile (12px gutter total instead of 24) so the
+      // hamburger has room without overflowing the pill. Desktop
+      // keeps the original 24px gutter.
+      style={{ width: 'min(1320px, calc(100% - 12px))' }}
     >
       <nav
         className="relative flex items-center justify-between gap-2 rounded-full py-2 pr-2 pl-3 backdrop-blur-2xl md:gap-3 md:pl-4"
@@ -152,7 +155,7 @@ export function Nav() {
         <Link
           href="/"
           aria-label="Internet Keeda — home"
-          className="relative flex h-11 w-[170px] shrink-0 items-center sm:h-14 sm:w-[240px] md:h-16 md:w-[280px]"
+          className="relative flex h-10 w-[140px] shrink-0 items-center sm:h-14 sm:w-[240px] md:h-16 md:w-[280px]"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
