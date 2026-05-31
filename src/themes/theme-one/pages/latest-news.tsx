@@ -1,10 +1,12 @@
+'use client';
+
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import Link from 'next/link'
-import { Calendar, Clock, ArrowRight, Newspaper, TrendingUp, Filter } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-import { normalizeImageUrl } from "@/utils/imageUrl";
+import Link from 'next/link';
+import { Calendar, TrendingUp, Filter } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
+import { normalizeImageUrl } from '@/utils/imageUrl';
 
 interface NewsPost {
   _id: string;
@@ -26,23 +28,141 @@ interface NewsPost {
   status: 'draft' | 'published';
 }
 
+// Sample review articles. Surfaced when the DB has no published
+// reviews yet. Once an operator drops real reviews via /admin/news
+// the live posts take over and these samples disappear.
+//
+// IDs use the `sample-` prefix so detail-route lookups for these
+// slugs gracefully 404 — clicking through a sample card right now
+// lands on the news/[slug] page which will return "not found"
+// because no Mongo row exists. Future work: render rich
+// markdown for sample reviews from a static map, or seed Mongo.
+const SAMPLE_REVIEWS: NewsPost[] = [
+  {
+    _id: 'sample-claude',
+    title: 'Claude Sonnet 4.5 — the reasoning model that doesn\'t overthink',
+    slug: 'sample-claude-sonnet-4-5-review',
+    excerpt:
+      'After two weeks of daily use, Claude Sonnet 4.5 is the first model that ships answers I trust on first read. Here\'s where it wins, where it still misses, and which workflows make the most of it.',
+    content: '',
+    category: 'Chat models',
+    imageUrl: '/branding/logo-dark-red-bg.png',
+    author: { name: 'Internet Keeda', avatar: '/branding/riley.jpg' },
+    source: 'InternetKeeda Reviews',
+    sourceUrl: '/latest-news',
+    views: 1247,
+    shares: 0,
+    createdAt: '2026-05-30T08:00:00.000Z',
+    status: 'published',
+  },
+  {
+    _id: 'sample-cursor',
+    title: 'Cursor vs Windsurf — which AI IDE actually ships your code',
+    slug: 'sample-cursor-vs-windsurf-review',
+    excerpt:
+      'Both editors promise the future of coding. One delivers; the other still feels like a demo. We ran a 30-day production project in each and benchmarked completion quality, latency, and reliability.',
+    content: '',
+    category: 'AI coding',
+    imageUrl: '/branding/logo-dark-red-bg.png',
+    author: { name: 'Internet Keeda', avatar: '/branding/riley.jpg' },
+    source: 'InternetKeeda Reviews',
+    sourceUrl: '/latest-news',
+    views: 982,
+    shares: 0,
+    createdAt: '2026-05-28T08:00:00.000Z',
+    status: 'published',
+  },
+  {
+    _id: 'sample-midjourney',
+    title: 'Midjourney v7 — the new defaults make older prompts look broken',
+    slug: 'sample-midjourney-v7-review',
+    excerpt:
+      'v7 changed how prompts read, how aspect ratios behave, and how characters stay consistent across panels. If you\'re still copying v6 prompts you\'re leaving the model running with one hand tied.',
+    content: '',
+    category: 'Image generation',
+    imageUrl: '/branding/logo-dark-red-bg.png',
+    author: { name: 'Internet Keeda', avatar: '/branding/riley.jpg' },
+    source: 'InternetKeeda Reviews',
+    sourceUrl: '/latest-news',
+    views: 854,
+    shares: 0,
+    createdAt: '2026-05-25T08:00:00.000Z',
+    status: 'published',
+  },
+  {
+    _id: 'sample-elevenlabs',
+    title: 'ElevenLabs v3 — voice cloning that no longer sounds AI',
+    slug: 'sample-elevenlabs-v3-review',
+    excerpt:
+      'The new voice clone fidelity finally crosses the line where casual listeners stop noticing. We tested it across podcasts, video narration, and customer-call IVR — and where it still trips.',
+    content: '',
+    category: 'AI voice',
+    imageUrl: '/branding/logo-dark-red-bg.png',
+    author: { name: 'Internet Keeda', avatar: '/branding/riley.jpg' },
+    source: 'InternetKeeda Reviews',
+    sourceUrl: '/latest-news',
+    views: 612,
+    shares: 0,
+    createdAt: '2026-05-22T08:00:00.000Z',
+    status: 'published',
+  },
+  {
+    _id: 'sample-perplexity',
+    title: 'Perplexity Pro — when "research mode" actually saves you a tab',
+    slug: 'sample-perplexity-pro-review',
+    excerpt:
+      'Search-with-citations matters when you\'re fact-checking, less so for casual queries. Perplexity Pro is the first paid AI search where the math on the subscription works for everyday users.',
+    content: '',
+    category: 'AI search',
+    imageUrl: '/branding/logo-dark-red-bg.png',
+    author: { name: 'Internet Keeda', avatar: '/branding/riley.jpg' },
+    source: 'InternetKeeda Reviews',
+    sourceUrl: '/latest-news',
+    views: 489,
+    shares: 0,
+    createdAt: '2026-05-20T08:00:00.000Z',
+    status: 'published',
+  },
+  {
+    _id: 'sample-notion',
+    title: 'Notion AI — the everywhere-assistant nobody asked for, but kept',
+    slug: 'sample-notion-ai-review',
+    excerpt:
+      'Notion shipped AI everywhere in the product. Most of it is noise; a few features genuinely speed up writing. Here\'s what to enable, what to ignore, and whether the $10/user/month is worth it.',
+    content: '',
+    category: 'Productivity',
+    imageUrl: '/branding/logo-dark-red-bg.png',
+    author: { name: 'Internet Keeda', avatar: '/branding/riley.jpg' },
+    source: 'InternetKeeda Reviews',
+    sourceUrl: '/latest-news',
+    views: 376,
+    shares: 0,
+    createdAt: '2026-05-18T08:00:00.000Z',
+    status: 'published',
+  },
+];
+
 export const LatestNews = () => {
   const [posts, setPosts] = useState<NewsPost[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('All');
 
-  // Fetch news posts
   const fetchPosts = async () => {
     try {
       setIsLoading(true);
       const response = await fetch('/api/news');
-      if (!response.ok) throw new Error('Failed to fetch news posts');
+      if (!response.ok) throw new Error('Failed to fetch reviews');
       const data = await response.json();
-      // Only show published posts
-      setPosts(data.filter((post: NewsPost) => post.status === 'published'));
+      const published = (data as NewsPost[]).filter(
+        (post) => post.status === 'published',
+      );
+      // Operator can switch to seeded reviews via /admin/news; in the
+      // meantime sample reviews keep the page from rendering empty.
+      setPosts(published.length > 0 ? published : SAMPLE_REVIEWS);
     } catch (error) {
-      console.error('Error fetching news posts:', error);
-      toast.error('Failed to fetch news posts');
+      console.error('Error fetching reviews:', error);
+      toast.error('Failed to load reviews — showing samples.');
+      setPosts(SAMPLE_REVIEWS);
     } finally {
       setIsLoading(false);
     }
@@ -52,217 +172,320 @@ export const LatestNews = () => {
     fetchPosts();
   }, []);
 
-  // Get unique categories from posts
-  const categories = ['All', ...new Set(posts.map(post => post.category))];
-
-  // Filter posts by category
-  const filteredPosts = selectedCategory === 'All'
-    ? posts
-    : posts.filter(post => post.category === selectedCategory);
-
-  // Get trending posts (most viewed)
-  const trendingPosts = [...posts]
-    .sort((a, b) => b.views - a.views)
-    .slice(0, 2);
+  const categories = ['All', ...Array.from(new Set(posts.map((p) => p.category)))];
+  const filteredPosts =
+    selectedCategory === 'All'
+      ? posts
+      : posts.filter((p) => p.category === selectedCategory);
+  const trendingPosts = [...posts].sort((a, b) => b.views - a.views).slice(0, 2);
 
   const getImageUrl = (url: string | undefined | null): string => {
-    if (!url || url.trim() === '') {
-      return '/placeholder.svg';
-    }
+    if (!url || url.trim() === '') return '/branding/logo-dark-red-bg.png';
     return normalizeImageUrl(url);
   };
-
-  const getAvatarUrl = (avatar: string | undefined | null, name: string | undefined | null): string => {
+  const getAvatarUrl = (
+    avatar: string | undefined | null,
+    name: string | undefined | null,
+  ): string => {
     if (!avatar || avatar.trim() === '') {
-      return `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'Author')}&background=6366f1&color=fff&bold=true`;
+      return `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'Reviewer')}&background=ff3b3b&color=fff&bold=true`;
     }
     return normalizeImageUrl(avatar);
   };
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 mt-16 sm:mt-20">
-      {/* Header */}
-      <div className="flex flex-col items-center text-center mb-8 sm:mb-12">
-        <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-orange-100 mb-4">
-          <Newspaper className="w-6 h-6 sm:w-8 sm:h-8 text-orange-600" />
+    <main
+      className="relative"
+      style={{
+        background: 'var(--bg)',
+        color: 'var(--ink)',
+        paddingTop: 120,
+        paddingBottom: 80,
+      }}
+    >
+      <div className="mx-auto max-w-[1320px] px-7">
+        {/* Eyebrow + headline — Nexus chrome to match Pricing / Hero */}
+        <div className="mx-auto max-w-[760px] text-center">
+          <div
+            className="text-[11px] uppercase tracking-[0.3em]"
+            style={{ fontFamily: 'var(--mono)', color: 'var(--accent)' }}
+          >
+            § reviews — ai tools
+          </div>
+          <h1
+            className="m-0 mt-4"
+            style={{
+              fontFamily: 'var(--sans)',
+              fontSize: 'clamp(36px, 5.5vw, 64px)',
+              fontWeight: 500,
+              lineHeight: 1.02,
+              letterSpacing: '-0.03em',
+              color: 'var(--ink)',
+            }}
+          >
+            AI tool reviews,{' '}
+            <span style={{ fontWeight: 600, color: 'var(--accent)' }}>
+              written by humans who shipped with them.
+            </span>
+          </h1>
+          <p
+            className="mx-auto mt-5 text-[15px] leading-[1.65]"
+            style={{ color: 'var(--ink-2)', maxWidth: 640 }}
+          >
+            Deep reviews of the AI tools we use in production. Real workflows,
+            real costs, real failure modes — no marketing reprints.
+          </p>
         </div>
-        <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-orange-600 to-blue-600 bg-clip-text text-transparent mb-3 sm:mb-4">
-          Latest AI News & Updates
-        </h1>
-        <p className="text-gray-600 max-w-xl sm:max-w-2xl text-sm sm:text-base">
-          Stay informed with the latest breakthroughs, updates, and developments in the world of artificial intelligence.
-        </p>
-      </div>
 
-      {/* Filters */}
-      <div className="flex flex-wrap items-center justify-center sm:justify-between gap-3 mb-6 sm:mb-8">
-        <div className="flex flex-wrap justify-center sm:justify-start gap-2">
-          {categories.map(category => (
-            <Button
-              key={category}
-              variant={selectedCategory === category ? "default" : "outline"}
-              className="rounded-xl hover:bg-orange-50 text-xs sm:text-sm h-8 sm:h-10"
-              onClick={() => setSelectedCategory(category)}
-            >
-              {category}
-            </Button>
-          ))}
+        {/* Filter pills */}
+        <div className="mt-10 flex flex-wrap items-center justify-center gap-2">
+          {categories.map((category) => {
+            const active = selectedCategory === category;
+            return (
+              <button
+                key={category}
+                type="button"
+                onClick={() => setSelectedCategory(category)}
+                className="rounded-full px-3.5 py-1.5 text-[12px] transition-all"
+                style={{
+                  fontFamily: 'var(--mono)',
+                  letterSpacing: '0.06em',
+                  textTransform: 'uppercase',
+                  background: active ? 'var(--accent)' : 'var(--surface)',
+                  color: active ? 'var(--on-accent)' : 'var(--ink-2)',
+                  border: `1px solid ${active ? 'transparent' : 'var(--rule)'}`,
+                }}
+              >
+                {category}
+              </button>
+            );
+          })}
         </div>
-      </div>
 
-      {isLoading ? (
-        <div className="grid sm:grid-cols-2 gap-6 sm:gap-8">
-          {[1, 2].map((n) => (
-            <div key={n} className="animate-pulse">
-              <div className="rounded-2xl bg-gray-200 aspect-[16/9] mb-4"></div>
-              <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
-              <div className="h-8 bg-gray-200 rounded w-3/4 mb-4"></div>
-              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <>
-          {/* Trending News */}
-          {trendingPosts.length > 0 && (
-            <div className="grid sm:grid-cols-2 gap-4 sm:gap-8 mb-8 sm:mb-12">
-              {trendingPosts.map((post) => (
+        {isLoading ? (
+          <div className="mt-12 grid gap-6 sm:grid-cols-2">
+            {[1, 2].map((n) => (
+              <div key={n} className="animate-pulse">
+                <div
+                  className="aspect-[16/9] rounded-2xl"
+                  style={{ background: 'var(--surface-2)' }}
+                />
+                <div
+                  className="mt-4 h-4 w-1/4 rounded"
+                  style={{ background: 'var(--surface-2)' }}
+                />
+                <div
+                  className="mt-3 h-7 w-3/4 rounded"
+                  style={{ background: 'var(--surface-2)' }}
+                />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <>
+            {/* Trending — hero pair */}
+            {trendingPosts.length > 0 && (
+              <div className="mt-12 grid gap-5 sm:grid-cols-2">
+                {trendingPosts.map((post) => (
+                  <Link
+                    key={post._id}
+                    href={`/news/${post.slug}`}
+                    className="group relative aspect-[16/9] overflow-hidden rounded-2xl"
+                    style={{
+                      background: 'var(--bg-2)',
+                      border: '1px solid var(--rule)',
+                      boxShadow: 'var(--shadow-sm)',
+                    }}
+                  >
+                    <Image
+                      src={getImageUrl(post.imageUrl)}
+                      alt={post.title}
+                      fill
+                      className="object-cover opacity-90 transition-transform duration-300 group-hover:scale-105 group-hover:opacity-100"
+                      unoptimized
+                    />
+                    <div
+                      className="absolute inset-0"
+                      style={{
+                        background:
+                          'linear-gradient(180deg, transparent 30%, rgba(10,10,12,0.85) 100%)',
+                      }}
+                    />
+                    <div className="absolute inset-x-0 bottom-0 z-10 p-5 sm:p-7">
+                      <div
+                        className="flex flex-wrap items-center gap-3 text-[10px] uppercase tracking-[0.22em]"
+                        style={{
+                          color: '#fff',
+                          fontFamily: 'var(--mono)',
+                          opacity: 0.85,
+                        }}
+                      >
+                        <span
+                          className="rounded-full px-2.5 py-0.5"
+                          style={{
+                            background: 'var(--accent)',
+                            color: 'var(--on-accent)',
+                          }}
+                        >
+                          Trending review
+                        </span>
+                        <span className="inline-flex items-center gap-1.5">
+                          <Calendar className="h-3 w-3" />
+                          {new Date(post.createdAt).toLocaleDateString()}
+                        </span>
+                        <span className="inline-flex items-center gap-1.5">
+                          <TrendingUp className="h-3 w-3" />
+                          {post.views.toLocaleString()} views
+                        </span>
+                      </div>
+                      <h2
+                        className="m-0 mt-3 text-[20px] sm:text-[24px] leading-[1.2]"
+                        style={{
+                          color: '#fff',
+                          fontFamily: 'var(--sans)',
+                          fontWeight: 500,
+                          letterSpacing: '-0.02em',
+                        }}
+                      >
+                        {post.title}
+                      </h2>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+
+            {/* Review grid */}
+            <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {filteredPosts.map((post) => (
                 <Link
                   key={post._id}
                   href={`/news/${post.slug}`}
-                  className="group relative rounded-xl sm:rounded-2xl overflow-hidden aspect-[16/9]"
+                  className="group flex h-full flex-col overflow-hidden rounded-xl transition-transform hover:-translate-y-1"
+                  style={{
+                    background: 'var(--bg-2)',
+                    border: '1px solid var(--rule)',
+                    boxShadow: 'var(--shadow-sm)',
+                  }}
                 >
-                  <Image
-                    src={getImageUrl(post.imageUrl)}
-                    alt={post.title}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-300"
-                    unoptimized
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      if (target.src !== '/placeholder.svg') {
-                        target.onerror = null;
-                        target.src = '/placeholder.svg';
-                      }
-                    }}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 z-10">
-                    <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-white/80 text-xs sm:text-sm mb-2 sm:mb-4">
-                      <span className="bg-orange-600 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full">Trending</span>
-                      <span className="flex items-center gap-1 sm:gap-2">
-                        <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
-                        {new Date(post.createdAt).toLocaleDateString()}
+                  <div className="relative aspect-[16/9] overflow-hidden">
+                    <Image
+                      src={getImageUrl(post.imageUrl)}
+                      alt={post.title}
+                      fill
+                      className="object-cover opacity-90 transition-transform duration-200 group-hover:scale-105"
+                      unoptimized
+                    />
+                  </div>
+                  <div className="flex flex-1 flex-col p-5">
+                    <div
+                      className="flex items-center gap-3 text-[10px] uppercase tracking-[0.2em]"
+                      style={{
+                        fontFamily: 'var(--mono)',
+                        color: 'var(--ink-soft)',
+                      }}
+                    >
+                      <span style={{ color: 'var(--accent)' }}>
+                        {post.category}
                       </span>
-                      <span className="flex items-center gap-1 sm:gap-2">
-                        <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4" />
-                        {post.views} views
-                      </span>
+                      <span>·</span>
+                      <span>{new Date(post.createdAt).toLocaleDateString()}</span>
                     </div>
-                    <h2 className="text-base sm:text-xl font-semibold text-white mb-1 sm:mb-2 group-hover:text-orange-200 transition-colors line-clamp-2">
+                    <h3
+                      className="m-0 mt-3 text-[18px] leading-[1.25]"
+                      style={{
+                        color: 'var(--ink)',
+                        fontFamily: 'var(--sans)',
+                        fontWeight: 500,
+                        letterSpacing: '-0.018em',
+                      }}
+                    >
                       {post.title}
-                    </h2>
-                    <p className="text-white/80 text-xs sm:text-sm line-clamp-2">
+                    </h3>
+                    <p
+                      className="m-0 mt-3 line-clamp-3 text-[14px] leading-[1.6]"
+                      style={{ color: 'var(--ink-2)' }}
+                    >
                       {post.excerpt}
                     </p>
+                    <div
+                      className="mt-5 flex items-center justify-between pt-4"
+                      style={{ borderTop: '1px solid var(--rule)' }}
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className="relative h-6 w-6 overflow-hidden rounded-full ring-1 ring-[var(--rule)]">
+                          <Image
+                            src={getAvatarUrl(post.author?.avatar, post.author?.name)}
+                            alt={post.author?.name || 'Reviewer'}
+                            fill
+                            className="object-cover"
+                            unoptimized
+                          />
+                        </div>
+                        <span
+                          className="text-[11px]"
+                          style={{
+                            color: 'var(--ink-2)',
+                            fontFamily: 'var(--mono)',
+                          }}
+                        >
+                          {post.author.name}
+                        </span>
+                      </div>
+                      <span
+                        className="inline-flex items-center gap-1 text-[11px]"
+                        style={{
+                          color: 'var(--ink-soft)',
+                          fontFamily: 'var(--mono)',
+                        }}
+                      >
+                        <TrendingUp className="h-3 w-3" />
+                        {post.views.toLocaleString()}
+                      </span>
+                    </div>
                   </div>
                 </Link>
               ))}
             </div>
-          )}
 
-          {/* Latest News Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
-            {filteredPosts.map((post) => (
-              <Link
-                key={post._id}
-                href={`/news/${post.slug}`}
-                className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200 flex flex-col h-full"
-              >
-                <div className="relative aspect-[16/9]">
-                  <Image
-                    src={getImageUrl(post.imageUrl)}
-                    alt={post.title}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-200"
-                    unoptimized
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      if (target.src !== '/placeholder.svg') {
-                        target.onerror = null;
-                        target.src = '/placeholder.svg';
-                      }
-                    }}
+            {filteredPosts.length === 0 && (
+              <div className="mt-16 flex flex-col items-center justify-center py-12 text-center">
+                <div
+                  className="mb-4 rounded-full p-6"
+                  style={{ background: 'var(--surface-2)' }}
+                >
+                  <Filter
+                    className="h-7 w-7"
+                    style={{ color: 'var(--ink-soft)' }}
                   />
                 </div>
-                <div className="p-4 sm:p-6 flex flex-col flex-grow">
-                  <div className="flex items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600 mb-2 sm:mb-4">
-                    <span className="flex items-center gap-1 sm:gap-2">
-                      <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
-                      {new Date(post.createdAt).toLocaleDateString()}
-                    </span>
-                    <span className="flex items-center gap-1 sm:gap-2">
-                      <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4" />
-                      {post.views} views
-                    </span>
-                  </div>
-                  <h3 className="text-base sm:text-xl font-semibold mb-2 group-hover:text-orange-600 transition-colors line-clamp-2">
-                    {post.title}
-                  </h3>
-                  <p className="text-xs sm:text-sm text-gray-600 line-clamp-2 mb-3 sm:mb-4">
-                    {post.excerpt}
-                  </p>
-                  <div className="flex items-center justify-between mt-auto">
-                    <div className="flex items-center gap-2">
-                      <div className="relative w-6 h-6 sm:w-8 sm:h-8 rounded-full overflow-hidden">
-                        <Image
-                          src={getAvatarUrl(post.author?.avatar, post.author?.name)}
-                          alt={post.author?.name || 'Author'}
-                          fill
-                          className="object-cover"
-                          unoptimized
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            const fallbackUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(post.author?.name || 'Author')}&background=6366f1&color=fff&bold=true`;
-                            if (!target.src.includes('ui-avatars.com')) {
-                              target.onerror = null;
-                              target.src = fallbackUrl;
-                            }
-                          }}
-                        />
-                      </div>
-                      <span className="text-xs sm:text-sm text-gray-600">{post.author.name}</span>
-                    </div>
-                    <span className="text-xs sm:text-sm text-orange-600 font-medium">
-                      {post.category}
-                    </span>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-          
-          {filteredPosts.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-12 sm:py-16 text-center">
-              <div className="bg-gray-100 rounded-full p-6 mb-4">
-                <Filter className="w-8 h-8 text-gray-400" />
+                <h3
+                  className="m-0 text-xl font-semibold"
+                  style={{ color: 'var(--ink)' }}
+                >
+                  No reviews here yet
+                </h3>
+                <p
+                  className="mt-2 max-w-md text-[14px]"
+                  style={{ color: 'var(--ink-2)' }}
+                >
+                  No reviews tagged &ldquo;{selectedCategory}&rdquo;. Try
+                  another category or jump back to all reviews.
+                </p>
+                <Button
+                  variant="outline"
+                  onClick={() => setSelectedCategory('All')}
+                  className="mt-6"
+                >
+                  View all reviews
+                </Button>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">No results found</h3>
-              <p className="text-gray-600 mb-6 max-w-md">
-                No articles found for "{selectedCategory}". Try selecting a different category.
-              </p>
-              <Button 
-                variant="outline"
-                onClick={() => setSelectedCategory('All')}
-              >
-                View all articles
-              </Button>
-            </div>
-          )}
-        </>
-      )}
-    </div>
+            )}
+          </>
+        )}
+      </div>
+    </main>
   );
 };
 
-export default LatestNews; 
+export default LatestNews;
