@@ -5,6 +5,7 @@ import { Plus } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import { NavAccount } from './NavAccount';
 import { NavMegaMenu, type MegaMenu } from './NavMegaMenu';
+import { MobileNav } from './MobileNav';
 
 // Mega-menu definitions. Each top-level item with `columns` shows a
 // dropdown panel on hover/focus/click. Items without a menu are
@@ -185,11 +186,10 @@ export function Nav() {
           </li>
         </ul>
 
-        {/* Right cluster. Submit pill is icon-only on <md, sized to
-         * match the ThemeToggle + NavAccount neighbours (40×40) so
-         * the three buttons form a visually coherent trio instead
-         * of the previous oversized red blob next to two small
-         * circles. 40px is still well within touch-target range. */}
+        {/* Right cluster. Mobile gets a hamburger that opens the
+         * same menu items the desktop nav shows (flattened into an
+         * accordion sheet); the desktop mega-menus stay hidden on
+         * <lg. Submit pill is icon-only on <md, text on md+. */}
         <div className="flex items-center gap-1.5">
           <ThemeToggle />
           <Link
@@ -207,6 +207,7 @@ export function Nav() {
             <span className="hidden md:inline">Submit your tool</span>
           </Link>
           <NavAccount />
+          <MobileNav menus={MENUS} />
         </div>
       </nav>
     </header>
