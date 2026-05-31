@@ -46,23 +46,17 @@ const GREET: Message = {
 };
 
 const LS_OPEN = 'ik-chat-open';
-const LS_MSGS = 'ik-chat-msgs';
 
 function readOpen(): boolean {
   if (typeof localStorage === 'undefined') return false;
   return localStorage.getItem(LS_OPEN) === '1';
 }
-function readMessages(): Message[] {
-  if (typeof localStorage === 'undefined') return [GREET];
-  try {
-    const raw = localStorage.getItem(LS_MSGS);
-    if (!raw) return [GREET];
-    const parsed = JSON.parse(raw) as Message[];
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : [GREET];
-  } catch {
-    return [GREET];
-  }
-}
+// Chat history is intentionally NOT persisted. A page refresh
+// resets the conversation back to the greeting — matches the
+// operator's expectation that the chat is a per-session helper,
+// not a long-running record. Open/closed FAB state still
+// persists via LS_OPEN so a user who reopens the panel mid-session
+// doesn't lose context.
 
 export function KeedaChat() {
   const pathname = usePathname();
@@ -75,11 +69,12 @@ export function KeedaChat() {
   const [mounted, setMounted] = useState(false);
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
-  // Hydrate from localStorage after mount (avoid SSR mismatch).
+  // Hydrate open/closed state from localStorage after mount (avoid
+  // SSR mismatch). Messages are NOT hydrated — each page load starts
+  // with the greeting, so a refresh wipes the conversation.
   useEffect(() => {
     setMounted(true);
     setOpen(readOpen());
-    setMessages(readMessages());
   }, []);
 
   // Persist open/closed.
@@ -92,15 +87,18 @@ export function KeedaChat() {
     }
   }, [open, mounted]);
 
-  // Persist messages.
+  // Messages are intentionally not persisted (see LS_OPEN comment
+  // block above). On mount, also clear any legacy persisted
+  // conversations from before this change so users with stale
+  // localStorage get the same per-session-only behaviour.
   useEffect(() => {
     if (!mounted) return;
     try {
-      localStorage.setItem(LS_MSGS, JSON.stringify(messages));
+      localStorage.removeItem('ik-chat-msgs');
     } catch {
       /* localStorage unavailable */
     }
-  }, [messages, mounted]);
+  }, [mounted]);
 
   // Auto-scroll on new message.
   useEffect(() => {
