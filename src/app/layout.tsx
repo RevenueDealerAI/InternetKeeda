@@ -10,16 +10,28 @@ import { Space_Grotesk, IBM_Plex_Mono, Instrument_Serif } from 'next/font/google
 const THEME_INIT_SCRIPT = `
 (function(){try{
   var saved=localStorage.getItem('ik-theme');
-  var mql=window.matchMedia('(prefers-color-scheme: dark)');
-  var theme=(saved==='dark'||saved==='light')?saved:(mql.matches?'dark':'light');
+  // Default is DARK for new visitors. Operator-locked: we no longer
+  // honor prefers-color-scheme on first load because the dark
+  // canvas is the brand-canonical look; OS-light users would
+  // otherwise land on a layout that doesn't match the marketing
+  // screenshots. A user who explicitly toggles still gets their
+  // choice persisted in localStorage.
+  var theme=(saved==='dark'||saved==='light')?saved:'dark';
   document.documentElement.setAttribute('data-theme',theme);
+  // Also drop the .dark class so Tailwind's dark: variant fires.
+  // tailwind.config.ts uses darkMode:['class']; this keeps the
+  // attribute (used by CSS variable selectors) AND the class
+  // (used by dark: utilities) in sync.
+  if(theme==='dark'){document.documentElement.classList.add('dark');}
+  else{document.documentElement.classList.remove('dark');}
   var bg=theme==='dark'?'#0a0a0c':'#f7f5f2';
   var ink=theme==='dark'?'#f4f3f0':'#0f0f12';
   document.documentElement.style.background=bg;
   document.documentElement.style.color=ink;
 }catch(e){
-  document.documentElement.setAttribute('data-theme','light');
-  document.documentElement.style.background='#f7f5f2';
+  document.documentElement.setAttribute('data-theme','dark');
+  document.documentElement.classList.add('dark');
+  document.documentElement.style.background='#0a0a0c';
 }})();
 `;
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -137,14 +149,20 @@ function ThemeAttributePersister() {
     const apply = () => {
       try {
         const saved = localStorage.getItem('ik-theme');
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        const theme =
-          saved === 'dark' || saved === 'light' ? saved : prefersDark ? 'dark' : 'light';
-        if (document.documentElement.getAttribute('data-theme') !== theme) {
-          document.documentElement.setAttribute('data-theme', theme);
+        // Mirrors THEME_INIT_SCRIPT — dark default, OS preference
+        // ignored. Keep both `data-theme` attr (drives CSS-variable
+        // selectors) and `.dark` class (drives Tailwind dark:
+        // utilities) in sync so nothing visually drifts.
+        const theme: 'dark' | 'light' =
+          saved === 'dark' || saved === 'light' ? saved : 'dark';
+        const root = document.documentElement;
+        if (root.getAttribute('data-theme') !== theme) {
+          root.setAttribute('data-theme', theme);
         }
+        root.classList.toggle('dark', theme === 'dark');
       } catch {
-        document.documentElement.setAttribute('data-theme', 'light');
+        document.documentElement.setAttribute('data-theme', 'dark');
+        document.documentElement.classList.add('dark');
       }
     };
     apply();

@@ -23,7 +23,12 @@ export function ThemeToggle() {
   const toggle = () => {
     const next: Mode = mode === 'dark' ? 'light' : 'dark';
     setMode(next);
-    document.documentElement.dataset.theme = next;
+    const root = document.documentElement;
+    root.dataset.theme = next;
+    // Keep the .dark class in sync so Tailwind dark: utilities
+    // flip with the toggle (the CSS-variable palette is driven by
+    // data-theme; Tailwind uses the class).
+    root.classList.toggle('dark', next === 'dark');
     try {
       localStorage.setItem('ik-theme', next);
     } catch {

@@ -527,7 +527,7 @@ export const AIToolDetail = () => {
                         </div>
                         <TabsContent value="about" className="mt-6">
                           <div className="prose prose-sm sm:prose-lg max-w-none">
-                            <div className="text-base sm:text-lg text-gray-600 leading-relaxed space-y-4">
+                            <div className="text-base sm:text-lg text-gray-600 dark:text-gray-300 leading-relaxed space-y-4">
                               {formatTextIntoParagraphs(tool.description).map((paragraph, index) => (
                                 <p key={index}>
                                   {paragraph.replace(/✅|✔️|✓|🌟|⭐|🔥|💡|🚀|⚡|🎉|✨|💰|🔒|📊|🎯|🌟|💻|📱|🌐|🛡️|⚙️|📈|🔑|📝|🎨|🏆|💪|🎁|🎊|🎭|🎮|🎯|🔥|💯|⭐|🌟|✨/g, '').trim()}
@@ -535,25 +535,25 @@ export const AIToolDetail = () => {
                               ))}
                             </div>
                             <div className="mt-6 sm:mt-8">
-                              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4">Key Benefits</h3>
+                              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Key Benefits</h3>
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 {tool.features.map((feature, index) => (
-                                  <div key={index} className="flex items-center gap-3 p-3 bg-purple-50 rounded-lg border border-purple-100">
-                                    <div className="p-1 rounded-full bg-purple-100">
-                                      <CheckCircle2 className="w-4 h-4 text-purple-600" />
+                                  <div key={index} className="flex items-center gap-3 p-3 bg-purple-50 dark:bg-purple-950/30 rounded-lg border border-purple-100 dark:border-purple-800/40">
+                                    <div className="p-1 rounded-full bg-purple-100 dark:bg-purple-900/50">
+                                      <CheckCircle2 className="w-4 h-4 text-purple-600 dark:text-purple-300" />
                                     </div>
-                                    <span className="font-medium text-gray-900">{feature.replace(/✅|✔️|✓/g, '').trim()}</span>
+                                    <span className="font-medium text-gray-900 dark:text-gray-100">{feature.replace(/✅|✔️|✓/g, '').trim()}</span>
                                   </div>
                                 ))}
                               </div>
                             </div>
                             <div className="mt-6 sm:mt-8">
-                              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4">Use Cases</h3>
+                              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Use Cases</h3>
                               <div className="flex flex-wrap gap-2">
                                 {tool.tags.map((tag, index) => (
-                                  <div key={index} className="flex items-center gap-2 px-3 py-2 bg-blue-50 rounded-full">
-                                    <Zap className="w-4 h-4 text-blue-600" />
-                                    <span className="font-medium text-gray-900 capitalize">{tag}</span>
+                                  <div key={index} className="flex items-center gap-2 px-3 py-2 bg-blue-50 dark:bg-blue-950/30 ring-1 ring-blue-200/50 dark:ring-blue-800/40 rounded-full">
+                                    <Zap className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                                    <span className="font-medium text-gray-900 dark:text-gray-100 capitalize">{tag}</span>
                                   </div>
                                 ))}
                               </div>
@@ -564,8 +564,8 @@ export const AIToolDetail = () => {
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {tool.features.map((feature, index) => (
                               <div key={index} className="flex items-center gap-3">
-                                <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500 flex-shrink-0" />
-                                <span className="text-sm sm:text-base text-gray-600">{feature.replace(/✅|✔️|✓/g, '').trim()}</span>
+                                <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500 dark:text-purple-300 flex-shrink-0" />
+                                <span className="text-sm sm:text-base text-gray-600 dark:text-gray-300">{feature.replace(/✅|✔️|✓/g, '').trim()}</span>
                               </div>
                             ))}
                           </div>
