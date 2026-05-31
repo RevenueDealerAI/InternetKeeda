@@ -141,27 +141,22 @@ export function Nav() {
         }}
         aria-label="Primary"
       >
-        {/* Brand. Logo size scales up at each breakpoint — the 200px
-         * desktop logo was eating ~60% of a 375px viewport and
-         * crowding the right cluster into overflow. */}
+        {/* Brand — animated GIF (transparent background, renders on
+         * both themes). The single img replaces the previous
+         * dark/light PNG pair. Logo grows at each breakpoint and is
+         * sized so the right cluster still has breathing room on a
+         * 375px viewport (logo 170 + gap 8 + cluster 124 = 302 vs
+         * ~307 available). */}
         <Link
           href="/"
           aria-label="Internet Keeda — home"
-          className="relative flex h-9 w-[140px] shrink-0 items-center sm:h-12 sm:w-[200px] md:h-14 md:w-[240px]"
+          className="relative flex h-11 w-[170px] shrink-0 items-center sm:h-14 sm:w-[240px] md:h-16 md:w-[280px]"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/branding/logo-light.png"
+            src="/branding/logo-animated.gif"
             alt="Internet Keeda"
-            className="ik-logo-light block h-full w-auto object-contain"
-            draggable={false}
-          />
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/branding/logo-dark.png"
-            alt=""
-            aria-hidden="true"
-            className="ik-logo-dark absolute left-0 top-1/2 hidden h-full w-auto -translate-y-1/2 object-contain"
+            className="block h-full w-auto object-contain"
             draggable={false}
           />
         </Link>

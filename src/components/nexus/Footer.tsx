@@ -57,21 +57,15 @@ export function Footer() {
         className="mx-auto grid max-w-[1320px] grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr_1fr]"
       >
         <div>
-          {/* Brand logo — image, theme-aware. Bigger per spec. */}
+          {/* Brand logo — animated GIF (transparent, renders on
+           * both themes). The single img replaces the previous
+           * dark/light PNG pair. */}
           <div className="relative h-20 w-[300px]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/branding/logo-light.png"
+              src="/branding/logo-animated.gif"
               alt={BRAND.name}
-              className="ik-logo-light block h-full w-auto object-contain"
-              draggable={false}
-            />
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/branding/logo-dark.png"
-              alt=""
-              aria-hidden="true"
-              className="ik-logo-dark absolute left-0 top-0 hidden h-full w-auto object-contain"
+              className="block h-full w-auto object-contain"
               draggable={false}
             />
           </div>
