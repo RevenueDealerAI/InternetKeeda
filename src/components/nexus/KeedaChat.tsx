@@ -362,7 +362,7 @@ export function KeedaChat() {
               className="mt-2 text-center text-[9px] uppercase tracking-[0.2em]"
               style={{ color: 'var(--ink-soft)', fontFamily: 'var(--mono)' }}
             >
-              powered by claude · {messages.length - 1} message{messages.length - 1 === 1 ? '' : 's'}
+              {messages.length - 1} message{messages.length - 1 === 1 ? '' : 's'}
             </div>
           </form>
         </div>

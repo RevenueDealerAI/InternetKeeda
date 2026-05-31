@@ -142,12 +142,13 @@ export function Nav() {
         }}
         aria-label="Primary"
       >
-        {/* Brand — animated GIF (transparent background, renders on
-         * both themes). The single img replaces the previous
-         * dark/light PNG pair. Logo grows at each breakpoint and is
-         * sized so the right cluster still has breathing room on a
-         * 375px viewport (logo 170 + gap 8 + cluster 124 = 302 vs
-         * ~307 available). */}
+        {/* Brand — theme-aware pair so the wordmark stays legible
+         * on both palettes. Light theme uses logo-light.png (black
+         * "Internet" wordmark, designed for light backgrounds);
+         * dark theme uses the animated GIF (white "Internet", on
+         * transparent bg, designed for dark backgrounds). CSS
+         * swaps visibility via the .ik-logo-light / .ik-logo-dark
+         * classes defined in src/index.css. */}
         <Link
           href="/"
           aria-label="Internet Keeda — home"
@@ -155,9 +156,17 @@ export function Nav() {
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/branding/logo-animated.gif"
+            src="/branding/logo-light.png"
             alt="Internet Keeda"
-            className="block h-full w-auto object-contain"
+            className="ik-logo-light block h-full w-auto object-contain"
+            draggable={false}
+          />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/branding/logo-animated.gif"
+            alt=""
+            aria-hidden="true"
+            className="ik-logo-dark absolute left-0 top-1/2 hidden h-full w-auto -translate-y-1/2 object-contain"
             draggable={false}
           />
         </Link>
