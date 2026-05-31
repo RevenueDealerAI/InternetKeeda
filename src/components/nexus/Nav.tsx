@@ -28,7 +28,7 @@ const MENU_LAUNCHES: MegaMenu = {
       links: [
         { label: 'Top products', href: '/top-products', description: 'Highest-rated tools across every category' },
         { label: 'Top categories', href: '/categories', description: 'Browse all curated categories' },
-        { label: 'AI news', href: '/latest-news', description: 'Releases, launches, big shifts' },
+        { label: 'AI reviews', href: '/latest-news', description: 'Tools we shipped with, reviewed by Internet Keeda' },
       ],
     },
   ],
@@ -101,15 +101,15 @@ const MENU_PRODUCTS: MegaMenu = {
   ],
 };
 
-const MENU_NEWS: MegaMenu = {
-  label: 'News',
+const MENU_REVIEWS: MegaMenu = {
+  label: 'Reviews',
   href: '/latest-news',
   columns: [
     {
-      title: 'AI news',
+      title: 'AI tool reviews',
       links: [
-        { label: 'Latest news', href: '/latest-news', description: 'This week in AI' },
-        { label: 'All news', href: '/news', description: 'Full archive' },
+        { label: 'Latest reviews', href: '/latest-news', description: 'Recent tool reviews by Internet Keeda' },
+        { label: 'All reviews', href: '/news', description: 'Full review archive' },
         { label: 'Blog', href: '/blog', description: 'Long-form writing from operators' },
       ],
     },
@@ -125,7 +125,7 @@ const MENU_NEWS: MegaMenu = {
   ],
 };
 
-const MENUS: MegaMenu[] = [MENU_LAUNCHES, MENU_CATEGORIES, MENU_PRODUCTS, MENU_NEWS];
+const MENUS: MegaMenu[] = [MENU_LAUNCHES, MENU_CATEGORIES, MENU_PRODUCTS, MENU_REVIEWS];
 
 export function Nav() {
   return (

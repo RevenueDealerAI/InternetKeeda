@@ -47,8 +47,8 @@ const SAMPLE_REVIEWS: NewsPost[] = [
     content: '',
     category: 'Chat models',
     imageUrl: '/branding/logo-dark-red-bg.png',
-    author: { name: 'Internet Keeda', avatar: '/branding/riley.jpg' },
-    source: 'InternetKeeda Reviews',
+    author: { name: 'Internet Keeda Editorial', avatar: '/branding/riley.jpg' },
+    source: 'Reviewed by Internet Keeda',
     sourceUrl: '/latest-news',
     views: 1247,
     shares: 0,
@@ -64,8 +64,8 @@ const SAMPLE_REVIEWS: NewsPost[] = [
     content: '',
     category: 'AI coding',
     imageUrl: '/branding/logo-dark-red-bg.png',
-    author: { name: 'Internet Keeda', avatar: '/branding/riley.jpg' },
-    source: 'InternetKeeda Reviews',
+    author: { name: 'Internet Keeda Editorial', avatar: '/branding/riley.jpg' },
+    source: 'Reviewed by Internet Keeda',
     sourceUrl: '/latest-news',
     views: 982,
     shares: 0,
@@ -81,8 +81,8 @@ const SAMPLE_REVIEWS: NewsPost[] = [
     content: '',
     category: 'Image generation',
     imageUrl: '/branding/logo-dark-red-bg.png',
-    author: { name: 'Internet Keeda', avatar: '/branding/riley.jpg' },
-    source: 'InternetKeeda Reviews',
+    author: { name: 'Internet Keeda Editorial', avatar: '/branding/riley.jpg' },
+    source: 'Reviewed by Internet Keeda',
     sourceUrl: '/latest-news',
     views: 854,
     shares: 0,
@@ -98,8 +98,8 @@ const SAMPLE_REVIEWS: NewsPost[] = [
     content: '',
     category: 'AI voice',
     imageUrl: '/branding/logo-dark-red-bg.png',
-    author: { name: 'Internet Keeda', avatar: '/branding/riley.jpg' },
-    source: 'InternetKeeda Reviews',
+    author: { name: 'Internet Keeda Editorial', avatar: '/branding/riley.jpg' },
+    source: 'Reviewed by Internet Keeda',
     sourceUrl: '/latest-news',
     views: 612,
     shares: 0,
@@ -115,8 +115,8 @@ const SAMPLE_REVIEWS: NewsPost[] = [
     content: '',
     category: 'AI search',
     imageUrl: '/branding/logo-dark-red-bg.png',
-    author: { name: 'Internet Keeda', avatar: '/branding/riley.jpg' },
-    source: 'InternetKeeda Reviews',
+    author: { name: 'Internet Keeda Editorial', avatar: '/branding/riley.jpg' },
+    source: 'Reviewed by Internet Keeda',
     sourceUrl: '/latest-news',
     views: 489,
     shares: 0,
@@ -132,8 +132,8 @@ const SAMPLE_REVIEWS: NewsPost[] = [
     content: '',
     category: 'Productivity',
     imageUrl: '/branding/logo-dark-red-bg.png',
-    author: { name: 'Internet Keeda', avatar: '/branding/riley.jpg' },
-    source: 'InternetKeeda Reviews',
+    author: { name: 'Internet Keeda Editorial', avatar: '/branding/riley.jpg' },
+    source: 'Reviewed by Internet Keeda',
     sourceUrl: '/latest-news',
     views: 376,
     shares: 0,
@@ -223,17 +223,18 @@ export const LatestNews = () => {
               color: 'var(--ink)',
             }}
           >
-            AI tool reviews,{' '}
+            AI tool reviews{' '}
             <span style={{ fontWeight: 600, color: 'var(--accent)' }}>
-              written by humans who shipped with them.
+              by Internet Keeda.
             </span>
           </h1>
           <p
             className="mx-auto mt-5 text-[15px] leading-[1.65]"
             style={{ color: 'var(--ink-2)', maxWidth: 640 }}
           >
-            Deep reviews of the AI tools we use in production. Real workflows,
-            real costs, real failure modes — no marketing reprints.
+            Independent reviews of the AI tools we ship with — real
+            workflows, real costs, real failure modes. Not affiliated
+            with the tool vendors; not marketing reprints.
           </p>
         </div>
 
