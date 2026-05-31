@@ -17,7 +17,6 @@ import { ToolLogo } from '@/components/nexus/ToolLogo';
 // of them is client-driven (data fetches, animations, IntersectionObserver).
 const TrendingTools = dynamic(() => import('@/components/nexus/TrendingTools').then(m => m.TrendingTools), { ssr: false });
 const AgentSection  = dynamic(() => import('@/components/nexus/AgentSection').then(m => m.AgentSection), { ssr: false });
-const Pricing       = dynamic(() => import('@/components/nexus/Pricing').then(m => m.Pricing), { ssr: false });
 const CtaCard       = dynamic(() => import('@/components/nexus/CtaCard').then(m => m.CtaCard), { ssr: false });
 const BottomCtaBar  = dynamic(() => import('@/components/nexus/BottomCtaBar').then(m => m.BottomCtaBar), { ssr: false });
 // Nav + Footer are mounted globally in NextRouterAdapter.
@@ -142,9 +141,9 @@ export default function Index() {
       <div className="ik-cv-auto">
         <AgentSection />
       </div>
-      <div className="ik-cv-auto">
-        <Pricing />
-      </div>
+      {/* Pricing moved to /dashboard so signed-in users see it
+       * post-onboarding. The home page now flows AgentSection →
+       * CtaCard without the pricing wall between them. */}
       <div className="ik-cv-auto">
         <CtaCard />
       </div>

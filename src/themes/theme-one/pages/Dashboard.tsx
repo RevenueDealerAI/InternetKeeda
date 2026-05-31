@@ -73,6 +73,7 @@ import { useUserPurchases, useUpdatePurchase, type Purchase } from '@/lib/api/pa
 import { getUserDisplayName } from '@/lib/utils';
 import AffiliatePage from '@/app/dashboard/affiliate/page';
 import { MyToolsTab } from '../components/MyToolsTab';
+import { Pricing } from '@/components/nexus/Pricing';
 
 // PurchasesTab Component
 function PurchasesTab({ userId }: { userId?: string }) {
@@ -1584,6 +1585,14 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </div>
+      </div>
+
+      {/* Pricing — moved off the public home page so visitors see the
+       * editorial flow first, and signed-in users land here on their
+       * dashboard where the price tiers are part of the upgrade
+       * decision. Same component, same design. */}
+      <div className="mt-16 -mx-4 sm:-mx-6">
+        <Pricing />
       </div>
     </div>
   );
