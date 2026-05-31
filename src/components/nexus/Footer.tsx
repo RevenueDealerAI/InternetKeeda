@@ -20,7 +20,7 @@ const COLS: { title: string; links: { label: string; href: string }[] }[] = [
       { label: 'Launches', href: '/latest-launches' },
       { label: 'Trending', href: '/trending' },
       { label: 'Top products', href: '/top-products' },
-      { label: 'AI tool reviews', href: '/latest-news' },
+      { label: 'AI tool reviews', href: '/reviews' },
     ],
   },
   {

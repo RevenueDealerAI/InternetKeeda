@@ -65,6 +65,24 @@ const nextConfig = {
         destination: '/recently-added',
         permanent: true,
       },
+      // News → Reviews rebrand. The page contract is identical;
+      // only the URL slug moved. 308 permanent so search engines
+      // re-index against the new canonical paths.
+      {
+        source: '/latest-news',
+        destination: '/reviews',
+        permanent: true,
+      },
+      {
+        source: '/news',
+        destination: '/reviews',
+        permanent: true,
+      },
+      {
+        source: '/news/:slug',
+        destination: '/reviews/:slug',
+        permanent: true,
+      },
     ];
   },
 };

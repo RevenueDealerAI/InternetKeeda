@@ -49,7 +49,7 @@ const SAMPLE_REVIEWS: NewsPost[] = [
     imageUrl: '/branding/logo-dark-red-bg.png',
     author: { name: 'Internet Keeda Editorial', avatar: '/branding/riley.jpg' },
     source: 'Reviewed by Internet Keeda',
-    sourceUrl: '/latest-news',
+    sourceUrl: '/reviews',
     views: 1247,
     shares: 0,
     createdAt: '2026-05-30T08:00:00.000Z',
@@ -66,7 +66,7 @@ const SAMPLE_REVIEWS: NewsPost[] = [
     imageUrl: '/branding/logo-dark-red-bg.png',
     author: { name: 'Internet Keeda Editorial', avatar: '/branding/riley.jpg' },
     source: 'Reviewed by Internet Keeda',
-    sourceUrl: '/latest-news',
+    sourceUrl: '/reviews',
     views: 982,
     shares: 0,
     createdAt: '2026-05-28T08:00:00.000Z',
@@ -83,7 +83,7 @@ const SAMPLE_REVIEWS: NewsPost[] = [
     imageUrl: '/branding/logo-dark-red-bg.png',
     author: { name: 'Internet Keeda Editorial', avatar: '/branding/riley.jpg' },
     source: 'Reviewed by Internet Keeda',
-    sourceUrl: '/latest-news',
+    sourceUrl: '/reviews',
     views: 854,
     shares: 0,
     createdAt: '2026-05-25T08:00:00.000Z',
@@ -100,7 +100,7 @@ const SAMPLE_REVIEWS: NewsPost[] = [
     imageUrl: '/branding/logo-dark-red-bg.png',
     author: { name: 'Internet Keeda Editorial', avatar: '/branding/riley.jpg' },
     source: 'Reviewed by Internet Keeda',
-    sourceUrl: '/latest-news',
+    sourceUrl: '/reviews',
     views: 612,
     shares: 0,
     createdAt: '2026-05-22T08:00:00.000Z',
@@ -117,7 +117,7 @@ const SAMPLE_REVIEWS: NewsPost[] = [
     imageUrl: '/branding/logo-dark-red-bg.png',
     author: { name: 'Internet Keeda Editorial', avatar: '/branding/riley.jpg' },
     source: 'Reviewed by Internet Keeda',
-    sourceUrl: '/latest-news',
+    sourceUrl: '/reviews',
     views: 489,
     shares: 0,
     createdAt: '2026-05-20T08:00:00.000Z',
@@ -134,7 +134,7 @@ const SAMPLE_REVIEWS: NewsPost[] = [
     imageUrl: '/branding/logo-dark-red-bg.png',
     author: { name: 'Internet Keeda Editorial', avatar: '/branding/riley.jpg' },
     source: 'Reviewed by Internet Keeda',
-    sourceUrl: '/latest-news',
+    sourceUrl: '/reviews',
     views: 376,
     shares: 0,
     createdAt: '2026-05-18T08:00:00.000Z',
@@ -290,7 +290,7 @@ export const LatestNews = () => {
                 {trendingPosts.map((post) => (
                   <Link
                     key={post._id}
-                    href={`/news/${post.slug}`}
+                    href={`/reviews/${post.slug}`}
                     className="group relative aspect-[16/9] overflow-hidden rounded-2xl"
                     style={{
                       background: 'var(--bg-2)',
@@ -361,7 +361,7 @@ export const LatestNews = () => {
               {filteredPosts.map((post) => (
                 <Link
                   key={post._id}
-                  href={`/news/${post.slug}`}
+                  href={`/reviews/${post.slug}`}
                   className="group flex h-full flex-col overflow-hidden rounded-xl transition-transform hover:-translate-y-1"
                   style={{
                     background: 'var(--bg-2)',

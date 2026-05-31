@@ -28,7 +28,7 @@ const MENU_LAUNCHES: MegaMenu = {
       links: [
         { label: 'Top products', href: '/top-products', description: 'Highest-rated tools across every category' },
         { label: 'Top categories', href: '/categories', description: 'Browse all curated categories' },
-        { label: 'AI reviews', href: '/latest-news', description: 'Tools we shipped with, reviewed by Internet Keeda' },
+        { label: 'AI reviews', href: '/reviews', description: 'Tools we shipped with, reviewed by Internet Keeda' },
       ],
     },
   ],
@@ -103,13 +103,13 @@ const MENU_PRODUCTS: MegaMenu = {
 
 const MENU_REVIEWS: MegaMenu = {
   label: 'Reviews',
-  href: '/latest-news',
+  href: '/reviews',
   columns: [
     {
       title: 'AI tool reviews',
       links: [
-        { label: 'Latest reviews', href: '/latest-news', description: 'Recent tool reviews by Internet Keeda' },
-        { label: 'All reviews', href: '/news', description: 'Full review archive' },
+        { label: 'Latest reviews', href: '/reviews', description: 'Recent tool reviews by Internet Keeda' },
+        { label: 'All reviews', href: '/reviews', description: 'Full review archive' },
         { label: 'Blog', href: '/blog', description: 'Long-form writing from operators' },
       ],
     },
