@@ -132,55 +132,152 @@ export function NewsDetail() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto py-8 mt-[85px]">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-3/4 mb-4"></div>
-          <div className="h-4 bg-gray-200 rounded w-1/2 mb-12"></div>
-          <div className="h-96 bg-gray-200 rounded mb-8"></div>
+      <main
+        className="min-h-screen"
+        style={{ background: 'var(--bg)', color: 'var(--ink)' }}
+      >
+        <div className="container mx-auto px-4 pt-[140px] pb-16 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-4xl animate-pulse space-y-4">
+            <div
+              className="h-4 w-32 rounded"
+              style={{ background: 'var(--surface-2)' }}
+            />
+            <div
+              className="h-10 w-3/4 rounded"
+              style={{ background: 'var(--surface-2)' }}
+            />
+            <div
+              className="h-4 w-1/2 rounded"
+              style={{ background: 'var(--surface-2)' }}
+            />
+            <div
+              className="h-96 rounded-2xl"
+              style={{ background: 'var(--surface-2)' }}
+            />
+          </div>
         </div>
-      </div>
+      </main>
     );
   }
 
   if (!post) {
     return (
-      <div className="container mx-auto py-8 mt-[85px]">
-        <h1 className="text-2xl font-bold mb-4">News post not found</h1>
-        <Link href="/latest-news" className="text-blue-600 hover:underline">
-          Back to News
-        </Link>
-      </div>
+      <main
+        className="min-h-screen"
+        style={{ background: 'var(--bg)', color: 'var(--ink)' }}
+      >
+        <div className="container mx-auto px-4 pt-[140px] pb-16 text-center sm:px-6 lg:px-8">
+          <div
+            className="text-[11px] uppercase tracking-[0.3em]"
+            style={{ color: 'var(--accent)', fontFamily: 'var(--mono)' }}
+          >
+            § 404 — review not found
+          </div>
+          <h1
+            className="m-0 mt-4 text-3xl font-semibold"
+            style={{ color: 'var(--ink)', letterSpacing: '-0.02em' }}
+          >
+            We couldn&apos;t find that review
+          </h1>
+          <p
+            className="mx-auto mt-4 max-w-md text-[15px]"
+            style={{ color: 'var(--ink-2)' }}
+          >
+            It may have been moved, renamed, or never published. Browse the
+            current reviews instead.
+          </p>
+          <Link
+            href="/reviews"
+            className="mt-8 inline-flex items-center gap-2 rounded-full px-5 py-3 text-[12px] uppercase tracking-[0.16em]"
+            style={{
+              background: 'var(--accent)',
+              color: 'var(--on-accent)',
+              fontFamily: 'var(--mono)',
+              fontWeight: 600,
+            }}
+          >
+            All reviews
+          </Link>
+        </div>
+      </main>
     );
   }
 
   return (
     <>
       <Helmet>
-        <title>{post.title} - Internet Keeda News</title>
+        <title>{post.title} · Internet Keeda Reviews</title>
         <meta name="description" content={post.excerpt} />
         <meta property="og:title" content={post.title} />
         <meta property="og:description" content={post.excerpt} />
-        <meta property="og:image" content={post.imageUrl} />
+        {post.imageUrl && <meta property="og:image" content={post.imageUrl} />}
       </Helmet>
 
-      <div className="min-h-screen bg-gray-50">
-        <div className="container mx-auto py-12 mt-[120px] px-4 sm:px-6 lg:px-8">
-          <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-sm p-8">
+      <main
+        className="min-h-screen"
+        style={{ background: 'var(--bg)', color: 'var(--ink)' }}
+      >
+        <div className="container mx-auto px-4 pt-[140px] pb-16 sm:px-6 lg:px-8">
+          <article
+            className="mx-auto max-w-4xl rounded-2xl p-6 sm:p-10"
+            style={{
+              background: 'var(--bg-2)',
+              border: '1px solid var(--rule)',
+              boxShadow: 'var(--shadow-sm)',
+            }}
+          >
             {/* Breadcrumb */}
-            <nav className="mb-8 text-sm">
-              <Link href="/latest-news" className="text-blue-600 hover:underline">
-                News
+            <nav
+              className="mb-8 text-[11px] uppercase tracking-[0.22em]"
+              style={{ fontFamily: 'var(--mono)', color: 'var(--ink-soft)' }}
+            >
+              <Link
+                href="/reviews"
+                style={{ color: 'var(--accent)' }}
+                className="hover:underline"
+              >
+                Reviews
               </Link>
-              <span className="mx-2 text-gray-400">/</span>
-              <span className="text-gray-600">{post.title}</span>
+              <span className="mx-2" style={{ color: 'var(--ink-dim)' }}>
+                /
+              </span>
+              <span
+                style={{ color: 'var(--ink-2)', textTransform: 'none', letterSpacing: 0 }}
+              >
+                {post.title}
+              </span>
             </nav>
 
             {/* Header */}
-            <header className="mb-12">
-              <h1 className="text-4xl font-bold mb-6 text-gray-900 leading-tight">{post.title}</h1>
-              <div className="flex flex-wrap items-center gap-6 text-gray-600">
+            <header className="mb-10">
+              <div
+                className="text-[11px] uppercase tracking-[0.3em]"
+                style={{ color: 'var(--accent)', fontFamily: 'var(--mono)' }}
+              >
+                § review — {post.category}
+              </div>
+              <h1
+                className="m-0 mt-3"
+                style={{
+                  color: 'var(--ink)',
+                  fontFamily: 'var(--sans)',
+                  fontSize: 'clamp(28px, 4.2vw, 44px)',
+                  fontWeight: 600,
+                  lineHeight: 1.12,
+                  letterSpacing: '-0.025em',
+                }}
+              >
+                {post.title}
+              </h1>
+              <div
+                className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3"
+                style={{ color: 'var(--ink-2)' }}
+              >
                 <div className="flex items-center gap-2">
-                  <div className="relative w-8 h-8 rounded-full overflow-hidden border-2 border-white shadow-sm">
+                  <div
+                    className="relative h-8 w-8 overflow-hidden rounded-full"
+                    style={{ border: '1px solid var(--rule)' }}
+                  >
                     <Image
                       src={post.author.avatar}
                       alt={post.author.name}
@@ -189,72 +286,155 @@ export function NewsDetail() {
                       unoptimized
                     />
                   </div>
-                  <span className="font-medium">{post.author.name}</span>
+                  <span
+                    className="text-[13px]"
+                    style={{ fontFamily: 'var(--mono)' }}
+                  >
+                    {post.author.name}
+                  </span>
                 </div>
-                <time className="text-gray-500">{format(new Date(post.createdAt), 'MMM d, yyyy')}</time>
-                <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-200">{post.category}</Badge>
+                <time
+                  className="text-[12px]"
+                  style={{
+                    color: 'var(--ink-soft)',
+                    fontFamily: 'var(--mono)',
+                  }}
+                >
+                  {format(new Date(post.createdAt), 'MMM d, yyyy')}
+                </time>
+                <Badge
+                  className="border-0 px-3 py-1 text-[10px] uppercase tracking-[0.22em]"
+                  style={{
+                    background: 'var(--accent-soft)',
+                    color: 'var(--accent)',
+                    fontFamily: 'var(--mono)',
+                  }}
+                >
+                  {post.category}
+                </Badge>
               </div>
             </header>
 
             {/* Featured Image */}
-            <div className="relative aspect-[16/9] mb-12 rounded-xl overflow-hidden shadow-lg">
-              <Image
-                src={post.imageUrl}
-                alt={post.title}
-                fill
-                className="object-cover hover:scale-105 transition-transform duration-300"
-                unoptimized
-              />
-            </div>
+            {post.imageUrl && (
+              <div
+                className="relative aspect-[16/9] mb-12 overflow-hidden rounded-xl"
+                style={{ border: '1px solid var(--rule)' }}
+              >
+                <Image
+                  src={post.imageUrl}
+                  alt={post.title}
+                  fill
+                  className="object-cover transition-transform duration-300 hover:scale-105"
+                  unoptimized
+                />
+              </div>
+            )}
 
             {/* Content */}
-            <div className="prose prose-lg max-w-none mb-12 prose-headings:text-gray-900 prose-p:text-gray-700 prose-a:text-blue-600">
+            <div
+              className="prose prose-base sm:prose-lg max-w-none mb-12
+                prose-headings:font-semibold prose-headings:tracking-tight
+                prose-h2:mt-10 prose-h2:mb-3 prose-h3:mt-8 prose-h3:mb-2
+                prose-p:leading-relaxed prose-li:leading-relaxed
+                prose-a:no-underline hover:prose-a:underline
+                prose-blockquote:border-l-2 prose-blockquote:not-italic
+                prose-blockquote:px-5 prose-blockquote:py-2
+                prose-blockquote:rounded-r-md prose-blockquote:my-6"
+              style={{
+                ['--tw-prose-body' as string]: 'var(--ink-2)',
+                ['--tw-prose-headings' as string]: 'var(--ink)',
+                ['--tw-prose-lead' as string]: 'var(--ink-2)',
+                ['--tw-prose-links' as string]: 'var(--accent)',
+                ['--tw-prose-bold' as string]: 'var(--ink)',
+                ['--tw-prose-counters' as string]: 'var(--ink-soft)',
+                ['--tw-prose-bullets' as string]: 'var(--ink-soft)',
+                ['--tw-prose-hr' as string]: 'var(--rule)',
+                ['--tw-prose-quotes' as string]: 'var(--ink)',
+                ['--tw-prose-quote-borders' as string]: 'var(--accent)',
+                ['--tw-prose-captions' as string]: 'var(--ink-soft)',
+                ['--tw-prose-code' as string]: 'var(--ink)',
+                ['--tw-prose-pre-code' as string]: 'var(--ink)',
+                ['--tw-prose-pre-bg' as string]: 'var(--surface-2)',
+                ['--tw-prose-th-borders' as string]: 'var(--rule)',
+                ['--tw-prose-td-borders' as string]: 'var(--rule)',
+              } as React.CSSProperties}
+            >
               <TipTapViewer content={post.content} />
             </div>
 
             {/* Tags */}
-            <div className="flex flex-wrap gap-2 mb-12">
-              {post.tags.map((tag) => (
-                <Badge
-                  key={tag}
-                  variant="secondary"
-                  className="px-4 py-1 bg-gray-100 text-gray-700 hover:bg-gray-200"
-                >
-                  {tag}
-                </Badge>
-              ))}
-            </div>
+            {post.tags && post.tags.length > 0 && (
+              <div className="mb-10 flex flex-wrap gap-2">
+                {post.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="rounded-full px-3 py-1 text-[11px]"
+                    style={{
+                      background: 'var(--surface)',
+                      color: 'var(--ink-2)',
+                      border: '1px solid var(--rule)',
+                      fontFamily: 'var(--mono)',
+                      letterSpacing: '0.04em',
+                    }}
+                  >
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+            )}
 
             {/* Source and Stats */}
-            <div className="flex items-center justify-between border-t pt-6">
+            <div
+              className="flex flex-wrap items-center justify-between gap-4 pt-6"
+              style={{ borderTop: '1px solid var(--rule)' }}
+            >
               <a
                 href={post.sourceUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-600 hover:underline flex items-center gap-2"
+                className="flex items-center gap-2 text-[12px]"
+                style={{
+                  color: 'var(--accent)',
+                  fontFamily: 'var(--mono)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.16em',
+                }}
               >
-                <span className="text-gray-600">Source:</span>
-                <span className="font-medium">{post.source}</span>
+                <span style={{ color: 'var(--ink-soft)' }}>Source:</span>
+                <span style={{ fontWeight: 600 }}>{post.source}</span>
               </a>
-              <div className="flex items-center gap-6">
-                <span className="flex items-center gap-2 text-gray-600">
-                  <Eye className="h-5 w-5" />
-                  <span className="font-medium">{post.views}</span>
+              <div
+                className="flex items-center gap-6"
+                style={{
+                  color: 'var(--ink-soft)',
+                  fontFamily: 'var(--mono)',
+                  fontSize: 12,
+                }}
+              >
+                <span className="flex items-center gap-1.5">
+                  <Eye className="h-4 w-4" />
+                  {post.views.toLocaleString()}
                 </span>
                 <Button
                   variant="outline"
                   size="sm"
-                  className="flex items-center gap-2 hover:bg-gray-100"
                   onClick={handleShare}
+                  className="gap-1.5"
+                  style={{
+                    background: 'transparent',
+                    color: 'var(--ink-2)',
+                    border: '1px solid var(--rule)',
+                  }}
                 >
-                  <Share2 className="h-4 w-4" />
-                  <span className="font-medium">{post.shares}</span>
+                  <Share2 className="h-3.5 w-3.5" />
+                  <span>{post.shares.toLocaleString()}</span>
                 </Button>
               </div>
             </div>
-          </div>
+          </article>
         </div>
-      </div>
+      </main>
     </>
   );
 } 

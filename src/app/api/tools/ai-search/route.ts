@@ -70,8 +70,6 @@ You help users find AI tools AND navigate the site. Three kinds of requests:
 - /news                      Full news archive
 - /blog                      Long-form posts
 - /guides                    How-to guides
-- /events                    AI events calendar
-- /discussions               Community discussions
 - /faq                       Frequently asked questions
 - /advertise                 For tool creators — sponsored placement explainer (NOT the price page)
 - /submit-tool               Submit a new tool to the index (requires sign-in). Pair with /#pricing when answering "how do I list my tool".

@@ -63,8 +63,6 @@ const STATIC_PAGES: Array<Omit<SitemapUrl, 'loc' | 'lastmod'> & { url: string }>
   // Brand / info.
   { url: '/about', priority: '0.5', changefreq: 'monthly' },
   { url: '/faq', priority: '0.5', changefreq: 'monthly' },
-  { url: '/discussions', priority: '0.4', changefreq: 'weekly' },
-  { url: '/events', priority: '0.4', changefreq: 'weekly' },
 
   // Legal — low priority, change rarely.
   { url: '/terms', priority: '0.3', changefreq: 'yearly' },

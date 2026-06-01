@@ -117,8 +117,6 @@ const MENU_REVIEWS: MegaMenu = {
       title: 'Community',
       links: [
         { label: 'Guides', href: '/guides' },
-        { label: 'Events', href: '/events' },
-        { label: 'Discussions', href: '/discussions' },
         { label: 'FAQ', href: '/faq' },
       ],
     },
