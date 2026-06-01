@@ -1,20 +1,13 @@
-'use client';
+import type { Metadata } from 'next';
+import CategoriesPageClient from './ClientView';
 
-import { useTheme } from '@/themes/ThemeContext';
-import ThemeOneCategories from '@/themes/theme-one/pages/categories';
-import ThemeTwoCategories from '@/themes/theme-two/pages/categories';
-import { THEMES, DEFAULT_THEME } from '@/themes/theme-config';
+export const metadata: Metadata = {
+  title: 'AI tool categories',
+  description: 'Browse 678+ categories of AI tools — find tools for writing, design, code, audio, video, research and more.',
+  alternates: { canonical: '/categories' },
+  openGraph: { url: '/categories', title: 'AI tool categories', description: 'Browse 678+ categories of AI tools — find tools for writing, design, code, audio, video, research and more.' },
+};
 
 export default function CategoriesPage() {
-  const { currentTheme } = useTheme();
-
-  const safeTheme = currentTheme && currentTheme.path ? currentTheme : THEMES.find(t => t.id === DEFAULT_THEME) || THEMES[0];
-  const shouldShowThemeOne = safeTheme.id === 'theme-one';
-
-  if (shouldShowThemeOne) {
-    return <ThemeOneCategories />;
-  }
-
-  return <ThemeTwoCategories />;
+  return <CategoriesPageClient />;
 }
-

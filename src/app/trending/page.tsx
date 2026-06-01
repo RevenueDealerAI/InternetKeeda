@@ -1,20 +1,13 @@
-'use client';
+import type { Metadata } from 'next';
+import TrendingPageClient from './ClientView';
 
-import { useTheme } from '@/themes/ThemeContext';
-import ThemeOneTrendingPage from '@/themes/theme-one/pages/trending';
-import ThemeTwoTrendingPage from '@/themes/theme-two/pages/trending';
-import { THEMES, DEFAULT_THEME } from '@/themes/theme-config';
+export const metadata: Metadata = {
+  title: 'Trending AI tools',
+  description: 'AI tools rising on Internet Keeda — ranked by votes, views, and editorial picks.',
+  alternates: { canonical: '/trending' },
+  openGraph: { url: '/trending', title: 'Trending AI tools', description: 'AI tools rising on Internet Keeda — ranked by votes, views, and editorial picks.' },
+};
 
 export default function TrendingPage() {
-  const { currentTheme } = useTheme();
-
-  const safeTheme = currentTheme && currentTheme.path ? currentTheme : THEMES.find(t => t.id === DEFAULT_THEME) || THEMES[0];
-  const shouldShowThemeOne = safeTheme.id === 'theme-one';
-
-  if (shouldShowThemeOne) {
-    return <ThemeOneTrendingPage />;
-  }
-
-  return <ThemeTwoTrendingPage />;
+  return <TrendingPageClient />;
 }
-

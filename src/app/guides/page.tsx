@@ -1,20 +1,13 @@
-'use client';
+import type { Metadata } from 'next';
+import GuidesPageClient from './ClientView';
 
-import { useTheme } from '@/themes/ThemeContext';
-import ThemeOneGuidesPage from '@/themes/theme-one/pages/guides';
-import ThemeTwoGuidesPage from '@/themes/theme-two/pages/guides';
-import { THEMES, DEFAULT_THEME } from '@/themes/theme-config';
+export const metadata: Metadata = {
+  title: 'AI guides',
+  description: 'Practical guides for getting the most out of AI tools, written for operators who ship.',
+  alternates: { canonical: '/guides' },
+  openGraph: { url: '/guides', title: 'AI guides', description: 'Practical guides for getting the most out of AI tools, written for operators who ship.' },
+};
 
 export default function GuidesPage() {
-  const { currentTheme } = useTheme();
-
-  const safeTheme = currentTheme && currentTheme.path ? currentTheme : THEMES.find(t => t.id === DEFAULT_THEME) || THEMES[0];
-  const shouldShowThemeOne = safeTheme.id === 'theme-one';
-
-  if (shouldShowThemeOne) {
-    return <ThemeOneGuidesPage />;
-  }
-
-  return <ThemeTwoGuidesPage />;
+  return <GuidesPageClient />;
 }
-

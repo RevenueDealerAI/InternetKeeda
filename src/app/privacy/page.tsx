@@ -1,4 +1,11 @@
-'use client';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Privacy policy',
+  description: 'How Internet Keeda collects, uses, and protects your data. DPDP + GDPR + CCPA compliant.',
+  alternates: { canonical: '/privacy' },
+  openGraph: { url: '/privacy', title: 'Privacy policy', description: 'How Internet Keeda collects, uses, and protects your data. DPDP + GDPR + CCPA compliant.' },
+};
 
 import { LegalPage } from '@/components/nexus/LegalPage';
 import { LegalEntityBlock } from '@/components/nexus/LegalEntityBlock';
@@ -10,7 +17,7 @@ const LAST_UPDATED = '2026-05-30';
 export default function PrivacyPage() {
   return (
     <LegalPage
-      eyebrow="§ legal — privacy"
+      eyebrow="Â§ legal â€” privacy"
       title="Privacy policy"
       lastUpdated={LAST_UPDATED}
       intro={
@@ -42,7 +49,7 @@ export default function PrivacyPage() {
                 <a href={`mailto:${BRAND.corpEmail}`} style={{ color: 'var(--accent)' }}>
                   {BRAND.corpEmail}
                 </a>{' '}
-                — kept as an email channel because DPDP / GDPR rights
+                â€” kept as an email channel because DPDP / GDPR rights
                 exercise expects regulator-grade written correspondence.
                 Day-to-day product and support contact goes through
                 WhatsApp (see Contact below).
@@ -66,7 +73,7 @@ export default function PrivacyPage() {
               </li>
               <li>
                 <strong>Payment data</strong>: handled by Cashfree (INR) and
-                PayPal (USD). We never see or store full card numbers — we
+                PayPal (USD). We never see or store full card numbers â€” we
                 receive a payment id, status, and the amount/currency.
               </li>
               <li>
@@ -83,7 +90,7 @@ export default function PrivacyPage() {
             <p className="m-0">
               Service delivery (showing the directory, processing payments,
               activating boosts), billing and tax records, fraud and abuse
-              prevention, product analytics, and — only if you opt in —
+              prevention, product analytics, and â€” only if you opt in â€”
               marketing email. You can opt out of marketing email at any
               time via the unsubscribe link in the message or by asking us
               on WhatsApp (see Contact below).
@@ -113,13 +120,13 @@ export default function PrivacyPage() {
                 each operating under our control:
               </p>
               <ul className="mt-3 list-disc pl-5">
-                <li><strong>Clerk</strong> — authentication & session.</li>
-                <li><strong>MongoDB Atlas</strong> — primary database.</li>
-                <li><strong>Cashfree</strong> — INR payment processing.</li>
-                <li><strong>PayPal</strong> — USD payment processing.</li>
-                <li><strong>Cloudinary</strong> — image hosting (logos, screenshots).</li>
-                <li><strong>Vercel</strong> — application hosting & CDN.</li>
-                <li><strong>PostHog</strong> — product analytics.</li>
+                <li><strong>Clerk</strong> â€” authentication & session.</li>
+                <li><strong>MongoDB Atlas</strong> â€” primary database.</li>
+                <li><strong>Cashfree</strong> â€” INR payment processing.</li>
+                <li><strong>PayPal</strong> â€” USD payment processing.</li>
+                <li><strong>Cloudinary</strong> â€” image hosting (logos, screenshots).</li>
+                <li><strong>Vercel</strong> â€” application hosting & CDN.</li>
+                <li><strong>PostHog</strong> â€” product analytics.</li>
               </ul>
               <p className="mt-3">
                 We do not sell personal data. We do not share data with

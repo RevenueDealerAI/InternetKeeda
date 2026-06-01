@@ -1,23 +1,25 @@
-'use client';
+import type { Metadata } from 'next';
+import { BRAND } from '@/lib/brand';
+import SoftwareDetailClient from './ClientView';
 
-import { use } from 'react';
-import { useTheme } from '@/themes/ThemeContext';
-import ThemeOneSoftwarePageDetail from '@/themes/theme-one/pages/software/[slug]';
-import ThemeTwoSoftwarePageDetail from '@/themes/theme-two/pages/software/[slug]';
-import { THEMES, DEFAULT_THEME } from '@/themes/theme-config';
-import { ParamsProvider } from '@/app/ParamsProvider';
-
-export default function SoftwareDetailPage({ params }: { params: Promise<{ slug: string }> }) {
-  const resolvedParams = use(params);
-  const { currentTheme } = useTheme();
-
-  const safeTheme = currentTheme && currentTheme.path ? currentTheme : THEMES.find(t => t.id === DEFAULT_THEME) || THEMES[0];
-  const shouldShowThemeOne = safeTheme.id === 'theme-one';
-
-  return (
-    <ParamsProvider params={resolvedParams}>
-      {shouldShowThemeOne ? <ThemeOneSoftwarePageDetail /> : <ThemeTwoSoftwarePageDetail />}
-    </ParamsProvider>
-  );
+interface RouteParams {
+  params: Promise<{ slug: string }>;
 }
 
+export async function generateMetadata({ params }: RouteParams): Promise<Metadata> {
+  const { slug } = await params;
+  const title = `${slug} — software on ${BRAND.name}`;
+  const description = BRAND.defaultMetaDescription;
+  return {
+    title,
+    description,
+    alternates: { canonical: `/software/${slug}` },
+    openGraph: { url: `/software/${slug}`, title, description, type: 'website' },
+    twitter: { card: 'summary_large_image', title, description },
+  };
+}
+
+export default async function SoftwareDetailPage({ params }: RouteParams) {
+  const { slug } = await params;
+  return <SoftwareDetailClient slug={slug} />;
+}

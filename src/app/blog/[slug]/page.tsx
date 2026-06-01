@@ -1,34 +1,40 @@
-'use client';
+import type { Metadata } from 'next';
+import { connectDB } from '@/app/api/lib/db';
+import { BlogPost } from '@/app/api/models/BlogPost';
+import { BRAND } from '@/lib/brand';
+import BlogPostClient from './ClientView';
 
-import { use } from 'react';
-import { useTheme } from '@/themes/ThemeContext';
-import { THEMES, DEFAULT_THEME } from '@/themes/theme-config';
-import ThemeOneBlogPost from '@/themes/theme-one/pages/BlogPost';
-import ThemeTwoBlogPost from '@/themes/theme-two/pages/BlogPost';
-import { ParamsProvider } from '@/app/ParamsProvider';
-
-export default function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
-  const resolvedParams = use(params);
-  const { currentTheme, isLoading } = useTheme();
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  const safeTheme = currentTheme && currentTheme.path ? currentTheme : THEMES.find(t => t.id === DEFAULT_THEME) || THEMES[0];
-  const shouldShowThemeOne = safeTheme.id === 'theme-one';
-
-  return (
-    <ParamsProvider params={resolvedParams}>
-      {shouldShowThemeOne ? <ThemeOneBlogPost /> : <ThemeTwoBlogPost />}
-    </ParamsProvider>
-  );
+interface RouteParams {
+  params: Promise<{ slug: string }>;
 }
 
+export async function generateMetadata({ params }: RouteParams): Promise<Metadata> {
+  const { slug } = await params;
+  let title: string = `Blog post — ${BRAND.name}`;
+  let description: string = BRAND.defaultMetaDescription;
+  try {
+    await connectDB();
+    const post = await BlogPost.findOne({ slug, status: 'published' })
+      .select('title excerpt')
+      .lean();
+    if (post) {
+      title = `${post.title} — ${BRAND.name}`;
+      const raw = (post.excerpt || '').replace(/\s+/g, ' ');
+      description = raw.length > 160 ? `${raw.slice(0, 157)}…` : raw || description;
+    }
+  } catch (e) {
+    console.warn('[blog/[slug]] generateMetadata DB error:', e);
+  }
+  return {
+    title,
+    description,
+    alternates: { canonical: `/blog/${slug}` },
+    openGraph: { url: `/blog/${slug}`, title, description, type: 'article' },
+    twitter: { card: 'summary_large_image', title, description },
+  };
+}
+
+export default async function BlogPostPage({ params }: RouteParams) {
+  const { slug } = await params;
+  return <BlogPostClient slug={slug} />;
+}

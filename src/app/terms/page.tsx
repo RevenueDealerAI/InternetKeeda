@@ -1,4 +1,11 @@
-'use client';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Terms & conditions',
+  description: 'Terms governing use of Internet Keeda, the AI tools directory.',
+  alternates: { canonical: '/terms' },
+  openGraph: { url: '/terms', title: 'Terms & conditions', description: 'Terms governing use of Internet Keeda, the AI tools directory.' },
+};
 
 import { LegalPage } from '@/components/nexus/LegalPage';
 import { LegalEntityBlock } from '@/components/nexus/LegalEntityBlock';
@@ -10,13 +17,13 @@ const LAST_UPDATED = '2026-05-30';
 export default function TermsPage() {
   return (
     <LegalPage
-      eyebrow="§ legal — terms"
+      eyebrow="Â§ legal â€” terms"
       title="Terms & conditions"
       lastUpdated={LAST_UPDATED}
       intro={
         <p className="m-0">
           These terms govern your use of {BRAND.name} ({BRAND.domain}). The
-          merchant of record depends on the currency of your transaction —
+          merchant of record depends on the currency of your transaction â€”
           INR charges settle with{' '}
           <strong>{LEGAL_ENTITIES.inr.name}</strong> via Cashfree; USD charges
           settle with <strong>{LEGAL_ENTITIES.usd.name}</strong> via PayPal.
@@ -30,7 +37,7 @@ export default function TermsPage() {
           heading: 'About InternetKeeda',
           body: (
             <p className="m-0">
-              {BRAND.name} is a directory of AI tools — we let creators submit
+              {BRAND.name} is a directory of AI tools â€” we let creators submit
               tools, let visitors discover them, and let creators pay for
               higher placement. We do not own, host, or operate the tools
               listed in the directory; we describe them.
@@ -58,8 +65,8 @@ export default function TermsPage() {
               When you submit a tool you affirm that you have the IP rights
               or usage rights necessary to publish the tool&apos;s name,
               description, logo, and screenshots on {BRAND.name}. We reserve
-              the right to reject or remove any listing — with or without
-              notice — for any reason, including violations of this section,
+              the right to reject or remove any listing â€” with or without
+              notice â€” for any reason, including violations of this section,
               quality concerns, or fit with the catalog.
             </p>
           ),
@@ -114,8 +121,8 @@ export default function TermsPage() {
           heading: 'Intellectual property',
           body: (
             <p className="m-0">
-              {BRAND.name} content — site copy, taxonomy, editorial picks,
-              design — is owned by the operating entities listed above.
+              {BRAND.name} content â€” site copy, taxonomy, editorial picks,
+              design â€” is owned by the operating entities listed above.
               Tool-specific content you submit (name, description, logo,
               screenshots) remains yours; by submitting it you grant{' '}
               {BRAND.name} a non-exclusive, worldwide, royalty-free license

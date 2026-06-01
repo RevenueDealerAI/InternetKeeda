@@ -1,29 +1,13 @@
-'use client';
+import type { Metadata } from 'next';
+import BestAIMeetingToolsPageClient from './ClientView';
 
-import { Suspense } from 'react';
-import { useTheme } from '@/themes/ThemeContext';
-import BestAIMeetingTools from '@/themes/theme-one/pages/best-ai-meeting-tools';
-import ThemeTwoBestAIMeetingTools from '@/themes/theme-two/pages/best-ai-meeting-tools';
-import { THEMES, DEFAULT_THEME } from '@/themes/theme-config';
-
-function BestAIMeetingToolsContent() {
-  const { currentTheme } = useTheme();
-
-  const safeTheme = currentTheme && currentTheme.path ? currentTheme : THEMES.find(t => t.id === DEFAULT_THEME) || THEMES[0];
-  const shouldShowThemeOne = safeTheme.id === 'theme-one';
-
-  if (shouldShowThemeOne) {
-    return <BestAIMeetingTools />;
-  }
-
-  return <ThemeTwoBestAIMeetingTools />;
-}
+export const metadata: Metadata = {
+  title: 'Best AI meeting tools',
+  description: 'Best AI meeting tools — hand-picked, ranked, and reviewed by Internet Keeda.',
+  alternates: { canonical: '/best-ai-meeting-tools' },
+  openGraph: { url: '/best-ai-meeting-tools', title: 'Best AI meeting tools', description: 'Best AI meeting tools — hand-picked, ranked, and reviewed by Internet Keeda.' },
+};
 
 export default function BestAIMeetingToolsPage() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <BestAIMeetingToolsContent />
-    </Suspense>
-  );
+  return <BestAIMeetingToolsPageClient />;
 }
-

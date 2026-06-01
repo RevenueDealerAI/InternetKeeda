@@ -1,20 +1,13 @@
-'use client';
+import type { Metadata } from 'next';
+import DiscussionsPageClient from './ClientView';
 
-import { useTheme } from '@/themes/ThemeContext';
-import { Discussions as ThemeOneDiscussions } from '@/themes/theme-one/pages/discussions';
-import { Discussions as ThemeTwoDiscussions } from '@/themes/theme-two/pages/discussions';
-import { THEMES, DEFAULT_THEME } from '@/themes/theme-config';
+export const metadata: Metadata = {
+  title: 'Community discussions',
+  description: 'Conversations about AI tools, workflows, and the indie stack.',
+  alternates: { canonical: '/discussions' },
+  openGraph: { url: '/discussions', title: 'Community discussions', description: 'Conversations about AI tools, workflows, and the indie stack.' },
+};
 
 export default function DiscussionsPage() {
-  const { currentTheme } = useTheme();
-
-  const safeTheme = currentTheme && currentTheme.path ? currentTheme : THEMES.find(t => t.id === DEFAULT_THEME) || THEMES[0];
-  const shouldShowThemeOne = safeTheme.id === 'theme-one';
-
-  if (shouldShowThemeOne) {
-    return <ThemeOneDiscussions />;
-  }
-
-  return <ThemeTwoDiscussions />;
+  return <DiscussionsPageClient />;
 }
-

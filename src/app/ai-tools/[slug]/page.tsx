@@ -1,34 +1,58 @@
-'use client';
+import type { Metadata } from 'next';
+import { connectDB } from '@/app/api/lib/db';
+import { Tool } from '@/app/api/models/Tool';
+import { BRAND } from '@/lib/brand';
+import AIToolDetailClient from './ClientView';
 
-import { use } from 'react';
-import { useTheme } from '@/themes/ThemeContext';
-import { THEMES, DEFAULT_THEME } from '@/themes/theme-config';
-import { AIToolDetail } from '@/themes/theme-one/pages/AIToolDetail';
-import { AIToolDetail as ThemeTwoAIToolDetail } from '@/themes/theme-two/pages/AIToolDetail';
-import { ParamsProvider } from '@/app/ParamsProvider';
-
-export default function AIToolDetailPage({ params }: { params: Promise<{ slug: string }> }) {
-  const resolvedParams = use(params);
-  const { currentTheme, isLoading } = useTheme();
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  const safeTheme = currentTheme && currentTheme.path ? currentTheme : THEMES.find(t => t.id === DEFAULT_THEME) || THEMES[0];
-  const shouldShowThemeOne = safeTheme.id === 'theme-one';
-
-  return (
-    <ParamsProvider params={resolvedParams}>
-      {shouldShowThemeOne ? <AIToolDetail /> : <ThemeTwoAIToolDetail />}
-    </ParamsProvider>
-  );
+interface RouteParams {
+  params: Promise<{ slug: string }>;
 }
 
+/**
+ * Per-tool metadata + canonical URL. Reads the tool name/description
+ * from Mongo at request time so each tool detail page emits a unique
+ * <title>, <meta description>, and self-referencing canonical
+ * pointing at /ai-tools/<slug>. Gracefully degrades to a generic
+ * title if the slug doesn't resolve — Next still renders the page
+ * (the client view fetches its own data and shows a 404 inline if
+ * the API returns nothing).
+ */
+export async function generateMetadata({ params }: RouteParams): Promise<Metadata> {
+  const { slug } = await params;
+  let title: string = `AI tool · ${BRAND.name}`;
+  let description: string = BRAND.defaultMetaDescription;
+  try {
+    await connectDB();
+    const tool = await Tool.findOne({
+      slug,
+      deletedAt: null,
+      status: { $in: ['published', 'approved'] },
+    })
+      .select('name description description_ai category')
+      .lean();
+    if (tool) {
+      title = `${tool.name} — ${tool.category} on ${BRAND.name}`;
+      const rawDesc = (tool.description_ai || tool.description || '').replace(
+        /\s+/g,
+        ' ',
+      );
+      description = rawDesc.length > 160 ? `${rawDesc.slice(0, 157)}…` : rawDesc;
+    }
+  } catch (e) {
+    // Don't let a metadata DB blip 500 the route — the page itself
+    // will render and re-attempt the fetch client-side.
+    console.warn('[ai-tools/[slug]] generateMetadata DB error:', e);
+  }
+  return {
+    title,
+    description,
+    alternates: { canonical: `/ai-tools/${slug}` },
+    openGraph: { url: `/ai-tools/${slug}`, title, description, type: 'article' },
+    twitter: { card: 'summary_large_image', title, description },
+  };
+}
+
+export default async function AIToolDetailPage({ params }: RouteParams) {
+  const { slug } = await params;
+  return <AIToolDetailClient slug={slug} />;
+}

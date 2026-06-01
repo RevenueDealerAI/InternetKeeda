@@ -1,4 +1,11 @@
-'use client';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Pricing',
+  description: 'Monthly listing + boost pricing for AI tools on Internet Keeda. USD anchored, INR via Cashfree.',
+  alternates: { canonical: '/pricing' },
+  openGraph: { url: '/pricing', title: 'Pricing', description: 'Monthly listing + boost pricing for AI tools on Internet Keeda. USD anchored, INR via Cashfree.' },
+};
 
 import { LegalPage } from '@/components/nexus/LegalPage';
 import { LegalEntityBlock } from '@/components/nexus/LegalEntityBlock';
@@ -11,30 +18,30 @@ const LAST_UPDATED = '2026-05-30';
 // drift away from what the checkout actually charges.
 const MONTHLY_LISTING = {
   usd: '$10',
-  inr: '₹830',
+  inr: 'â‚¹830',
   cadence: 'per month, recurring',
 };
 
 const BOOST_TIERS = [
   {
-    name: 'Boost · Category Top',
+    name: 'Boost Â· Category Top',
     duration: '7 days',
     usd: '$12',
-    inr: '₹999',
+    inr: 'â‚¹999',
     blurb: 'Pins your tool to the #1 spot in its category page.',
   },
   {
-    name: 'Boost · Home Rotation',
+    name: 'Boost Â· Home Rotation',
     duration: '7 days',
     usd: '$30',
-    inr: '₹2,499',
+    inr: 'â‚¹2,499',
     blurb: 'Places your tool in the home-page featured rotation.',
   },
   {
     name: 'Featured Badge',
     duration: '30 days',
     usd: '$60',
-    inr: '₹4,999',
+    inr: 'â‚¹4,999',
     blurb: 'Adds a red Featured badge on every surface your tool appears.',
   },
 ];
@@ -42,7 +49,7 @@ const BOOST_TIERS = [
 export default function PricingPage() {
   return (
     <LegalPage
-      eyebrow="§ pricing"
+      eyebrow="Â§ pricing"
       title="Pricing"
       lastUpdated={LAST_UPDATED}
       intro={

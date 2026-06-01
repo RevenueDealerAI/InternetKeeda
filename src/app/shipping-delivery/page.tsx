@@ -1,4 +1,11 @@
-'use client';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Shipping & delivery',
+  description: 'Digital-service delivery policy for Internet Keeda boost activation and subscriptions.',
+  alternates: { canonical: '/shipping-delivery' },
+  openGraph: { url: '/shipping-delivery', title: 'Shipping & delivery', description: 'Digital-service delivery policy for Internet Keeda boost activation and subscriptions.' },
+};
 
 import { LegalPage } from '@/components/nexus/LegalPage';
 import { LegalEntityBlock } from '@/components/nexus/LegalEntityBlock';
@@ -10,14 +17,14 @@ const LAST_UPDATED = '2026-05-30';
 export default function ShippingDeliveryPage() {
   return (
     <LegalPage
-      eyebrow="§ legal — shipping & delivery"
+      eyebrow="Â§ legal â€” shipping & delivery"
       title="Shipping & delivery"
       lastUpdated={LAST_UPDATED}
       intro={
         <p className="m-0">
           {BRAND.name} is a digital service. This page exists because
           Cashfree, Razorpay, and similar gateways require a published
-          delivery policy as part of merchant onboarding — even for products
+          delivery policy as part of merchant onboarding â€” even for products
           that are never physically shipped.
         </p>
       }
@@ -53,8 +60,8 @@ export default function ShippingDeliveryPage() {
           heading: 'Activation delays',
           body: (
             <p className="m-0">
-              In rare cases — payment-gateway webhook delays or queue
-              backlogs — activation may take up to 24 hours. If you do not
+              In rare cases â€” payment-gateway webhook delays or queue
+              backlogs â€” activation may take up to 24 hours. If you do not
               see your boost or subscription activated within 24 hours,
               reach us on WhatsApp with the transaction reference and we
               will reconcile manually.

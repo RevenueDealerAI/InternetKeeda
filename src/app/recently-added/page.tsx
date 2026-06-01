@@ -1,20 +1,13 @@
-'use client';
+import type { Metadata } from 'next';
+import UpcomingPageClient from './ClientView';
 
-import { useTheme } from '@/themes/ThemeContext';
-import { Upcoming as ThemeOneUpcoming } from '@/themes/theme-one/pages/upcoming';
-import { Upcoming as ThemeTwoUpcoming } from '@/themes/theme-two/pages/upcoming';
-import { THEMES, DEFAULT_THEME } from '@/themes/theme-config';
+export const metadata: Metadata = {
+  title: 'Recently added AI tools',
+  description: 'The newest submissions to Internet Keeda — added in the last 30 days.',
+  alternates: { canonical: '/recently-added' },
+  openGraph: { url: '/recently-added', title: 'Recently added AI tools', description: 'The newest submissions to Internet Keeda — added in the last 30 days.' },
+};
 
 export default function UpcomingPage() {
-  const { currentTheme } = useTheme();
-
-  const safeTheme = currentTheme && currentTheme.path ? currentTheme : THEMES.find(t => t.id === DEFAULT_THEME) || THEMES[0];
-  const shouldShowThemeOne = safeTheme.id === 'theme-one';
-
-  if (shouldShowThemeOne) {
-    return <ThemeOneUpcoming />;
-  }
-
-  return <ThemeTwoUpcoming />;
+  return <UpcomingPageClient />;
 }
-

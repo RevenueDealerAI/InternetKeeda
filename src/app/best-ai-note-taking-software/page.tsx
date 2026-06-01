@@ -1,29 +1,13 @@
-'use client';
+import type { Metadata } from 'next';
+import BestAINoteTakingSoftwarePageClient from './ClientView';
 
-import { Suspense } from 'react';
-import { useTheme } from '@/themes/ThemeContext';
-import BestAINoteTrackingSoftware from '@/themes/theme-one/pages/best-ai-note-taking-software';
-import ThemeTwoBestAINoteTrackingSoftware from '@/themes/theme-two/pages/best-ai-note-taking-software';
-import { THEMES, DEFAULT_THEME } from '@/themes/theme-config';
-
-function BestAINoteTakingSoftwareContent() {
-  const { currentTheme } = useTheme();
-
-  const safeTheme = currentTheme && currentTheme.path ? currentTheme : THEMES.find(t => t.id === DEFAULT_THEME) || THEMES[0];
-  const shouldShowThemeOne = safeTheme.id === 'theme-one';
-
-  if (shouldShowThemeOne) {
-    return <BestAINoteTrackingSoftware />;
-  }
-
-  return <ThemeTwoBestAINoteTrackingSoftware />;
-}
+export const metadata: Metadata = {
+  title: 'Best AI note-taking software',
+  description: 'Best AI note-taking software — hand-picked, ranked, and reviewed by Internet Keeda.',
+  alternates: { canonical: '/best-ai-note-taking-software' },
+  openGraph: { url: '/best-ai-note-taking-software', title: 'Best AI note-taking software', description: 'Best AI note-taking software — hand-picked, ranked, and reviewed by Internet Keeda.' },
+};
 
 export default function BestAINoteTakingSoftwarePage() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <BestAINoteTakingSoftwareContent />
-    </Suspense>
-  );
+  return <BestAINoteTakingSoftwarePageClient />;
 }
-

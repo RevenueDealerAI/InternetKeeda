@@ -1,20 +1,13 @@
-'use client';
+import type { Metadata } from 'next';
+import LatestLaunchesPageClient from './ClientView';
 
-import { useTheme } from '@/themes/ThemeContext';
-import { LatestLaunches as ThemeOneLatestLaunches } from '@/themes/theme-one/pages/latest-launches';
-import { LatestLaunches as ThemeTwoLatestLaunches } from '@/themes/theme-two/pages/latest-launches';
-import { THEMES, DEFAULT_THEME } from '@/themes/theme-config';
+export const metadata: Metadata = {
+  title: 'Latest AI tool launches',
+  description: 'New AI tools that shipped this week — fresh launches indexed daily.',
+  alternates: { canonical: '/latest-launches' },
+  openGraph: { url: '/latest-launches', title: 'Latest AI tool launches', description: 'New AI tools that shipped this week — fresh launches indexed daily.' },
+};
 
 export default function LatestLaunchesPage() {
-  const { currentTheme } = useTheme();
-
-  const safeTheme = currentTheme && currentTheme.path ? currentTheme : THEMES.find(t => t.id === DEFAULT_THEME) || THEMES[0];
-  const shouldShowThemeOne = safeTheme.id === 'theme-one';
-
-  if (shouldShowThemeOne) {
-    return <ThemeOneLatestLaunches />;
-  }
-
-  return <ThemeTwoLatestLaunches />;
+  return <LatestLaunchesPageClient />;
 }
-

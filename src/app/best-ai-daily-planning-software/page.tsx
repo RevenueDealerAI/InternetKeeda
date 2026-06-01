@@ -1,29 +1,13 @@
-'use client';
+import type { Metadata } from 'next';
+import BestAIDailyPlanningSoftwarePageClient from './ClientView';
 
-import { Suspense } from 'react';
-import { useTheme } from '@/themes/ThemeContext';
-import BestAIDailyPlanningSoftware from '@/themes/theme-one/pages/best-ai-daily-planning-software';
-import ThemeTwoBestAIDailyPlanningSoftware from '@/themes/theme-two/pages/best-ai-daily-planning-software';
-import { THEMES, DEFAULT_THEME } from '@/themes/theme-config';
-
-function BestAIDailyPlanningSoftwareContent() {
-  const { currentTheme } = useTheme();
-
-  const safeTheme = currentTheme && currentTheme.path ? currentTheme : THEMES.find(t => t.id === DEFAULT_THEME) || THEMES[0];
-  const shouldShowThemeOne = safeTheme.id === 'theme-one';
-
-  if (shouldShowThemeOne) {
-    return <BestAIDailyPlanningSoftware />;
-  }
-
-  return <ThemeTwoBestAIDailyPlanningSoftware />;
-}
+export const metadata: Metadata = {
+  title: 'Best AI daily planning software',
+  description: 'Best AI daily planning software — hand-picked, ranked, and reviewed by Internet Keeda.',
+  alternates: { canonical: '/best-ai-daily-planning-software' },
+  openGraph: { url: '/best-ai-daily-planning-software', title: 'Best AI daily planning software', description: 'Best AI daily planning software — hand-picked, ranked, and reviewed by Internet Keeda.' },
+};
 
 export default function BestAIDailyPlanningSoftwarePage() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <BestAIDailyPlanningSoftwareContent />
-    </Suspense>
-  );
+  return <BestAIDailyPlanningSoftwarePageClient />;
 }
-

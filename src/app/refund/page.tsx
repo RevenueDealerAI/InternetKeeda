@@ -1,4 +1,11 @@
-'use client';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Refund & cancellation policy',
+  description: 'Refund and subscription cancellation rules for Internet Keeda.',
+  alternates: { canonical: '/refund' },
+  openGraph: { url: '/refund', title: 'Refund & cancellation policy', description: 'Refund and subscription cancellation rules for Internet Keeda.' },
+};
 
 import { LegalPage } from '@/components/nexus/LegalPage';
 import { LegalEntityBlock } from '@/components/nexus/LegalEntityBlock';
@@ -10,13 +17,13 @@ const LAST_UPDATED = '2026-05-30';
 export default function RefundPage() {
   return (
     <LegalPage
-      eyebrow="§ legal — refund"
+      eyebrow="Â§ legal â€” refund"
       title="Refund & cancellation policy"
       lastUpdated={LAST_UPDATED}
       intro={
         <p className="m-0">
-          All payments to {BRAND.name} — including one-time boost payments
-          and recurring subscription fees — are <strong>generally
+          All payments to {BRAND.name} â€” including one-time boost payments
+          and recurring subscription fees â€” are <strong>generally
           non-refundable</strong>. Once a boost is activated or a
           subscription period begins, the corresponding service has been
           delivered.
@@ -29,8 +36,8 @@ export default function RefundPage() {
           body: (
             <>
               <p className="m-0">
-                In specific cases — duplicate charges, proven service failure
-                on our side, or unauthorized transactions — we may at our
+                In specific cases â€” duplicate charges, proven service failure
+                on our side, or unauthorized transactions â€” we may at our
                 sole discretion issue a full or partial refund. Requests must
                 be submitted within 7 days of the transaction, with the
                 transaction reference and reason. We respond within 5

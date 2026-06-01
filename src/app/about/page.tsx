@@ -1,4 +1,11 @@
-'use client';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'About Internet Keeda',
+  description: 'Hand-curated AI tools directory operated by Revenue Dealer MarTech and Viom Global.',
+  alternates: { canonical: '/about' },
+  openGraph: { url: '/about', title: 'About Internet Keeda', description: 'Hand-curated AI tools directory operated by Revenue Dealer MarTech and Viom Global.' },
+};
 
 import { LegalPage } from '@/components/nexus/LegalPage';
 import { LegalEntityBlock } from '@/components/nexus/LegalEntityBlock';
@@ -8,13 +15,13 @@ import { BRAND } from '@/lib/brand';
 export default function AboutPage() {
   return (
     <LegalPage
-      eyebrow="§ company — about"
+      eyebrow="Â§ company â€” about"
       title="About Internet Keeda"
       lastUpdated="29 May 2026"
       intro={
         <>
           <p className="m-0">
-            {BRAND.name} is a hand-curated directory of AI tools — 5,000+ tools across writing,
+            {BRAND.name} is a hand-curated directory of AI tools â€” 5,000+ tools across writing,
             design, code, audio, video and research. It is opinionated by design. We rank by use,
             not by ad spend.
           </p>
@@ -45,17 +52,17 @@ export default function AboutPage() {
           heading: 'What we do',
           body: (
             <ul className="m-0 list-disc pl-5">
-              <li>Maintain the directory — vet submissions, kill dead links, refresh metadata.</li>
+              <li>Maintain the directory â€” vet submissions, kill dead links, refresh metadata.</li>
               <li>
-                Run AI Keeda (the agent named Eli) — a conversational way to route across the
+                Run AI Keeda (the agent named Eli) â€” a conversational way to route across the
                 index and get a usable stack back, with citations.
               </li>
               <li>
-                Publish editorial picks — Top Products, Trending, AI News — based on usage signal
+                Publish editorial picks â€” Top Products, Trending, AI News â€” based on usage signal
                 and human review.
               </li>
               <li>
-                Operate the paid tiers — Monthly Listing ($10), Boost Category ($12/7d), Boost
+                Operate the paid tiers â€” Monthly Listing ($10), Boost Category ($12/7d), Boost
                 Home ($30/7d), Featured Badge ($60/30d).
               </li>
             </ul>
@@ -95,7 +102,7 @@ export default function AboutPage() {
           body: (
             <>
               <p className="m-0">
-                {BRAND.name} ·{' '}
+                {BRAND.name} Â·{' '}
                 <a href="https://internetkeeda.com" style={{ color: 'var(--accent)' }}>
                   {BRAND.domain}
                 </a>

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { SubmitToolForm } from "./SubmitToolForm";
@@ -9,6 +10,19 @@ import { SubmitToolForm } from "./SubmitToolForm";
  * with a redirect_url so they land back here after signing in.
  */
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Submit your AI tool",
+  description:
+    "Add your AI tool to the Internet Keeda directory. Free submission; review takes ~24 hours.",
+  alternates: { canonical: "/submit-tool" },
+  openGraph: {
+    url: "/submit-tool",
+    title: "Submit your AI tool — Internet Keeda",
+    description:
+      "Add your AI tool to the Internet Keeda directory. Free submission; review takes ~24 hours.",
+  },
+};
 
 export default async function SubmitToolPage() {
   const { userId } = await auth();

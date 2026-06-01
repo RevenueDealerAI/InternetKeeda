@@ -1,51 +1,40 @@
-'use client';
+import type { Metadata } from 'next';
+import { connectDB } from '@/app/api/lib/db';
+import { NewsPost } from '@/app/api/models/NewsPost';
+import { BRAND } from '@/lib/brand';
+import ReviewDetailClient from './ClientView';
 
-import { use } from 'react';
-import { useTheme } from '@/themes/ThemeContext';
-import { THEMES, DEFAULT_THEME } from '@/themes/theme-config';
-import { NewsDetail } from '@/themes/theme-one/pages/news/[slug]';
-import { NewsDetail as ThemeTwoNewsDetail } from '@/themes/theme-two/pages/news/[slug]';
-import { ParamsProvider } from '@/app/ParamsProvider';
-
-// Canonical review-detail route. /news/:slug 308-redirects here
-// via next.config.js. The detail component is still NewsDetail
-// (under themes/*/pages/news/[slug]) — internal naming preserved
-// since the Mongo model is still called NewsPost, only the
-// public URL changed.
-export default function ReviewDetailPage({
-  params,
-}: {
+interface RouteParams {
   params: Promise<{ slug: string }>;
-}) {
-  const resolvedParams = use(params);
-  const { currentTheme, isLoading } = useTheme();
+}
 
-  if (isLoading) {
-    return (
-      <div
-        className="flex items-center justify-center min-h-screen"
-        style={{ background: 'var(--bg)', color: 'var(--ink)' }}
-      >
-        <div className="text-center">
-          <div
-            className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto mb-4"
-            style={{ borderColor: 'var(--accent)' }}
-          />
-          <p style={{ color: 'var(--ink-soft)' }}>Loading…</p>
-        </div>
-      </div>
-    );
+export async function generateMetadata({ params }: RouteParams): Promise<Metadata> {
+  const { slug } = await params;
+  let title: string = `Review — ${BRAND.name}`;
+  let description: string = BRAND.defaultMetaDescription;
+  try {
+    await connectDB();
+    const post = await NewsPost.findOne({ slug, status: 'published' })
+      .select('title excerpt')
+      .lean();
+    if (post) {
+      title = `${post.title} — Reviewed by ${BRAND.name}`;
+      const raw = (post.excerpt || '').replace(/\s+/g, ' ');
+      description = raw.length > 160 ? `${raw.slice(0, 157)}…` : raw || description;
+    }
+  } catch (e) {
+    console.warn('[reviews/[slug]] generateMetadata DB error:', e);
   }
+  return {
+    title,
+    description,
+    alternates: { canonical: `/reviews/${slug}` },
+    openGraph: { url: `/reviews/${slug}`, title, description, type: 'article' },
+    twitter: { card: 'summary_large_image', title, description },
+  };
+}
 
-  const safeTheme =
-    currentTheme && currentTheme.path
-      ? currentTheme
-      : THEMES.find((t) => t.id === DEFAULT_THEME) || THEMES[0];
-  const shouldShowThemeOne = safeTheme.id === 'theme-one';
-
-  return (
-    <ParamsProvider params={resolvedParams}>
-      {shouldShowThemeOne ? <NewsDetail /> : <ThemeTwoNewsDetail />}
-    </ParamsProvider>
-  );
+export default async function ReviewDetailPage({ params }: RouteParams) {
+  const { slug } = await params;
+  return <ReviewDetailClient slug={slug} />;
 }

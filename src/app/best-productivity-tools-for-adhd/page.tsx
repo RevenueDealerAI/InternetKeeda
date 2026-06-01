@@ -1,29 +1,13 @@
-'use client';
+import type { Metadata } from 'next';
+import BestProductivityToolsForADHDPageClient from './ClientView';
 
-import { Suspense } from 'react';
-import { useTheme } from '@/themes/ThemeContext';
-import BestProductivityToolsForADHD from '@/themes/theme-one/pages/best-productivity-tools-for-adhd';
-import ThemeTwoBestProductivityToolsForADHD from '@/themes/theme-two/pages/best-productivity-tools-for-adhd';
-import { THEMES, DEFAULT_THEME } from '@/themes/theme-config';
-
-function BestProductivityToolsForADHDContent() {
-  const { currentTheme } = useTheme();
-
-  const safeTheme = currentTheme && currentTheme.path ? currentTheme : THEMES.find(t => t.id === DEFAULT_THEME) || THEMES[0];
-  const shouldShowThemeOne = safeTheme.id === 'theme-one';
-
-  if (shouldShowThemeOne) {
-    return <BestProductivityToolsForADHD />;
-  }
-
-  return <ThemeTwoBestProductivityToolsForADHD />;
-}
+export const metadata: Metadata = {
+  title: 'Best productivity tools for ADHD',
+  description: 'Best productivity tools for ADHD — hand-picked, ranked, and reviewed by Internet Keeda.',
+  alternates: { canonical: '/best-productivity-tools-for-adhd' },
+  openGraph: { url: '/best-productivity-tools-for-adhd', title: 'Best productivity tools for ADHD', description: 'Best productivity tools for ADHD — hand-picked, ranked, and reviewed by Internet Keeda.' },
+};
 
 export default function BestProductivityToolsForADHDPage() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <BestProductivityToolsForADHDContent />
-    </Suspense>
-  );
+  return <BestProductivityToolsForADHDPageClient />;
 }
-

@@ -1,20 +1,13 @@
-'use client';
+import type { Metadata } from 'next';
+import BlogPageClient from './ClientView';
 
-import { useTheme } from '@/themes/ThemeContext';
-import { Blog as ThemeOneBlog } from '@/themes/theme-one/pages/blog';
-import { Blog as ThemeTwoBlog } from '@/themes/theme-two/pages/blog';
-import { THEMES, DEFAULT_THEME } from '@/themes/theme-config';
+export const metadata: Metadata = {
+  title: 'Blog — long-form on AI',
+  description: 'Long-form writing on AI tools, workflows, and the indie operator stack.',
+  alternates: { canonical: '/blog' },
+  openGraph: { url: '/blog', title: 'Blog — long-form on AI', description: 'Long-form writing on AI tools, workflows, and the indie operator stack.' },
+};
 
 export default function BlogPage() {
-  const { currentTheme } = useTheme();
-
-  const safeTheme = currentTheme && currentTheme.path ? currentTheme : THEMES.find(t => t.id === DEFAULT_THEME) || THEMES[0];
-  const shouldShowThemeOne = safeTheme.id === 'theme-one';
-
-  if (shouldShowThemeOne) {
-    return <ThemeOneBlog />;
-  }
-
-  return <ThemeTwoBlog />;
+  return <BlogPageClient />;
 }
-
