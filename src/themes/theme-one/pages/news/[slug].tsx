@@ -12,6 +12,8 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { useAuth } from '@clerk/clerk-react';
 import dynamic from 'next/dynamic';
+import { getSampleReview } from '@/data/sample-reviews';
+import SampleReviewLayout from '@/themes/theme-one/components/SampleReviewLayout';
 
 // TipTap is ~150 KB gzipped. Dynamic-import so it only ships to
 // readers of /news/[slug] and doesn't get co-bundled into the
@@ -70,12 +72,16 @@ export function NewsDetail() {
   }
   
   const slug = rawSlug ? decodeURIComponent(rawSlug) : undefined;
+  // Hand-written sample reviews short-circuit the API fetch and
+  // render a dedicated, fully-formatted layout. Lets /reviews/[slug]
+  // resolve for sample-* slugs before the DB ever has real posts.
+  const sample = slug ? getSampleReview(slug) : undefined;
   const [post, setPost] = useState<NewsPost | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { getToken } = useAuth();
 
   useEffect(() => {
-    if (!slug) {
+    if (!slug || sample) {
       setIsLoading(false);
       return;
     }
@@ -107,7 +113,13 @@ export function NewsDetail() {
     };
 
     fetchPost();
-  }, [slug, getToken]);
+  }, [slug, getToken, sample]);
+
+  // Sample short-circuit: skip every loading / 404 / fetch branch
+  // below and hand straight to the dedicated review layout.
+  if (sample) {
+    return <SampleReviewLayout review={sample} />;
+  }
 
   const handleShare = async () => {
     try {
