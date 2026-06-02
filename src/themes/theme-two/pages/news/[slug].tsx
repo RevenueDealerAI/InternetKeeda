@@ -13,8 +13,6 @@ import { toast } from 'sonner';
 import { useAuth } from '@clerk/clerk-react';
 import dynamic from 'next/dynamic';
 import { motion } from 'framer-motion';
-import { getSampleReview } from '@/data/sample-reviews';
-import SampleReviewLayout from '@/themes/theme-one/components/SampleReviewLayout';
 
 const TipTapViewer = dynamic(
   () => import('@/themes/theme-two/components/TipTapViewer'),
@@ -69,15 +67,12 @@ export function NewsDetail() {
   }
 
   const slug = rawSlug ? decodeURIComponent(rawSlug) : undefined;
-  // Hand-written sample reviews short-circuit the API fetch and
-  // render the shared dark-themed layout (reused from theme-one).
-  const sample = slug ? getSampleReview(slug) : undefined;
   const [post, setPost] = useState<NewsPost | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { getToken } = useAuth();
 
   useEffect(() => {
-    if (!slug || sample) {
+    if (!slug) {
       setIsLoading(false);
       return;
     }
@@ -109,13 +104,7 @@ export function NewsDetail() {
     };
 
     fetchPost();
-  }, [slug, getToken, sample]);
-
-  // Sample short-circuit: render the dedicated review layout
-  // instead of fetching and 404-ing.
-  if (sample) {
-    return <SampleReviewLayout review={sample} />;
-  }
+  }, [slug, getToken]);
 
   const handleShare = async () => {
     const url = window.location.href;
