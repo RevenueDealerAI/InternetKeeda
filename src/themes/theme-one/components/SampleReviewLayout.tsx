@@ -30,7 +30,15 @@ export default function SampleReviewLayout({ review }: { review: SampleReview })
     year: 'numeric',
   });
   const logoUrl = `https://www.google.com/s2/favicons?domain=${review.toolDomain}&sz=128`;
-  const toolUrl = `https://${review.toolDomain}`;
+  // Outbound link target: affiliate URL when the review has one,
+  // otherwise the bare tool homepage. Affiliate links get
+  // rel="sponsored nofollow noopener" per FTC + SEO guidance; the
+  // bare homepage stays "noopener noreferrer".
+  const isAffiliate = Boolean(review.affiliateUrl);
+  const toolUrl = review.affiliateUrl || `https://${review.toolDomain}`;
+  const toolRel = isAffiliate
+    ? 'sponsored nofollow noopener'
+    : 'noopener noreferrer';
 
   return (
     <>
@@ -162,7 +170,7 @@ export default function SampleReviewLayout({ review }: { review: SampleReview })
                     <a
                       href={toolUrl}
                       target="_blank"
-                      rel="noopener noreferrer"
+                      rel={toolRel}
                       className="inline-flex items-center gap-1.5 text-[12px] transition-colors hover:opacity-80"
                       style={{
                         color: 'var(--accent)',
@@ -450,7 +458,7 @@ export default function SampleReviewLayout({ review }: { review: SampleReview })
               <a
                 href={toolUrl}
                 target="_blank"
-                rel="noopener noreferrer"
+                rel={toolRel}
                 className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[12px] uppercase tracking-[0.16em] transition-all hover:-translate-y-0.5"
                 style={{
                   background: 'var(--accent)',
