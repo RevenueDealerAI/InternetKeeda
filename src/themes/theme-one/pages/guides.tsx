@@ -11,6 +11,7 @@ import {
   MessageSquare,
   ArrowRight
 } from 'lucide-react';
+import { WhatsAppSupportButton } from '@/components/nexus/WhatsAppSupportButton';
 
 const GuidesPage: React.FC = () => {
   const containerVariants = {
@@ -267,18 +268,12 @@ const GuidesPage: React.FC = () => {
               className="mb-5 sm:mb-6 text-sm sm:text-base"
               style={{ color: 'var(--ink-2)' }}
             >
-              Join our community to get help from AI experts and fellow enthusiasts.
+              Stuck on a tool, a workflow, or a buying decision? Ping Riley on
+              WhatsApp — fastest way to a real human answer.
             </p>
-            <Button
-              className="font-semibold"
-              style={{
-                background: 'var(--accent)',
-                color: 'var(--on-accent)',
-              }}
-            >
-              Join Community
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
+            <div className="flex justify-center">
+              <WhatsAppSupportButton label="Talk to Riley on WhatsApp" />
+            </div>
           </motion.div>
         </motion.div>
       </div>

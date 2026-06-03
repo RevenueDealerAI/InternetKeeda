@@ -1,10 +1,7 @@
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
 import {
   HelpCircle,
-  MessageSquare,
-  ArrowRight,
 } from 'lucide-react';
 import {
   Accordion,
@@ -13,6 +10,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { useFAQs } from '@/lib/api/faq';
+import { WhatsAppSupportButton } from '@/components/nexus/WhatsAppSupportButton';
 
 /**
  * Hand-written sample FAQs shown when /api/faq returns no rows.
@@ -297,30 +295,11 @@ const FAQPage: React.FC = () => {
               className="mb-5 sm:mb-6 text-sm sm:text-base"
               style={{ color: 'var(--ink-2)' }}
             >
-              Can&apos;t find the answer you&apos;re looking for? Reach out to our community or contact our support team.
+              Can&apos;t find the answer you&apos;re looking for? Ping Riley on
+              WhatsApp — that&apos;s where our support actually lives.
             </p>
             <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
-              <Button
-                className="font-semibold"
-                style={{
-                  background: 'var(--accent)',
-                  color: 'var(--on-accent)',
-                }}
-              >
-                <MessageSquare className="mr-2 h-4 w-4" />
-                Contact Support
-              </Button>
-              <Button
-                variant="outline"
-                style={{
-                  background: 'transparent',
-                  color: 'var(--ink)',
-                  border: '1px solid var(--rule)',
-                }}
-              >
-                Visit Help Center
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
+              <WhatsAppSupportButton label="Chat with Riley on WhatsApp" />
             </div>
           </motion.div>
         </motion.div>
