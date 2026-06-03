@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
   HelpCircle,
+  Sparkles,
 } from 'lucide-react';
 import {
   Accordion,
@@ -10,7 +11,6 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { useFAQs } from '@/lib/api/faq';
-import { WhatsAppSupportButton } from '@/components/nexus/WhatsAppSupportButton';
 
 /**
  * Hand-written sample FAQs shown when /api/faq returns no rows.
@@ -295,11 +295,26 @@ const FAQPage: React.FC = () => {
               className="mb-5 sm:mb-6 text-sm sm:text-base"
               style={{ color: 'var(--ink-2)' }}
             >
-              Can&apos;t find the answer you&apos;re looking for? Ping Riley on
-              WhatsApp — that&apos;s where our support actually lives.
+              Can&apos;t find the answer you&apos;re looking for? Open Riley —
+              our in-page concierge — and ask in plain language.
             </p>
             <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
-              <WhatsAppSupportButton label="Chat with Riley on WhatsApp" />
+              <button
+                type="button"
+                onClick={() =>
+                  window.dispatchEvent(new Event('ik:open-chat'))
+                }
+                className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-[12px] uppercase tracking-[0.16em] font-semibold transition-transform hover:-translate-y-0.5"
+                style={{
+                  background: 'var(--accent)',
+                  color: 'var(--on-accent)',
+                  fontFamily: 'var(--mono)',
+                  boxShadow: 'var(--shadow-accent)',
+                }}
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                Ask Riley
+              </button>
             </div>
           </motion.div>
         </motion.div>

@@ -9,9 +9,9 @@ import {
   Image,
   Video,
   MessageSquare,
-  ArrowRight
+  ArrowRight,
+  Sparkles
 } from 'lucide-react';
-import { WhatsAppSupportButton } from '@/components/nexus/WhatsAppSupportButton';
 
 const GuidesPage: React.FC = () => {
   const containerVariants = {
@@ -268,11 +268,26 @@ const GuidesPage: React.FC = () => {
               className="mb-5 sm:mb-6 text-sm sm:text-base"
               style={{ color: 'var(--ink-2)' }}
             >
-              Stuck on a tool, a workflow, or a buying decision? Ping Riley on
-              WhatsApp — fastest way to a real human answer.
+              Stuck on a tool, a workflow, or a buying decision? Open Riley —
+              our in-page concierge — and ask in plain language.
             </p>
             <div className="flex justify-center">
-              <WhatsAppSupportButton label="Talk to Riley on WhatsApp" />
+              <button
+                type="button"
+                onClick={() =>
+                  window.dispatchEvent(new Event('ik:open-chat'))
+                }
+                className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-[12px] uppercase tracking-[0.16em] font-semibold transition-transform hover:-translate-y-0.5"
+                style={{
+                  background: 'var(--accent)',
+                  color: 'var(--on-accent)',
+                  fontFamily: 'var(--mono)',
+                  boxShadow: 'var(--shadow-accent)',
+                }}
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                Ask Riley
+              </button>
             </div>
           </motion.div>
         </motion.div>

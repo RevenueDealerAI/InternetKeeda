@@ -15,7 +15,7 @@
 const WA_HREF = 'https://wa.me/internetkeeda';
 
 export function WhatsAppSupportButton({
-  label = 'Chat on WhatsApp',
+  label = 'Connect on WhatsApp',
   size = 'md',
 }: {
   label?: string;
