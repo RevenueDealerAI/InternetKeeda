@@ -1,0 +1,169 @@
+{
+  "name": "New Lead → Enrich → Slack Notification",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lead-intake",
+        "responseMode": "responseNode",
+        "options": {
+          "rawBody": false
+        }
+      },
+      "id": "3a2b3c4d-0001-4001-8001-webhook",
+      "name": "Webhook: new lead",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [200, 320],
+      "webhookId": "REPLACE_WITH_NEW_WEBHOOK_ID_ON_IMPORT"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Validate the incoming payload and pick out the only field\n// we strictly need: a work email address. Everything else is\n// optional and surfaces in Slack if present.\n\nconst body = $input.first().json.body || $input.first().json;\nconst email = (body.email || '').toString().trim().toLowerCase();\n\nif (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {\n  throw new Error('Missing or invalid email on incoming lead.');\n}\n\nreturn [\n  {\n    json: {\n      email,\n      name: body.name || '',\n      company_hint: body.company || '',\n      message: body.message || '',\n      source: body.source || 'webhook',\n      received_at: new Date().toISOString(),\n    },\n  },\n];\n"
+      },
+      "id": "3a2b3c4d-0002-4002-8002-validate",
+      "name": "Validate payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 320]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://person.clearbit.com/v2/combined/find?email={{ encodeURIComponent($json.email) }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpBearerAuth",
+        "sendQuery": false,
+        "sendHeaders": false,
+        "sendBody": false,
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": false,
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "3a2b3c4d-0003-4003-8003-enrich",
+      "name": "Enrich via Clearbit",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 320],
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "",
+          "name": ""
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Merge the original lead fields with whatever Clearbit returned.\n// Clearbit 404s on unknown emails and our HTTP node is set to\n// neverError, so $json may be an empty object or an error blob —\n// guard everything.\n\nconst original = $('Validate payload').first().json;\nconst clearbit = $input.first().json || {};\nconst person  = clearbit.person  || {};\nconst company = clearbit.company || {};\n\nconst employees = company.metrics?.employees || null;\nconst raised    = company.metrics?.raised    || null;\n\nconst pretty = {\n  email: original.email,\n  name:\n    person.name?.fullName ||\n    original.name ||\n    '',\n  title: person.employment?.title || '',\n  company_name:\n    company.name ||\n    original.company_hint ||\n    '',\n  company_domain: company.domain || '',\n  company_employees: employees,\n  company_funding_usd: raised,\n  company_industry: company.category?.industry || '',\n  twitter: person.twitter?.handle ? `@${person.twitter.handle}` : '',\n  linkedin: person.linkedin?.handle\n    ? `https://www.linkedin.com/in/${person.linkedin.handle}`\n    : '',\n  source: original.source,\n  message: original.message,\n  received_at: original.received_at,\n};\n\nreturn [{ json: pretty }];\n"
+      },
+      "id": "3a2b3c4d-0004-4004-8004-shape",
+      "name": "Shape enriched record",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [920, 320]
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_SLACK_CHANNEL_ID",
+          "mode": "list",
+          "cachedResultName": "#leads"
+        },
+        "text": "=:rocket: *New lead — {{ $json.email }}*\n*Name:* {{ $json.name || '_unknown_' }}\n*Title:* {{ $json.title || '_unknown_' }}\n*Company:* {{ $json.company_name || '_unknown_' }} ({{ $json.company_domain || '—' }})\n*Headcount:* {{ $json.company_employees ?? '—' }}\n*Industry:* {{ $json.company_industry || '—' }}\n*LinkedIn:* {{ $json.linkedin || '—' }}\n*Source:* {{ $json.source }}\n\n> {{ ($json.message || '_no message_').slice(0, 600) }}",
+        "otherOptions": {}
+      },
+      "id": "3a2b3c4d-0005-4005-8005-slack",
+      "name": "Notify Slack channel",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [1160, 320],
+      "credentials": {
+        "slackApi": {
+          "id": "",
+          "name": ""
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"ok\": true,\n  \"received_at\": \"{{ $('Validate payload').first().json.received_at }}\"\n}",
+        "options": {}
+      },
+      "id": "3a2b3c4d-0006-4006-8006-respond",
+      "name": "Acknowledge to caller",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [920, 540]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook: new lead": {
+      "main": [
+        [
+          {
+            "node": "Validate payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate payload": {
+      "main": [
+        [
+          {
+            "node": "Enrich via Clearbit",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Acknowledge to caller",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enrich via Clearbit": {
+      "main": [
+        [
+          {
+            "node": "Shape enriched record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Shape enriched record": {
+      "main": [
+        [
+          {
+            "node": "Notify Slack channel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "",
+  "id": "",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}

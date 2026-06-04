@@ -1,0 +1,102 @@
+{
+  "name": "Stripe Paid Invoices → Google Sheets",
+  "nodes": [
+    {
+      "parameters": {
+        "events": ["invoice.paid"]
+      },
+      "id": "1a2b3c4d-0001-4001-8001-stripe-trigger",
+      "name": "Stripe: invoice.paid",
+      "type": "n8n-nodes-base.stripeTrigger",
+      "typeVersion": 1,
+      "position": [240, 320],
+      "webhookId": "REPLACE_WITH_NEW_WEBHOOK_ID_ON_IMPORT",
+      "credentials": {
+        "stripeApi": {
+          "id": "",
+          "name": ""
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Normalise the Stripe invoice payload into a flat row\n// the Google Sheets node can append directly.\n// Amounts come from Stripe in the smallest currency unit\n// (paise / cents) — we keep that convention and ALSO emit a\n// human-readable major-unit value so the sheet is browseable.\n\nconst invoice = $input.first().json.data?.object ?? $input.first().json;\nconst minor = (n) => (typeof n === 'number' ? n : 0);\nconst major = (n) => (minor(n) / 100).toFixed(2);\n\nconst customer = invoice.customer_email\n  || invoice.customer_address?.email\n  || invoice.customer\n  || '';\n\nconst hostedUrl = invoice.hosted_invoice_url || invoice.invoice_pdf || '';\nconst createdIso = invoice.created\n  ? new Date(invoice.created * 1000).toISOString()\n  : new Date().toISOString();\nconst paidIso = invoice.status_transitions?.paid_at\n  ? new Date(invoice.status_transitions.paid_at * 1000).toISOString()\n  : createdIso;\n\nreturn [\n  {\n    json: {\n      stripe_invoice_id: invoice.id || '',\n      number: invoice.number || '',\n      customer_email: customer,\n      currency: (invoice.currency || 'usd').toUpperCase(),\n      amount_due_minor: minor(invoice.amount_due),\n      amount_paid_minor: minor(invoice.amount_paid),\n      tax_minor: minor(invoice.tax),\n      total_minor: minor(invoice.total),\n      amount_paid_major: major(invoice.amount_paid),\n      tax_major: major(invoice.tax),\n      total_major: major(invoice.total),\n      status: invoice.status || '',\n      created_at: createdIso,\n      paid_at: paidIso,\n      hosted_invoice_url: hostedUrl,\n      first_line_description:\n        invoice.lines?.data?.[0]?.description || '',\n    },\n  },\n];\n"
+      },
+      "id": "1a2b3c4d-0002-4002-8002-normalise-row",
+      "name": "Normalise invoice → row",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [520, 320]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_YOUR_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "Paid invoices"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Sheet1",
+          "mode": "list",
+          "cachedResultName": "Sheet1"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": ["stripe_invoice_id"],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "1a2b3c4d-0003-4003-8003-sheets-append",
+      "name": "Append row to Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.4,
+      "position": [800, 320],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "",
+          "name": ""
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Stripe: invoice.paid": {
+      "main": [
+        [
+          {
+            "node": "Normalise invoice → row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalise invoice → row": {
+      "main": [
+        [
+          {
+            "node": "Append row to Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "",
+  "id": "",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}

@@ -1,0 +1,181 @@
+{
+  "name": "RSS → AI Summary → WordPress Draft",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 2
+            }
+          ]
+        }
+      },
+      "id": "2a2b3c4d-0001-4001-8001-cron-trigger",
+      "name": "Every 2 hours",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [200, 320]
+    },
+    {
+      "parameters": {
+        "url": "REPLACE_WITH_YOUR_RSS_FEED_URL",
+        "options": {}
+      },
+      "id": "2a2b3c4d-0002-4002-8002-rss-fetch",
+      "name": "Fetch RSS feed",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [440, 320]
+    },
+    {
+      "parameters": {
+        "jsCode": "// De-dupe against items we've already drafted by URL. Uses\n// static workflow data — survives restarts inside a single\n// n8n instance. For multi-instance setups, swap this for a\n// Redis / DB lookup keyed on item.link.\n\nconst seen = new Set(\n  $getWorkflowStaticData('global').seenLinks || []\n);\nconst now = Date.now();\n\nconst fresh = [];\nfor (const item of $input.all()) {\n  const link = item.json.link || item.json.guid || '';\n  if (!link || seen.has(link)) continue;\n  seen.add(link);\n  fresh.push({\n    json: {\n      title: item.json.title || '',\n      link,\n      contentSnippet:\n        item.json.contentSnippet ||\n        item.json.summary ||\n        item.json.content ||\n        '',\n      isoDate: item.json.isoDate || new Date(now).toISOString(),\n    },\n  });\n}\n\n$getWorkflowStaticData('global').seenLinks = Array\n  .from(seen)\n  .slice(-500); // cap the memory of what we've seen\n\nreturn fresh;\n"
+      },
+      "id": "2a2b3c4d-0003-4003-8003-dedupe",
+      "name": "De-dupe seen items",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 320]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"gpt-4o-mini\",\n  \"temperature\": 0.4,\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You write tight 80-120 word editorial summaries for an AI-tools blog. Voice: opinionated, no marketing fluff. Output HTML — short paragraphs only, no headings, no markdown.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Summarise this article for our blog readers. Original title: {{ $json.title.replace(/\\\"/g, '\\\\\\\"') }}\\n\\nOriginal excerpt:\\n{{ $json.contentSnippet.replace(/\\\"/g, '\\\\\\\"').slice(0, 1800) }}\"\n    }\n  ]\n}",
+        "options": {}
+      },
+      "id": "2a2b3c4d-0004-4004-8004-openai-call",
+      "name": "Summarise with OpenAI",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [920, 320],
+      "credentials": {
+        "openAiApi": {
+          "id": "",
+          "name": ""
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f1",
+              "name": "title",
+              "value": "={{ $('De-dupe seen items').item.json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "f2",
+              "name": "content",
+              "value": "={{ ($json.choices?.[0]?.message?.content) || ($json.body?.choices?.[0]?.message?.content) || '' }}\n\n<p><em>Source: <a href=\"{{ $('De-dupe seen items').item.json.link }}\" target=\"_blank\" rel=\"noopener\">{{ $('De-dupe seen items').item.json.link }}</a></em></p>",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "2a2b3c4d-0005-4005-8005-shape-post",
+      "name": "Shape draft post",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1160, 320]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "title": "={{ $json.title }}",
+        "additionalFields": {
+          "status": "draft",
+          "content": "={{ $json.content }}"
+        }
+      },
+      "id": "2a2b3c4d-0006-4006-8006-wp-create",
+      "name": "Create WordPress draft",
+      "type": "n8n-nodes-base.wordpress",
+      "typeVersion": 1,
+      "position": [1400, 320],
+      "credentials": {
+        "wordpressApi": {
+          "id": "",
+          "name": ""
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Every 2 hours": {
+      "main": [
+        [
+          {
+            "node": "Fetch RSS feed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch RSS feed": {
+      "main": [
+        [
+          {
+            "node": "De-dupe seen items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "De-dupe seen items": {
+      "main": [
+        [
+          {
+            "node": "Summarise with OpenAI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarise with OpenAI": {
+      "main": [
+        [
+          {
+            "node": "Shape draft post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Shape draft post": {
+      "main": [
+        [
+          {
+            "node": "Create WordPress draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "",
+  "id": "",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}
