@@ -49,6 +49,14 @@ export async function POST(
       );
     }
 
+    // This admin action is boost-only; guard so store-purchase rows
+    // can never end up here (would 404 the tool lookup above anyway).
+    if (payment.productType === 'store-purchase') {
+      return NextResponse.json(
+        { error: "Cannot extend a store-purchase row." },
+        { status: 400 },
+      );
+    }
     const slot = boostSlotFor(payment.productType);
     const current = tool.boostExpiresAt?.[slot];
     const base = current && current > new Date() ? current : new Date();

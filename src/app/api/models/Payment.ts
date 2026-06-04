@@ -16,11 +16,24 @@ export type BoostProductType =
   | 'boost-home-rotation'
   | 'boost-featured-badge';
 
+/**
+ * Non-boost product types that ride the same Payment ledger so we
+ * keep one source of truth for money. Webhook + polling code routes
+ * by string prefix: anything starting with `store-` dispatches to the
+ * Keeda Labs store handlers; everything else stays on the boost path.
+ */
+export type StorePaymentProductType = 'store-purchase';
+
+export type PaymentProductType = BoostProductType | StorePaymentProductType;
+
 export type PaymentProvider = 'cashfree' | 'paypal';
 
 export interface IPayment {
   userId: string;
-  toolId: mongoose.Types.ObjectId;
+  /** Boost rows reference the boosted Tool. Store-purchase rows do not
+   *  have a Tool; for those, `metadata.storeProductId` holds the
+   *  StoreProduct id and `toolId` is undefined. */
+  toolId?: mongoose.Types.ObjectId;
   /** Which provider holds the order. Default 'cashfree' for backwards-
    * compat. PayPal rows store PayPal's order id (e.g. 8XJ12345AB67890C)
    * in `orderId` AND in `paypalOrderId` so lookups via either key
@@ -32,7 +45,8 @@ export interface IPayment {
   paypalCaptureId?: string;    // Filled by the capture call / webhook
   amount: number;              // Cashfree rows: paise (INR ×100). PayPal rows: cents (USD ×100).
   currency: string;            // "INR" for Cashfree boosts, "USD" for PayPal boosts
-  productType: BoostProductType;
+  productType: PaymentProductType;
+  /** Boost rows: 7 or 30 (boost duration). Store rows: 0 (unused). */
   boostDurationDays: number;
   status: PaymentStatus;
   cashfreePaymentId?: string;  // Cashfree's internal payment ID once captured
@@ -82,7 +96,9 @@ export type PaymentDocument = Document & IPayment;
 
 const paymentSchema = new mongoose.Schema<IPayment>({
   userId: { type: String, required: true, index: true },
-  toolId: { type: mongoose.Schema.Types.ObjectId, ref: 'Tool', required: true, index: true },
+  // Optional now: boost rows still set it, store-purchase rows leave
+  // it unset and put the StoreProduct id in metadata.storeProductId.
+  toolId: { type: mongoose.Schema.Types.ObjectId, ref: 'Tool', index: true },
   provider: {
     type: String,
     enum: ['cashfree', 'paypal'],
@@ -97,10 +113,16 @@ const paymentSchema = new mongoose.Schema<IPayment>({
   currency: { type: String, default: 'INR' },
   productType: {
     type: String,
-    enum: ['boost-category-top', 'boost-home-rotation', 'boost-featured-badge'],
+    enum: [
+      'boost-category-top',
+      'boost-home-rotation',
+      'boost-featured-badge',
+      'store-purchase',
+    ],
     required: true,
   },
-  boostDurationDays: { type: Number, required: true },
+  // Boost rows: 7 or 30. Store-purchase rows: 0 (set by checkout).
+  boostDurationDays: { type: Number, required: true, default: 0 },
   status: {
     type: String,
     enum: ['pending', 'success', 'failed', 'dropped', 'refunded'],

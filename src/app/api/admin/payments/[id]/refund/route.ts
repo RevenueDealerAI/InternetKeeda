@@ -236,10 +236,13 @@ async function refundPaypal(payment: PaymentDocument, adminUserId: string) {
     await payment.save();
     // For PayPal SUCCESS, we drop the boost off the tool here since
     // there's no equivalent of the cashfree refund webhook wired yet.
-    if (refundStatus === "SUCCESS") {
+    if (refundStatus === "SUCCESS" && payment.toolId && payment.productType !== 'store-purchase') {
       try {
         const { removeBoostFromTool } = await import("@/app/api/lib/boost-state");
-        await removeBoostFromTool(payment);
+        await removeBoostFromTool({
+          toolId: payment.toolId,
+          productType: payment.productType,
+        });
       } catch (e) {
         console.warn(
           "[admin/payments/refund] removeBoostFromTool failed on paypal refund",

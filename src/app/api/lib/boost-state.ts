@@ -71,10 +71,20 @@ export async function markBoostPaid(
 
   // Side effects only run for the winner. Catching individually so
   // a failure in commission doesn't roll back the boost.
-  try {
-    await applyBoostToTool(payment);
-  } catch (err) {
-    console.error("[boost-state] applyBoostToTool failed:", err);
+  // Defensive: boost payments always have a toolId. Store payments
+  // (productType === 'store-purchase') do not — those should be
+  // routed via markStorePaid, but if a misrouted call lands here
+  // we skip the boost side-effects rather than crash.
+  if (payment.toolId) {
+    try {
+      await applyBoostToTool({
+        toolId: payment.toolId,
+        productType: payment.productType as BoostProductType,
+        boostDurationDays: payment.boostDurationDays,
+      });
+    } catch (err) {
+      console.error("[boost-state] applyBoostToTool failed:", err);
+    }
   }
   try {
     await recordAffiliateCommissionForBoost(payment);
@@ -118,10 +128,15 @@ export async function markBoostRefunded(orderId: string): Promise<ReconcileResul
     { new: true },
   );
   if (!payment) return { applied: false };
-  try {
-    await removeBoostFromTool(payment);
-  } catch (err) {
-    console.error("[boost-state] removeBoostFromTool failed:", err);
+  if (payment.toolId) {
+    try {
+      await removeBoostFromTool({
+        toolId: payment.toolId,
+        productType: payment.productType as BoostProductType,
+      });
+    } catch (err) {
+      console.error("[boost-state] removeBoostFromTool failed:", err);
+    }
   }
   return { applied: true, payment };
 }
