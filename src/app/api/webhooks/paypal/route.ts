@@ -11,6 +11,30 @@ import {
   markBoostRefunded,
 } from "@/app/api/lib/boost-state";
 import { verifyWebhookSignature, PayPalError } from "@/lib/paypal";
+import {
+  markStorePaid,
+  markStoreRefunded,
+} from "@/features/store/server/markPaid";
+import { STORE_PRODUCT_TYPE } from "@/features/store/config";
+
+/** Look up the Payment row by either supplementary order_id OR
+ *  custom_id (PayPal sets custom_id to the Mongo Payment _id on
+ *  create), then return the orderId + productType so the caller
+ *  can dispatch. Returns null if no Payment row found. */
+async function resolvePayment(
+  orderId: string | undefined,
+  customId: string | undefined
+): Promise<{ orderId: string; productType: string } | null> {
+  if (orderId) {
+    const found = await Payment.findOne({ orderId }).select("orderId productType");
+    if (found) return { orderId: found.orderId, productType: found.productType };
+  }
+  if (customId) {
+    const found = await Payment.findById(customId).select("orderId productType");
+    if (found) return { orderId: found.orderId, productType: found.productType };
+  }
+  return null;
+}
 
 /**
  * POST /api/webhooks/paypal
@@ -192,36 +216,40 @@ async function dispatch(evt: Record<string, unknown> | null): Promise<void> {
     }
 
     case "PAYMENT.CAPTURE.COMPLETED": {
-      // One-time boost capture confirmed. PayPal's resource.id is the
+      // One-time capture confirmed. PayPal's resource.id is the
       // capture id; the parent order id is at
       // resource.supplementary_data.related_ids.order_id.
+      // resource.custom_id holds the Mongo Payment _id (set on create)
+      // and acts as the lookup fallback when supplementary is missing.
       const captureId = String(resource.id || "");
       const supp = resource.supplementary_data as
         | { related_ids?: { order_id?: string } }
         | undefined;
-      const orderId = supp?.related_ids?.order_id;
-      if (!orderId) {
-        // Fall back to looking up by custom_id (we set it to the Mongo
-        // Payment _id on create).
-        const customId = String(resource.custom_id || "");
-        if (!customId) {
-          console.warn("[paypal-webhook] capture completed with no orderId/customId");
-          return;
-        }
-        const byCustom = await Payment.findById(customId);
-        if (!byCustom) return;
-        const { applied } = await markBoostPaid(byCustom.orderId, {
-          source: "webhook",
-          cashfreePaymentId: captureId,
+      const supplementaryOrderId = supp?.related_ids?.order_id;
+      const customId = String(resource.custom_id || "");
+      const resolved = await resolvePayment(supplementaryOrderId, customId);
+      if (!resolved) {
+        console.warn("[paypal-webhook] capture completed but no Payment row", {
+          supplementaryOrderId,
+          customId,
         });
-        if (applied) {
+        return;
+      }
+      const { orderId, productType } = resolved;
+
+      if (productType === STORE_PRODUCT_TYPE) {
+        const { applied } = await markStorePaid(orderId, {
+          source: "webhook",
+          paypalCaptureId: captureId,
+        });
+        if (applied && captureId) {
           await Payment.findOneAndUpdate(
-            { orderId: byCustom.orderId },
-            { $set: { paypalCaptureId: captureId } },
+            { orderId },
+            { $set: { paypalCaptureId: captureId } }
           );
         }
-        console.log("[paypal-webhook] boost capture completed (via customId)", {
-          orderId: byCustom.orderId,
+        console.log("[paypal-webhook] store capture completed", {
+          orderId,
           captureId,
           applied,
         });
@@ -250,8 +278,17 @@ async function dispatch(evt: Record<string, unknown> | null): Promise<void> {
       const supp = resource.supplementary_data as
         | { related_ids?: { order_id?: string } }
         | undefined;
-      const orderId = supp?.related_ids?.order_id;
-      if (!orderId) return;
+      const supplementaryOrderId = supp?.related_ids?.order_id;
+      const customId = String(resource.custom_id || "");
+      const resolved = await resolvePayment(supplementaryOrderId, customId);
+      if (!resolved) return;
+      const { orderId, productType } = resolved;
+      // Store-purchase denial: pending row stays pending — no
+      // entitlement to revert. Boost denial transitions to failed.
+      if (productType === STORE_PRODUCT_TYPE) {
+        console.log("[paypal-webhook] store capture denied (no-op)", { orderId });
+        return;
+      }
       const { applied } = await markBoostFailed(orderId, {
         source: "webhook",
         reason: "failed",
@@ -264,8 +301,16 @@ async function dispatch(evt: Record<string, unknown> | null): Promise<void> {
       const supp = resource.supplementary_data as
         | { related_ids?: { order_id?: string } }
         | undefined;
-      const orderId = supp?.related_ids?.order_id;
-      if (!orderId) return;
+      const supplementaryOrderId = supp?.related_ids?.order_id;
+      const customId = String(resource.custom_id || "");
+      const resolved = await resolvePayment(supplementaryOrderId, customId);
+      if (!resolved) return;
+      const { orderId, productType } = resolved;
+      if (productType === STORE_PRODUCT_TYPE) {
+        const { applied } = await markStoreRefunded(orderId);
+        console.log("[paypal-webhook] store capture refunded", { orderId, applied });
+        return;
+      }
       const { applied } = await markBoostRefunded(orderId);
       console.log("[paypal-webhook] capture refunded", { orderId, applied });
       return;

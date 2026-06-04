@@ -106,6 +106,20 @@ function needsClerk(pathname: string): boolean {
   ) {
     return true;
   }
+  // Keeda Labs store — auth-touching surfaces (everything except the
+  // public catalog reads). Catalog reads /api/store/products and
+  // /api/store/products/{slug} are public and intentionally bypass
+  // Clerk so anonymous browsing stays fast.
+  if (
+    pathname.startsWith('/api/store/admin') ||
+    pathname.startsWith('/api/store/checkout') ||
+    pathname.startsWith('/api/store/download') ||
+    pathname === '/api/store/my-purchases' ||
+    pathname.startsWith('/store/admin') ||
+    pathname.startsWith('/store/my-downloads')
+  ) {
+    return true;
+  }
   return CLERK_PROTECTED_PATHS.some((p) => pathname === p || pathname.startsWith(p + '/'));
 }
 

@@ -8,6 +8,19 @@ import {
   removeBoostFromTool,
 } from "@/app/api/lib/boost-state";
 import { getCashfreeClient } from "@/lib/cashfree";
+import {
+  markStorePaid,
+  markStoreRefunded,
+} from "@/features/store/server/markPaid";
+import { STORE_PRODUCT_TYPE } from "@/features/store/config";
+
+/** True if this Payment row belongs to the Keeda Labs store flow,
+ *  not the existing tool-boost flow. Webhook dispatcher branches
+ *  on this so the two flows share a webhook entrypoint without
+ *  coupling each other's logic. */
+function isStorePayment(productType: string): boolean {
+  return productType === STORE_PRODUCT_TYPE;
+}
 
 // Cashfree's signed webhook events. Status mapping is deliberately
 // narrow — anything outside this set is logged and acked with 200 so
@@ -129,27 +142,47 @@ export async function POST(req: NextRequest) {
     // First persist the metadata.events[] update we just appended.
     await payment.save();
 
+    const store = isStorePayment(payment.productType);
+
     switch (eventType) {
       case "PAYMENT_SUCCESS_WEBHOOK": {
         const cfPaymentId = parsed.data?.payment?.cf_payment_id
           ? String(parsed.data.payment.cf_payment_id)
           : undefined;
-        await markBoostPaid(payment.orderId, {
-          source: "webhook",
-          cashfreePaymentId: cfPaymentId,
-        });
+        if (store) {
+          await markStorePaid(payment.orderId, {
+            source: "webhook",
+            cashfreePaymentId: cfPaymentId,
+          });
+        } else {
+          await markBoostPaid(payment.orderId, {
+            source: "webhook",
+            cashfreePaymentId: cfPaymentId,
+          });
+        }
         break;
       }
       case "PAYMENT_FAILED_WEBHOOK": {
-        await markBoostFailed(payment.orderId, { source: "webhook", reason: "failed" });
+        if (!store) {
+          await markBoostFailed(payment.orderId, { source: "webhook", reason: "failed" });
+        }
+        // Store-purchase failures: the Payment row already has status
+        // metadata. No side-effects to revert because no entitlement
+        // gets minted until success.
         break;
       }
       case "PAYMENT_USER_DROPPED_WEBHOOK": {
-        await markBoostFailed(payment.orderId, { source: "webhook", reason: "dropped" });
+        if (!store) {
+          await markBoostFailed(payment.orderId, { source: "webhook", reason: "dropped" });
+        }
         break;
       }
       case "REFUND_SUCCESS_WEBHOOK": {
-        await markBoostRefunded(payment.orderId);
+        if (store) {
+          await markStoreRefunded(payment.orderId);
+        } else {
+          await markBoostRefunded(payment.orderId);
+        }
         break;
       }
       case "REFUND_FAILED_WEBHOOK": {
@@ -157,8 +190,16 @@ export async function POST(req: NextRequest) {
         break;
       }
       case "DISPUTE_CREATED_WEBHOOK": {
-        // Unfeature pending review — don't touch payment.status.
-        await removeBoostFromTool({ toolId: payment.toolId, productType: payment.productType });
+        // Unfeature pending review — boost-only side effect.
+        if (!store && payment.toolId) {
+          await removeBoostFromTool({
+            toolId: payment.toolId,
+            productType: payment.productType as
+              | "boost-category-top"
+              | "boost-home-rotation"
+              | "boost-featured-badge",
+          });
+        }
         break;
       }
       default: {
