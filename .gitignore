@@ -145,3 +145,4 @@ Transparent/
 test-results/
 playwright-report/
 
+.env*
