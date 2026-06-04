@@ -19,6 +19,11 @@ const TrendingTools = dynamic(() => import('@/components/nexus/TrendingTools').t
 const AgentSection  = dynamic(() => import('@/components/nexus/AgentSection').then(m => m.AgentSection), { ssr: false });
 const CtaCard       = dynamic(() => import('@/components/nexus/CtaCard').then(m => m.CtaCard), { ssr: false });
 const BottomCtaBar  = dynamic(() => import('@/components/nexus/BottomCtaBar').then(m => m.BottomCtaBar), { ssr: false });
+// Keeda Labs store spotlight — owned by src/features/store, mounted
+// here LOWER on the page (between AgentSection and CtaCard) so the
+// store stays surgical to the homepage and a theme update can't
+// break it. Self-hides when there are no published products.
+const FeaturedWorkflowsSection = dynamic(() => import('@/features/store/components/FeaturedWorkflowsSection').then(m => m.FeaturedWorkflowsSection), { ssr: false });
 // Nav + Footer are mounted globally in NextRouterAdapter.
 
 const GLYPHS: Record<string, string> = {
@@ -140,6 +145,11 @@ export default function Index() {
       </div>
       <div className="ik-cv-auto">
         <AgentSection />
+      </div>
+      {/* Keeda Labs spotlight. Lazy-loaded + self-hides when empty
+       * so the homepage is unchanged until a product is published. */}
+      <div className="ik-cv-auto">
+        <FeaturedWorkflowsSection />
       </div>
       {/* Pricing moved to /dashboard so signed-in users see it
        * post-onboarding. The home page now flows AgentSection →

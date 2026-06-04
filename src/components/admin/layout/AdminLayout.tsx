@@ -30,6 +30,7 @@ import {
   Share2,
   Bot,
   ShieldCheck,
+  ShoppingBag,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { DemoModeBanner } from '@/components/DemoModeBanner';
@@ -69,6 +70,11 @@ const navigation: NavigationItem[] = [
   { name: 'Subscriptions', href: '/admin/subscriptions', icon: Wallet },
   { name: 'Site Settings', href: '/admin/settings', icon: Settings },
   { name: 'Auto Scraper', href: '/admin/scraper', icon: Bot },
+  // Keeda Labs lives at /store/admin, NOT /admin/store — the store
+  // feature folder owns its own admin surface so a theme refactor
+  // can't break it. Routed as an external-feeling link from the
+  // main admin sidebar; the visited-link highlight just won't match.
+  { name: 'Keeda Labs Store', href: '/store/admin', icon: ShoppingBag },
 ];
 
 interface AdminLayoutProps {

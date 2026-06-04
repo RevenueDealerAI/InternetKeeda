@@ -123,7 +123,24 @@ const MENU_REVIEWS: MegaMenu = {
   ],
 };
 
-const MENUS: MegaMenu[] = [MENU_LAUNCHES, MENU_CATEGORIES, MENU_PRODUCTS, MENU_REVIEWS];
+// Keeda Labs — the digital-download store sub-brand. Labelled
+// "AI Automation Workflows" in the nav for SEO + clarity. Owned
+// by src/features/store; this is the only nav reference.
+const MENU_STORE: MegaMenu = {
+  label: 'AI Automation Workflows',
+  href: '/store',
+  columns: [
+    {
+      title: 'Keeda Labs',
+      links: [
+        { label: 'Browse workflows', href: '/store', description: 'Hand-built n8n + automation packs' },
+        { label: 'My downloads', href: '/store/my-downloads', description: 'Re-download anything you have bought' },
+      ],
+    },
+  ],
+};
+
+const MENUS: MegaMenu[] = [MENU_LAUNCHES, MENU_CATEGORIES, MENU_PRODUCTS, MENU_REVIEWS, MENU_STORE];
 
 export function Nav() {
   return (
