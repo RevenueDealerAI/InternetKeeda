@@ -28,6 +28,39 @@ type ToolLogoProps = {
   style?: React.CSSProperties;
 };
 
+/** Build initials for the fallback tile.
+ *  - "OpenART"        → "OA"  (camelCase / mixed-case word)
+ *  - "PhantomBuster"  → "PB"
+ *  - "ElevenLabs"     → "EL"
+ *  - "Internet Keeda" → "IK"  (multi-word: first letter of first two words)
+ *  - "GPT-4"          → "G4"  (strips separators, keeps alphanumerics)
+ *  - "x"              → "X"   (single letter stays single)
+ *  - empty / null     → "?"
+ */
+function toolInitials(name: string | undefined): string {
+  if (!name) return '?';
+  const trimmed = name.trim();
+  if (!trimmed) return '?';
+  const words = trimmed.split(/[\s\-_.+/]+/).filter(Boolean);
+  if (words.length >= 2) {
+    return (words[0][0] + words[1][0]).toUpperCase();
+  }
+  const w = words[0];
+  // Single word — try to split on internal capital letters (camelCase
+  // like "PhantomBuster", "OpenART", "ElevenLabs"). If we find a
+  // capital that is not the first character, use first + that capital.
+  for (let i = 1; i < w.length; i++) {
+    if (w[i] >= 'A' && w[i] <= 'Z' && (w[i - 1] < 'A' || w[i - 1] > 'Z')) {
+      return (w[0] + w[i]).toUpperCase();
+    }
+  }
+  // No internal capital — if the name has any digit, pair first letter
+  // with the first digit ("GPT-4" → "G4"). Otherwise just first letter.
+  const digit = w.match(/\d/)?.[0];
+  if (digit) return (w[0] + digit).toUpperCase();
+  return w[0].toUpperCase();
+}
+
 export function ToolLogo({
   tool,
   size = 48,
@@ -37,11 +70,16 @@ export function ToolLogo({
   style,
 }: ToolLogoProps) {
   const url = getToolLogo(tool as Tool);
-  const initial = (tool.name?.[0] || '?').toUpperCase();
+  const initials = toolInitials(tool.name);
   const [failed, setFailed] = useState(false);
   const showInitial = failed || !url;
 
   if (showInitial) {
+    // Scale font down a touch when there are 2 characters so they
+    // don't crowd the tile or push outside the radius on small sizes.
+    const fontSize = initials.length >= 2
+      ? Math.max(11, Math.floor(size * 0.38))
+      : Math.max(14, Math.floor(size * 0.46));
     return (
       <div
         aria-label={`${tool.name} (logo unavailable)`}
@@ -57,12 +95,12 @@ export function ToolLogo({
           color: 'var(--accent)',
           fontFamily: 'var(--sans)',
           fontWeight: 700,
-          fontSize: Math.max(14, Math.floor(size * 0.46)),
+          fontSize,
           letterSpacing: '-0.02em',
           ...style,
         }}
       >
-        {initial}
+        {initials}
       </div>
     );
   }

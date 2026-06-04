@@ -185,7 +185,14 @@ function normalize(t: AffiliateTool) {
     tags: t.tags,
     pricing: t.pricing,
     features: t.features,
-    logo: `https://logo.clearbit.com/${t.realDomain}`,
+    // Use Google's favicon proxy directly (NOT a Clearbit URL).
+    // getToolLogo() rewrites any logo.clearbit.com URL to a favicon
+    // derived from `websiteUrl`'s domain — which for these tools is
+    // the affiliate redirector (e.g. openartai.pxf.io) rather than
+    // the real product domain (openart.ai). Storing the Google
+    // favicon URL directly side-steps that rewrite so the logo
+    // reflects the actual tool's brand.
+    logo: `https://www.google.com/s2/favicons?domain=${t.realDomain}&sz=128`,
     status: 'published',
     isTrending: false,
     isNewTool: true,
