@@ -19,9 +19,18 @@ import { Payment } from '@/app/api/models/Payment';
 import { getCashfreeClient, getCashfreeMode } from '@/lib/cashfree';
 import { StoreProduct } from '@/features/store/models/StoreProduct';
 import { STORE_PRODUCT_TYPE } from '@/features/store/config';
+import {
+  pickAddOnsFromIds,
+  sumAddOnInrMinor,
+} from '@/features/store/lib/addons';
 
 const bodySchema = z.object({
   productId: z.string().min(1, 'productId is required'),
+  /** Optional add-on IDs from the checkout UI. Server validates them
+   *  against the canonical config (src/features/store/lib/addons.ts);
+   *  anything unknown is dropped silently — the order summary the
+   *  buyer saw was server-rendered from the same source. */
+  addOnIds: z.array(z.string()).optional(),
 });
 
 function siteOrigin(req: NextRequest): string {
@@ -42,12 +51,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'unauthenticated' }, { status: 401 });
     }
 
-    const { productId } = bodySchema.parse(await req.json());
+    const { productId, addOnIds: rawAddOnIds } = bodySchema.parse(await req.json());
 
     const product = await StoreProduct.findById(productId);
     if (!product || product.status !== 'published') {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
+
+    // Validate add-ons against canonical config + price server-side
+    // so the buyer can NEVER inflate or zero out a line item from
+    // the request body.
+    const addOns = pickAddOnsFromIds(rawAddOnIds);
+    const addOnTotalInr = sumAddOnInrMinor(addOns);
+    const totalInr = product.priceInrMinor + addOnTotalInr;
+    const validAddOnIds = addOns.map((a) => a.id);
+    const needsFollowUp = addOns.some((a) => !!a.followUpTag);
 
     // Pre-create the pending Payment so we have a stable id for the
     // PSP order tag. Same shape as the boost rows minus toolId.
@@ -55,7 +73,7 @@ export async function POST(req: NextRequest) {
       userId: auth.userId,
       provider: 'cashfree',
       orderId: 'pending',
-      amount: product.priceInrMinor,
+      amount: totalInr,
       currency: 'INR',
       productType: STORE_PRODUCT_TYPE,
       boostDurationDays: 0,
@@ -64,11 +82,14 @@ export async function POST(req: NextRequest) {
       metadata: {
         storeProductId: String(product._id),
         storeProductTitle: product.title,
+        addOnIds: validAddOnIds,
+        addOnAmountMinor: addOnTotalInr,
+        needsFollowUp,
       },
     });
 
     const orderId = `store_${payment._id.toString()}_${Date.now()}`;
-    const orderAmountRupees = Math.round(product.priceInrMinor) / 100;
+    const orderAmountRupees = Math.round(totalInr) / 100;
 
     // Cashfree requires verified phone for INR orders — same gate the
     // boost path enforces. Reuse the Clerk read.
@@ -127,6 +148,7 @@ export async function POST(req: NextRequest) {
           productType: STORE_PRODUCT_TYPE,
           storeProductId: String(product._id),
           paymentDbId: String(payment._id),
+          addOnIds: validAddOnIds.join(',') || '(none)',
         },
       });
 
@@ -148,7 +170,10 @@ export async function POST(req: NextRequest) {
         paymentSessionId,
         orderId,
         paymentDbId: String(payment._id),
-        amount: product.priceInrMinor,
+        amount: totalInr,
+        baseAmount: product.priceInrMinor,
+        addOnAmount: addOnTotalInr,
+        addOnIds: validAddOnIds,
         currency: 'INR',
         productType: STORE_PRODUCT_TYPE,
         mode: process.env.CASHFREE_MODE === 'PROD' ? 'production' : 'sandbox',

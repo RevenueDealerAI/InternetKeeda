@@ -23,6 +23,7 @@ import {
 } from '../models/StorePurchase';
 import type { StoreCurrency } from '../config';
 import { sendDeliveryEmail } from '../lib/mailer';
+import { pickAddOnsFromIds } from '../lib/addons';
 
 /** Absolute base URL for links inside transactional emails. Emails
  *  open in foreign inboxes — relative URLs don't survive. */
@@ -89,6 +90,7 @@ async function fireDeliveryEmail(
       currency: payment.currency as StoreCurrency,
       baseUrl: getSiteBaseUrl(),
       purchaseId: purchase ? String(purchase._id) : undefined,
+      addOnIds: purchase?.addOnIds ?? [],
     });
     if (!result.ok) {
       console.warn(
@@ -171,6 +173,17 @@ export async function markStorePaid(
     return { applied: true, payment };
   }
 
+  // Add-ons recorded at checkout time live in payment.metadata. Re-
+  // pick them against the canonical config so a deleted/renamed
+  // add-on doesn't leak onto the purchase — same trust boundary as
+  // the checkout route.
+  const metaAddOnIds = Array.isArray(meta.addOnIds) ? meta.addOnIds : [];
+  const addOns = pickAddOnsFromIds(metaAddOnIds);
+  const addOnAmountMinor =
+    typeof meta.addOnAmountMinor === 'number' ? meta.addOnAmountMinor : 0;
+  const needsFollowUp =
+    addOns.some((a) => !!a.followUpTag) || meta.needsFollowUp === true;
+
   // Idempotent StorePurchase creation — unique index on
   // (userId, productId, paymentId) means a second call is a no-op.
   try {
@@ -184,6 +197,9 @@ export async function markStorePaid(
       amountPaidMinor: payment.amount,
       currency: payment.currency as StoreCurrency,
       status: 'paid',
+      addOnIds: addOns.map((a) => a.id),
+      addOnAmountMinor,
+      needsFollowUp,
       purchasedAt: new Date(),
     });
     await StoreProduct.updateOne(

@@ -27,10 +27,30 @@ export interface IStorePurchase {
   paymentId: string;
   /** Provider that took the money. */
   provider: 'cashfree' | 'paypal';
-  /** Amount paid in minor units (paise for INR, cents for USD). */
+  /** Amount paid in minor units (paise for INR, cents for USD).
+   *  Equals product price + sum(addOnAmountMinor). */
   amountPaidMinor: number;
   currency: StoreCurrency;
   status: 'pending' | 'paid' | 'refunded';
+  /** Canonical add-on IDs the buyer toggled on at checkout. Stable
+   *  strings from src/features/store/lib/addons.ts STORE_ADDONS[*].id.
+   *  Empty array when the buyer took the base product only. Used by
+   *  the delivery email (Implementation Support note) and the admin
+   *  "needs follow-up" view. */
+  addOnIds: string[];
+  /** Sum of add-on prices in the buyer's currency, in minor units.
+   *  Stored so admin can split "base product revenue" vs "add-on
+   *  revenue" without recomputing from a stale add-on config. */
+  addOnAmountMinor: number;
+  /** Operator follow-up gate. true while at least one add-on with a
+   *  followUpTag is unresolved; flipped to false when the operator
+   *  marks the support work done in the admin view. */
+  needsFollowUp: boolean;
+  /** Optional admin note + timestamp set when a follow-up add-on is
+   *  marked done. Kept here so we have a paper trail without a
+   *  separate AuditLog collection. */
+  followUpResolvedAt?: Date;
+  followUpResolvedBy?: string;
   purchasedAt: Date;
   refundedAt?: Date;
   /** Last time the buyer downloaded — useful for admin support. */
@@ -59,6 +79,11 @@ const storePurchaseSchema = new mongoose.Schema<IStorePurchase>(
       default: 'pending',
       index: true,
     },
+    addOnIds: [{ type: String }],
+    addOnAmountMinor: { type: Number, default: 0 },
+    needsFollowUp: { type: Boolean, default: false, index: true },
+    followUpResolvedAt: { type: Date },
+    followUpResolvedBy: { type: String },
     purchasedAt: { type: Date, default: Date.now },
     refundedAt: { type: Date },
     lastDownloadedAt: { type: Date },

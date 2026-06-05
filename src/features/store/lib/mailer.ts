@@ -21,6 +21,7 @@ import { Resend } from 'resend';
 import { STORE_BRAND } from '../config';
 import { formatPrice } from './pricing';
 import { whatsappLink } from '@/lib/brand';
+import { pickAddOnsFromIds, type StoreAddOn } from './addons';
 import type { StoreCurrency } from '../config';
 
 const FROM_ADDRESS = `${STORE_BRAND.name} <labs@internetkeeda.com>`;
@@ -56,6 +57,9 @@ export interface DeliveryEmailInput {
   /** Optional purchase id; used in the mailto-help subject so support
    *  can look up the order without asking. */
   purchaseId?: string;
+  /** Add-on IDs the buyer included at checkout — drives the
+   *  "Implementation Support" block + the postPurchaseNote section. */
+  addOnIds?: string[];
 }
 
 export interface DeliverySendResult {
@@ -139,6 +143,8 @@ export function renderDeliveryEmailHtml(input: DeliveryEmailInput): string {
   const greeting = input.buyerName
     ? `Hi ${escapeHtml(input.buyerName)},`
     : 'Hi there,';
+  const purchasedAddOns = pickAddOnsFromIds(input.addOnIds || []);
+  const followUpAddOns = purchasedAddOns.filter((a) => !!a.postPurchaseNote);
 
   const mailtoSubject = `Workflow setup help — ${input.productTitle} ($${SETUP_HELP_USD})`;
   const mailtoBody =
@@ -244,6 +250,29 @@ export function renderDeliveryEmailHtml(input: DeliveryEmailInput): string {
           </td>
         </tr>
 
+        ${followUpAddOns
+          .map(
+            (a) => `
+        <!-- Purchased add-on follow-up note -->
+        <tr>
+          <td style="padding:28px 36px 0 36px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:linear-gradient(135deg, rgba(255,59,59,0.18), rgba(255,59,59,0.06));border:1px solid #ff3b3b;border-radius:14px;">
+              <tr>
+                <td style="padding:22px 24px;">
+                  <div style="font-family:'IBM Plex Mono',Menlo,Consolas,monospace;font-size:10px;letter-spacing:0.3em;text-transform:uppercase;color:#ff3b3b;margin-bottom:6px;">
+                    Included: ${escapeHtml(a.name)}
+                  </div>
+                  <p style="margin:6px 0 0 0;color:#f4f3f0;font-size:14.5px;line-height:1.6;">
+                    ${escapeHtml(a.postPurchaseNote || '')}
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>`
+          )
+          .join('')}
+
         <!-- Setup-help block -->
         <tr>
           <td style="padding:28px 36px 0 36px;">
@@ -251,7 +280,7 @@ export function renderDeliveryEmailHtml(input: DeliveryEmailInput): string {
               <tr>
                 <td style="padding:22px 24px;">
                   <div style="font-family:'IBM Plex Mono',Menlo,Consolas,monospace;font-size:10px;letter-spacing:0.3em;text-transform:uppercase;color:#ff3b3b;margin-bottom:6px;">
-                    Not feeling techy?
+                    ${followUpAddOns.some((a) => a.id === 'implementation-support') ? 'Need anything else?' : 'Not feeling techy?'}
                   </div>
                   <div style="color:#f4f3f0;font-size:16px;line-height:1.4;font-weight:600;letter-spacing:-0.01em;">
                     The ${escapeHtml(STORE_BRAND.parentName)} team will set this up for you — $${SETUP_HELP_USD}.
@@ -332,6 +361,15 @@ export function renderDeliveryEmailHtml(input: DeliveryEmailInput): string {
 export function renderDeliveryEmailText(input: DeliveryEmailInput): string {
   const downloadUrl = `${stripTrailing(input.baseUrl)}/store/my-downloads`;
   const priceLabel = formatPrice(input.amountPaidMinor, input.currency);
+  const purchasedAddOns = pickAddOnsFromIds(input.addOnIds || []);
+  const followUpAddOns = purchasedAddOns.filter((a) => !!a.postPurchaseNote);
+
+  const addOnLines: string[] = [];
+  for (const a of followUpAddOns) {
+    addOnLines.push(`Included: ${a.name}`);
+    addOnLines.push(`  ${a.postPurchaseNote || ''}`);
+    addOnLines.push(``);
+  }
 
   return [
     `Purchase confirmed.`,
@@ -341,6 +379,7 @@ export function renderDeliveryEmailText(input: DeliveryEmailInput): string {
     `Download your workflow:`,
     `  ${downloadUrl}`,
     ``,
+    ...addOnLines,
     `Setup in 5 minutes:`,
     `  1. Unzip — you'll find workflow.json + README.md.`,
     `  2. Read the README. It lists every credential you need.`,

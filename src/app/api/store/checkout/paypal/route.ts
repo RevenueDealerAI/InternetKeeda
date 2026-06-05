@@ -17,9 +17,15 @@ import { createOneTimeOrder, getPaypalMode, PayPalError } from '@/lib/paypal';
 import { StoreProduct } from '@/features/store/models/StoreProduct';
 import { STORE_PRODUCT_TYPE } from '@/features/store/config';
 import { toMajor } from '@/features/store/lib/pricing';
+import {
+  pickAddOnsFromIds,
+  sumAddOnUsdMinor,
+} from '@/features/store/lib/addons';
 
 const bodySchema = z.object({
   productId: z.string().min(1, 'productId is required'),
+  /** Same validation contract as the Cashfree route. */
+  addOnIds: z.array(z.string()).optional(),
 });
 
 function siteOrigin(req: NextRequest): string {
@@ -39,12 +45,18 @@ export async function POST(req: NextRequest) {
     if (auth.kind !== 'ok') {
       return NextResponse.json({ error: 'unauthenticated' }, { status: 401 });
     }
-    const { productId } = bodySchema.parse(await req.json());
+    const { productId, addOnIds: rawAddOnIds } = bodySchema.parse(await req.json());
 
     const product = await StoreProduct.findById(productId);
     if (!product || product.status !== 'published') {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
+
+    const addOns = pickAddOnsFromIds(rawAddOnIds);
+    const addOnTotalUsd = sumAddOnUsdMinor(addOns);
+    const totalUsd = product.priceUsdMinor + addOnTotalUsd;
+    const validAddOnIds = addOns.map((a) => a.id);
+    const needsFollowUp = addOns.some((a) => !!a.followUpTag);
 
     const dbId = new mongoose.Types.ObjectId();
     const placeholder = `paypal_pending_${dbId.toString()}_${Date.now()}`;
@@ -54,7 +66,7 @@ export async function POST(req: NextRequest) {
       userId: auth.userId,
       provider: 'paypal',
       orderId: placeholder,
-      amount: product.priceUsdMinor,
+      amount: totalUsd,
       currency: 'USD',
       productType: STORE_PRODUCT_TYPE,
       boostDurationDays: 0,
@@ -63,14 +75,20 @@ export async function POST(req: NextRequest) {
       metadata: {
         storeProductId: String(product._id),
         storeProductTitle: product.title,
+        addOnIds: validAddOnIds,
+        addOnAmountMinor: addOnTotalUsd,
+        needsFollowUp,
       },
     });
 
     const origin = siteOrigin(req);
     try {
+      const addonSuffix = validAddOnIds.length
+        ? ` (+ ${validAddOnIds.length} add-on${validAddOnIds.length > 1 ? 's' : ''})`
+        : '';
       const created = await createOneTimeOrder({
-        amountUsd: toMajor(product.priceUsdMinor),
-        description: `Keeda Labs: ${product.title}`,
+        amountUsd: toMajor(totalUsd),
+        description: `Keeda Labs: ${product.title}${addonSuffix}`,
         customId: String(payment._id),
         referenceId: STORE_PRODUCT_TYPE,
         returnUrl: `${origin}/store/payment/return?provider=paypal&payment_db_id=${String(payment._id)}`,
@@ -89,7 +107,10 @@ export async function POST(req: NextRequest) {
         orderId: created.id,
         paymentDbId: String(payment._id),
         approveUrl: created.approveUrl,
-        amount: product.priceUsdMinor,
+        amount: totalUsd,
+        baseAmount: product.priceUsdMinor,
+        addOnAmount: addOnTotalUsd,
+        addOnIds: validAddOnIds,
         currency: 'USD',
         provider: 'paypal',
       });
