@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Check, Download } from 'lucide-react';
-import { PriceTag } from './PriceTag';
-import { BuyButton } from './BuyButton';
+import { ArrowLeft, Check } from 'lucide-react';
+import { CheckoutCard } from './CheckoutCard';
 import { STORE_BRAND } from '../config';
 import { formatFileSize } from '../lib/pricing';
 import type { StoreProductDetail } from '../types';
@@ -250,67 +249,25 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
 
           {/* Right: buy panel */}
           <aside>
-            <div
-              className="sticky top-28 rounded-2xl p-7"
-              style={{
-                background: 'var(--bg-2)',
-                border: '1px solid var(--rule)',
-                boxShadow: 'var(--shadow-sm)',
-              }}
-            >
-              <PriceTag
+            <div className="sticky top-28">
+              <CheckoutCard
+                productId={product._id}
                 priceUsdMinor={product.priceUsdMinor}
                 priceInrMinor={product.priceInrMinor}
-                size="lg"
-                showToggle
               />
-              <p
-                className="mt-3 text-[12px]"
-                style={{ color: 'var(--ink-soft)', fontFamily: 'var(--mono)' }}
-              >
-                One-time purchase · lifetime download access
-              </p>
-
-              <div className="mt-6">
-                <BuyButton productId={product._id} />
-              </div>
-
               <dl
-                className="mt-7 grid grid-cols-2 gap-3 text-[12px]"
-                style={{ fontFamily: 'var(--mono)' }}
+                className="mt-5 grid grid-cols-2 gap-3 rounded-xl px-5 py-4 text-[12px]"
+                style={{
+                  background: 'var(--bg-2)',
+                  border: '1px solid var(--rule)',
+                  fontFamily: 'var(--mono)',
+                }}
               >
                 <Spec label="Category" value={product.category.replace(/-/g, ' ')} />
                 <Spec label="File" value={product.fileName} />
                 <Spec label="Size" value={formatFileSize(product.fileSizeBytes)} />
-                <Spec
-                  label="Sales"
-                  value={String(product.salesCount || 0)}
-                />
+                <Spec label="Sales" value={String(product.salesCount || 0)} />
               </dl>
-
-              <div
-                className="mt-7 flex items-center gap-2 rounded-xl p-4 text-[12.5px] leading-[1.5]"
-                style={{
-                  background: 'var(--surface)',
-                  color: 'var(--ink-2)',
-                  border: '1px solid var(--rule)',
-                }}
-              >
-                <Download
-                  className="h-4 w-4 shrink-0"
-                  style={{ color: 'var(--accent)' }}
-                />
-                <span>
-                  After purchase, this lives in{' '}
-                  <Link
-                    href="/store/my-downloads"
-                    style={{ color: 'var(--accent)' }}
-                  >
-                    My Downloads
-                  </Link>
-                  . You can re-download anytime.
-                </span>
-              </div>
             </div>
           </aside>
         </div>

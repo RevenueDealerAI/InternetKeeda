@@ -10,22 +10,38 @@ import { formatPrice } from '../lib/pricing';
  * product pages remember the preference.
  */
 const LS_KEY = 'kl-currency';
+const CURRENCY_EVENT = 'ik-store-currency-change';
 
+/**
+ * Shared currency hook. Each call to useStoreCurrency() owns its own
+ * React state slot, so when one component (e.g. PriceTag) toggles the
+ * currency, sibling components reading the same hook used to stay
+ * stale. Fix: every set() publishes a window event; every instance
+ * subscribes and re-renders. Cheap, no new deps.
+ */
 export function useStoreCurrency(): [StoreCurrency, (c: StoreCurrency) => void] {
   const [currency, setCurrency] = useState<StoreCurrency>('USD');
   useEffect(() => {
     const saved = localStorage.getItem(LS_KEY) as StoreCurrency | null;
     if (saved === 'INR' || saved === 'USD') {
       setCurrency(saved);
-      return;
-    }
-    if (typeof navigator !== 'undefined' && /-IN\b/i.test(navigator.language)) {
+    } else if (
+      typeof navigator !== 'undefined' &&
+      /-IN\b/i.test(navigator.language)
+    ) {
       setCurrency('INR');
     }
+    const handler = (e: Event) => {
+      const next = (e as CustomEvent<StoreCurrency>).detail;
+      if (next === 'INR' || next === 'USD') setCurrency(next);
+    };
+    window.addEventListener(CURRENCY_EVENT, handler);
+    return () => window.removeEventListener(CURRENCY_EVENT, handler);
   }, []);
   const set = (c: StoreCurrency) => {
     setCurrency(c);
     localStorage.setItem(LS_KEY, c);
+    window.dispatchEvent(new CustomEvent(CURRENCY_EVENT, { detail: c }));
   };
   return [currency, set];
 }

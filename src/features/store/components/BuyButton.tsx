@@ -44,7 +44,22 @@ async function loadCashfreeSdk(): Promise<CashfreeFactory> {
   return w.Cashfree;
 }
 
-export function BuyButton({ productId }: { productId: string }) {
+export function BuyButton({
+  productId,
+  addOnIds,
+  grandTotalMinor,
+}: {
+  productId: string;
+  /** Optional canonical add-on IDs from CheckoutCard. Server re-
+   *  validates against the canonical config, so a stale or hostile
+   *  value here is dropped silently. */
+  addOnIds?: string[];
+  /** Total in minor units the buyer agreed to. Surfaced in the CTA
+   *  label so the buyer sees the same number on the button they saw
+   *  in the summary. The server still computes its own total from
+   *  productId + addOnIds and ignores this value. */
+  grandTotalMinor?: number;
+}) {
   const [currency] = useStoreCurrency();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -60,7 +75,7 @@ export function BuyButton({ productId }: { productId: string }) {
       const res = await fetch(route, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productId }),
+        body: JSON.stringify({ productId, addOnIds: addOnIds ?? [] }),
       });
       const data = await res.json();
       if (res.status === 401) {
@@ -103,7 +118,7 @@ export function BuyButton({ productId }: { productId: string }) {
         type="button"
         onClick={handleBuy}
         disabled={busy}
-        className="inline-flex items-center justify-center gap-2 rounded-full px-7 py-3.5 text-[13px] uppercase tracking-[0.16em] font-semibold transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70"
+        className="inline-flex flex-1 items-center justify-center gap-2 rounded-full px-7 py-3.5 text-[13px] uppercase tracking-[0.16em] font-semibold transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70"
         style={{
           background: 'var(--accent)',
           color: 'var(--on-accent)',
@@ -126,5 +141,5 @@ export function BuyButton({ productId }: { productId: string }) {
 }
 
 function currencyLabel(c: StoreCurrency): string {
-  return c === 'INR' ? 'Buy · Pay in INR' : 'Buy · Pay in USD';
+  return c === 'INR' ? 'Pay in INR →' : 'Pay in USD →';
 }
