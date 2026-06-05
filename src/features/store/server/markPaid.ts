@@ -14,11 +14,90 @@
  *   - The /api/payments/status polling-fallback (future) — same.
  */
 
+import { clerkClient } from '@clerk/nextjs/server';
 import { connectDB } from '@/app/api/lib/db';
 import { Payment, type PaymentDocument } from '@/app/api/models/Payment';
-import { StoreProduct } from '../models/StoreProduct';
-import { StorePurchase } from '../models/StorePurchase';
+import { StoreProduct, type StoreProductDocument } from '../models/StoreProduct';
+import {
+  StorePurchase,
+  type StorePurchaseDocument,
+} from '../models/StorePurchase';
 import type { StoreCurrency } from '../config';
+import { sendDeliveryEmail } from '../lib/mailer';
+
+/** Absolute base URL for links inside transactional emails. Emails
+ *  open in foreign inboxes — relative URLs don't survive. */
+function getSiteBaseUrl(): string {
+  const env =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.FRONTEND_URL ||
+    process.env.NEXT_PUBLIC_APP_URL;
+  if (env) return env.replace(/\/+$/, '');
+  // Sensible last-resort default — prod canonical. Localhost dev
+  // sends emails with this URL too, which is fine for the prod
+  // delivery path; the wire-up below only fires in prod-like flows.
+  return 'https://internetkeeda.com';
+}
+
+/** Best-effort buyer-email lookup via Clerk. Returns nulls on any
+ *  failure so the calling reconciler never crashes. */
+async function lookupBuyerForEmail(
+  clerkUserId: string
+): Promise<{ email: string | null; name: string | null }> {
+  try {
+    const client = await clerkClient();
+    const user = await client.users.getUser(clerkUserId);
+    const email = user.emailAddresses?.[0]?.emailAddress ?? null;
+    const name =
+      `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() || null;
+    return { email, name };
+  } catch (err) {
+    console.warn('[store/markPaid] clerk lookup failed for', clerkUserId, err);
+    return { email: null, name: null };
+  }
+}
+
+/**
+ * Fire the delivery email. Wrapped in its own try so any
+ * misconfiguration (missing RESEND_API_KEY, DNS not verified, etc.)
+ * cannot break the purchase or the buyer's download access.
+ */
+async function fireDeliveryEmail(
+  payment: PaymentDocument,
+  product: StoreProductDocument,
+  purchase: StorePurchaseDocument | null
+): Promise<void> {
+  try {
+    const { email, name } = await lookupBuyerForEmail(payment.userId);
+    if (!email) {
+      console.warn(
+        '[store/markPaid] no buyer email for', payment.userId,
+        '— skipping delivery email (buyer can still re-download)'
+      );
+      return;
+    }
+    const result = await sendDeliveryEmail({
+      buyerEmail: email,
+      buyerName: name ?? undefined,
+      productTitle: product.title,
+      productSlug: product.slug,
+      amountPaidMinor: payment.amount,
+      currency: payment.currency as StoreCurrency,
+      baseUrl: getSiteBaseUrl(),
+      purchaseId: purchase ? String(purchase._id) : undefined,
+    });
+    if (!result.ok) {
+      console.warn(
+        '[store/markPaid] delivery email did not send',
+        { skipped: result.skipped, error: result.error }
+      );
+    }
+  } catch (err) {
+    // Defence in depth — sendDeliveryEmail already promises no-throw,
+    // but the Clerk lookup or anything else could still throw.
+    console.warn('[store/markPaid] delivery email side-effect crashed:', err);
+  }
+}
 
 interface MarkOpts {
   source: 'webhook' | 'polling-fallback';
@@ -116,9 +195,13 @@ export async function markStorePaid(
     }
   }
 
-  const minted = await StorePurchase.findOne({ paymentId: String(payment._id) })
-    .select('_id')
-    .lean();
+  const minted = await StorePurchase.findOne({ paymentId: String(payment._id) });
+
+  // Best-effort delivery email. Never throws — sendDeliveryEmail
+  // already promises no-throw, and the outer wrapper double-guards
+  // it. The buyer can always re-download from /store/my-downloads,
+  // so a missed email does not block the purchase.
+  await fireDeliveryEmail(payment, product, minted);
 
   return {
     applied: true,
