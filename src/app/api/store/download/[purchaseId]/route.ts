@@ -116,8 +116,15 @@ export async function GET(
       upstreamContentTypeHeader ||
       'application/octet-stream'
   );
+  // Same Content-Length defence as the cover route: @vercel/blob's
+  // get() returns blob.size === 0 for some content types even when
+  // the stream is non-empty. Trusting that 0 produces a successful
+  // HTTP 200 with zero body bytes; the browser saves an empty file
+  // and the buyer thinks the download is broken.
   const upstreamLen =
-    upstreamSize !== null ? String(upstreamSize) : upstreamContentLengthHeader;
+    upstreamSize !== null && upstreamSize > 0
+      ? String(upstreamSize)
+      : upstreamContentLengthHeader;
   if (upstreamLen) headers.set('Content-Length', upstreamLen);
   // Block intermediate caches — the URL is per-purchase and access-
   // gated; we don't want a CDN serving stale entitlement state.

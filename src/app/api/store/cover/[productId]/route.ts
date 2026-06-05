@@ -73,8 +73,16 @@ export async function GET(
       upstreamContentTypeHeader ||
       'application/octet-stream'
   );
+  // Don't trust blob.size when it's 0 — Vercel Blob's get() returns
+  // blob.size === 0 for some content types (notably SVG) even though
+  // the stream contains the real bytes. Emitting Content-Length: 0
+  // tells the browser to stop reading after zero bytes and the image
+  // renders empty. Fall through to the upstream header, then to
+  // chunked transfer (no Content-Length header set).
   const upstreamLen =
-    upstreamSize !== null ? String(upstreamSize) : upstreamContentLengthHeader;
+    upstreamSize !== null && upstreamSize > 0
+      ? String(upstreamSize)
+      : upstreamContentLengthHeader;
   if (upstreamLen) headers.set('Content-Length', upstreamLen);
   // Cache aggressively — covers don't change often and a fresh upload
   // gets a fresh blob URL (random suffix) so cache-busting is built in.
