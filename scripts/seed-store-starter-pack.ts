@@ -71,8 +71,8 @@ const PRODUCTS: ProductSpec[] = [
       'Recommended Google Sheet column layout you can paste as a header row',
       'Lifetime updates — re-download anytime we ship a new revision',
     ],
-    priceUsdMinor: 1900, // $19
-    priceInrMinor: 149900, // ₹1499
+    priceUsdMinor: 4900, // $49.00 — flat base price across all workflows
+    priceInrMinor: 399900, // ₹3,999 — clean fixed INR figure, not an FX calc
     zipFilename: 'stripe-paid-invoices-to-sheets.zip',
   },
   {
@@ -99,8 +99,8 @@ const PRODUCTS: ProductSpec[] = [
       'In-memory de-dupe Code node (with notes on scaling to Redis)',
       'Lifetime updates',
     ],
-    priceUsdMinor: 1900, // $19
-    priceInrMinor: 149900, // ₹1499
+    priceUsdMinor: 4900, // $49.00
+    priceInrMinor: 399900, // ₹3,999
     zipFilename: 'rss-ai-summary-to-wordpress.zip',
   },
   {
@@ -128,8 +128,8 @@ const PRODUCTS: ProductSpec[] = [
       'Notes on swapping Clearbit for Apollo / Hunter / PDL',
       'Lifetime updates',
     ],
-    priceUsdMinor: 2400, // $24
-    priceInrMinor: 199900, // ₹1999
+    priceUsdMinor: 4900, // $49.00
+    priceInrMinor: 399900, // ₹3,999
     zipFilename: 'new-lead-enrich-to-slack.zip',
   },
 ];

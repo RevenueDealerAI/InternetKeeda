@@ -70,19 +70,33 @@ export default function AdminProductList() {
               Products
             </h1>
           </div>
-          <Link
-            href="/store/admin/new"
-            className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[12px] uppercase tracking-[0.16em] font-semibold"
-            style={{
-              background: 'var(--accent)',
-              color: 'var(--on-accent)',
-              fontFamily: 'var(--mono)',
-              boxShadow: 'var(--shadow-accent)',
-            }}
-          >
-            <Plus className="h-3.5 w-3.5" />
-            New product
-          </Link>
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href="/store/admin/purchases"
+              className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[12px] uppercase tracking-[0.16em] font-semibold"
+              style={{
+                background: 'var(--surface)',
+                color: 'var(--ink)',
+                border: '1px solid var(--rule)',
+                fontFamily: 'var(--mono)',
+              }}
+            >
+              Purchases
+            </Link>
+            <Link
+              href="/store/admin/new"
+              className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[12px] uppercase tracking-[0.16em] font-semibold"
+              style={{
+                background: 'var(--accent)',
+                color: 'var(--on-accent)',
+                fontFamily: 'var(--mono)',
+                boxShadow: 'var(--shadow-accent)',
+              }}
+            >
+              <Plus className="h-3.5 w-3.5" />
+              New product
+            </Link>
+          </div>
         </div>
 
         <div

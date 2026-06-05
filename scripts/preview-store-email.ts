@@ -22,10 +22,11 @@ const sample: DeliveryEmailInput = {
   buyerName: 'Alex',
   productTitle: 'Stripe Paid Invoices → Google Sheets (n8n)',
   productSlug: 'n8n-stripe-paid-invoices-to-sheets',
-  amountPaidMinor: 1900, // $19.00
+  amountPaidMinor: 11800, // $118 = $19 base + $99 implementation support
   currency: 'USD',
   baseUrl: 'https://internetkeeda.com',
   purchaseId: '6a210836e7daf493416e4f0e',
+  addOnIds: ['implementation-support'],
 };
 
 const outDir = path.resolve('scripts/.preview');
