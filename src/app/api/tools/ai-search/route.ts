@@ -4,8 +4,12 @@ import { connectDB } from '../../lib/db';
 import { errorResponse } from '../../lib/auth';
 import { formatTool } from '../../lib/formatTool';
 import { Tool } from '../../models/Tool';
+import { StoreProduct } from '@/features/store/models/StoreProduct';
+import { whatsappLink } from '@/lib/brand';
 
 export const dynamic = 'force-dynamic';
+
+const WA_URL = whatsappLink();
 
 // POST /api/tools/ai-search
 // Input:  { query: string }
@@ -39,7 +43,20 @@ interface ToolSummary {
   views: number;
 }
 
+interface StoreProductCard {
+  _id: string;
+  title: string;
+  slug: string;
+  shortDescription: string;
+  category: string;
+  priceUsdMinor: number;
+  priceInrMinor: number;
+  tags: string[];
+}
+
 const SYSTEM_PROMPT = `You are Riley, the concierge for Internet Keeda — a hand-curated atlas of the AI internet (5,000+ tools across writing, design, code, audio, video, research, agents, automation, voice, vision, 3D, marketing, and more). Internet Keeda is operated by Revenue Dealer MarTech Pvt Ltd. The domain is internetkeeda.com.
+
+You ALSO concierge the Internet Keeda sub-brand "Keeda Labs" — a small digital-download store that sells n8n automation workflows and packs at /store. When a user asks for an actual ready-to-deploy automation, a workflow, an n8n template, a webhook recipe, or "something I can buy and run," you may surface PUBLISHED Keeda Labs products. Drafts are filtered out before you see them.
 
 # Your job
 You help users find AI tools AND navigate the site. Three kinds of requests:
@@ -76,6 +93,9 @@ You help users find AI tools AND navigate the site. Three kinds of requests:
 - /sign-in, /sign-up         Auth flows (Clerk)
 - /dashboard                 Logged-in dashboard — existing subscribers manage their billing here.
 - /about, /privacy, /terms, /refunds   Legal + company
+- /store                     KEEDA LABS — the digital-download store. Browse all published n8n workflows + automation packs.
+- /store/<slug>              Individual Keeda Labs product detail page. Use the literal slug from the store catalog below.
+- /store/my-downloads        Buyer library — re-download anything they've bought (sign-in required).
 
 # Specific link recipes (follow these literally)
 - "How much does it cost?" / "What's the pricing?" / "How much to list?"
@@ -86,10 +106,20 @@ You help users find AI tools AND navigate the site. Three kinds of requests:
   → links: [{label: "See pricing", href: "/#pricing"}, {label: "Advertise overview", href: "/advertise"}]
 - "Existing subscriber, manage my plan / cancel"
   → links: [{label: "Manage in dashboard", href: "/dashboard"}]
+- "Do you have any workflows?" / "Any n8n templates?" / "Got an automation pack?" / "What can I buy and run today?"
+  → links: [{label: "Browse Keeda Labs", href: "/store"}] AND populate store_indices with the best-fit products from the Keeda Labs catalog below (if any match).
+- "I bought something / where's my download?" / "How do I get the file?"
+  → links: [{label: "My downloads", href: "/store/my-downloads"}]
+
+# Keeda Labs guidance
+- Categories you may surface: "n8n-workflow", "automation-pack", "template", "guide".
+- Each product is one-time purchase, downloads as a ZIP containing workflow.json + README.md, lifetime updates included.
+- Buyers pay in USD via PayPal or INR via Cashfree (same payment stack as tool boosts). $99 setup-help is available on every product detail page.
+- Never invent product slugs. Only recommend products from the indexed Keeda Labs catalog below — if nothing fits, leave store_indices empty and point them at /store with a "Browse Keeda Labs" link.
 
 # Contact / support
-- Primary support channel: WhatsApp at https://wa.me/internetkeeda
-- If a user asks for human help, billing help, complains about a missing tool, or wants to talk to the team, surface the WhatsApp link in the \`links\` array with label "Chat on WhatsApp" and href "https://wa.me/internetkeeda".
+- Primary support channel: WhatsApp at ${WA_URL}
+- If a user asks for human help, billing help, complains about a missing tool, or wants to talk to the team, surface the WhatsApp link in the \`links\` array with label "Chat on WhatsApp" and href "${WA_URL}".
 - Reminder: external URLs are allowed in the \`links\` array — the WhatsApp URL is one of them.
 
 # Pricing — four tiers (memorize the prices and what each unlocks)
@@ -121,7 +151,8 @@ Opinionated, dense, anti-corporate. Lower-case section labels, sentence-case hea
 
 # Output rules
 - Always respond via the structured output format.
-- tool_indices are 1-based into the catalog below. Empty array if the query is purely navigational.
+- tool_indices are 1-based into the "Indexed tool catalog" below. Empty array if the query is purely navigational.
+- store_indices are 1-based into the "Keeda Labs catalog" below. Empty array unless the query is asking for an actual workflow / template / automation pack the user wants to deploy.
 - links are objects { label, href }. Use the literal hrefs from the site map. Empty array if the query is purely a tool lookup with no useful follow-up. Max 4 links.
 - If query is irrelevant to AI tools or the site (small talk, weather, random facts), still reply in one line and gently redirect: "I'm here for AI-tool routing and site navigation — anything in that lane I can help with?"`;
 
@@ -139,9 +170,18 @@ export async function POST(req: NextRequest) {
       return await semanticSearchFallback(query);
     }
 
-    const tools = await Tool.find({
-      status: { $in: ['published', 'approved'] },
-    }).limit(500);
+    // Parallel reads: AI catalog (Tool) + Keeda Labs catalog
+    // (StoreProduct). Both go into the Anthropic prompt as separate
+    // numbered blocks so the model can index into each independently.
+    // store:'published' filter is enforced here — Riley NEVER sees
+    // drafts.
+    const [tools, storeProducts] = await Promise.all([
+      Tool.find({ status: { $in: ['published', 'approved'] } }).limit(500),
+      StoreProduct.find({ status: 'published' })
+        .sort({ salesCount: -1, createdAt: -1 })
+        .limit(60)
+        .lean(),
+    ]);
 
     if (tools.length === 0) {
       return NextResponse.json({ reply: "The catalog hasn't been indexed yet — check back in a minute.", tools: [] });
@@ -167,6 +207,29 @@ export async function POST(req: NextRequest) {
       )
       .join('\n');
 
+    // Build the Keeda Labs catalog block. Empty string when no
+    // products are published, in which case Riley is still aware of
+    // /store but just won't index into it.
+    const storeCards: StoreProductCard[] = storeProducts.map((p) => ({
+      _id: String(p._id),
+      title: p.title,
+      slug: p.slug,
+      shortDescription: p.shortDescription || p.description?.slice(0, 200) || '',
+      category: p.category,
+      priceUsdMinor: p.priceUsdMinor,
+      priceInrMinor: p.priceInrMinor,
+      tags: p.tags || [],
+    }));
+    const storeCatalog =
+      storeCards.length === 0
+        ? '(Keeda Labs has no published products yet — never populate store_indices.)'
+        : storeCards
+            .map(
+              (s, i) =>
+                `${i + 1}. ${s.title} (${s.category}) [$${(s.priceUsdMinor / 100).toFixed(2)} / ₹${(s.priceInrMinor / 100).toFixed(0)}] slug=${s.slug}: ${s.shortDescription}. Tags: ${s.tags.slice(0, 5).join(', ')}.`,
+            )
+            .join('\n');
+
     const client = new Anthropic({ apiKey });
     const response = await client.messages.create({
       model: 'claude-haiku-4-5',
@@ -178,7 +241,7 @@ export async function POST(req: NextRequest) {
         },
         {
           type: 'text',
-          text: `# Indexed tool catalog\n\n${catalog}`,
+          text: `# Indexed tool catalog\n\n${catalog}\n\n# Keeda Labs catalog (PUBLISHED only)\n\n${storeCatalog}`,
           cache_control: { type: 'ephemeral' },
         },
       ],
@@ -201,7 +264,13 @@ export async function POST(req: NextRequest) {
               tool_indices: {
                 type: 'array',
                 items: { type: 'integer' },
-                description: '1-based indices of recommended tools, ranked best-fit first. Empty array if nothing fits.',
+                description: '1-based indices into "Indexed tool catalog", ranked best-fit first. Empty array if nothing fits.',
+              },
+              store_indices: {
+                type: 'array',
+                items: { type: 'integer' },
+                description:
+                  '1-based indices into "Keeda Labs catalog", ranked best-fit first. Only populate when the user is asking for an actual deployable workflow / template / automation pack — not for general tool lookups. Empty array if nothing fits.',
               },
               links: {
                 type: 'array',
@@ -213,8 +282,7 @@ export async function POST(req: NextRequest) {
                     label: { type: 'string', description: 'Short label, max 4 words.' },
                     href: {
                       type: 'string',
-                      description:
-                        'A literal href from the site map (starts with /) OR the WhatsApp link "https://wa.me/internetkeeda". No other external URLs.',
+                      description: `A literal href from the site map (starts with /) OR the WhatsApp link "${WA_URL}". No other external URLs.`,
                     },
                   },
                   required: ['label', 'href'],
@@ -222,7 +290,7 @@ export async function POST(req: NextRequest) {
                 },
               },
             },
-            required: ['reply', 'tool_indices', 'links'],
+            required: ['reply', 'tool_indices', 'store_indices', 'links'],
             additionalProperties: false,
           },
         },
@@ -237,6 +305,7 @@ export async function POST(req: NextRequest) {
     let parsed: {
       reply: string;
       tool_indices: number[];
+      store_indices?: number[];
       links?: Array<{ label: string; href: string }>;
     };
     try {
@@ -250,19 +319,29 @@ export async function POST(req: NextRequest) {
       .filter(Boolean)
       .slice(0, 8);
 
+    // Map store_indices back to product cards. Defence in depth:
+    // re-check status:'published' on the picked cards before
+    // sending — even though the upstream query already filtered,
+    // a draft can't accidentally leak via a stale index.
+    const pickedStore = (parsed.store_indices || [])
+      .map((idx) => storeCards[idx - 1])
+      .filter(Boolean)
+      .slice(0, 6);
+
     const links = (parsed.links || [])
       .filter(
         (l) =>
           l &&
           typeof l.label === 'string' &&
           typeof l.href === 'string' &&
-          (l.href.startsWith('/') || l.href === 'https://wa.me/internetkeeda'),
+          (l.href.startsWith('/') || l.href === WA_URL),
       )
       .slice(0, 4);
 
     return NextResponse.json({
       reply: parsed.reply || 'Here are the closest matches in the index:',
       tools: picked.map(formatTool),
+      storeProducts: pickedStore,
       links,
     });
   } catch (error: unknown) {
@@ -281,25 +360,69 @@ async function semanticSearchFallback(query: string) {
   try {
     await connectDB();
     const terms = query.toLowerCase().split(/\s+/).filter((t) => t.length > 2);
-    const tools = await Tool.find({
-      status: { $in: ['published', 'approved'] },
-      $or: [
-        { name: { $regex: query, $options: 'i' } },
-        { description: { $regex: query, $options: 'i' } },
-        { category: { $regex: query, $options: 'i' } },
-        { tags: { $in: terms } },
-        { features: { $in: terms } },
-      ],
-    })
-      .sort({ rating: -1, views: -1 })
-      .limit(8);
+
+    // Parallel keyword pass over both catalogs. StoreProduct only
+    // surfaces published rows — the same status:'published' guard
+    // Riley enforces upstream.
+    const [tools, storeMatches] = await Promise.all([
+      Tool.find({
+        status: { $in: ['published', 'approved'] },
+        $or: [
+          { name: { $regex: query, $options: 'i' } },
+          { description: { $regex: query, $options: 'i' } },
+          { category: { $regex: query, $options: 'i' } },
+          { tags: { $in: terms } },
+          { features: { $in: terms } },
+        ],
+      })
+        .sort({ rating: -1, views: -1 })
+        .limit(8),
+      StoreProduct.find({
+        status: 'published',
+        $or: [
+          { title: { $regex: query, $options: 'i' } },
+          { description: { $regex: query, $options: 'i' } },
+          { shortDescription: { $regex: query, $options: 'i' } },
+          { category: { $regex: query, $options: 'i' } },
+          { tags: { $in: terms } },
+        ],
+      })
+        .sort({ salesCount: -1, createdAt: -1 })
+        .limit(4)
+        .lean(),
+    ]);
+
+    const storeProducts: StoreProductCard[] = storeMatches.map((p) => ({
+      _id: String(p._id),
+      title: p.title,
+      slug: p.slug,
+      shortDescription: p.shortDescription || '',
+      category: p.category,
+      priceUsdMinor: p.priceUsdMinor,
+      priceInrMinor: p.priceInrMinor,
+      tags: p.tags || [],
+    }));
+
+    // Heuristic: if the query mentions "workflow / n8n / template /
+    // automation / buy / download / pack", surface the Keeda Labs
+    // browse link too even if no exact product matched.
+    const wantsStore = /\b(workflow|n8n|template|automation|automat|pack|recipe|download|buy|store|keeda\s*labs)\b/i.test(query);
+    const links: Array<{ label: string; href: string }> = [];
+    if ((storeProducts.length > 0 || wantsStore) && storeMatches.length < 4) {
+      links.push({ label: 'Browse Keeda Labs', href: '/store' });
+    }
+
+    const total = tools.length + storeProducts.length;
+    const reply =
+      total > 0
+        ? "Here's what matched on a keyword pass — the AI router is offline:"
+        : 'No matches on a keyword search. Try fewer or more specific words?';
 
     return NextResponse.json({
-      reply:
-        tools.length > 0
-          ? "Here's what matched on a keyword pass — the AI router is offline:"
-          : 'No matches on a keyword search. Try fewer or more specific words?',
+      reply,
       tools: tools.map(formatTool),
+      storeProducts,
+      links,
     });
   } catch (err) {
     console.error('Fallback search error:', err);

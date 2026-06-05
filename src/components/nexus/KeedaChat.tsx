@@ -25,9 +25,31 @@ import type { Tool } from '@/types/tool';
 
 type NavLink = { label: string; href: string };
 
+/** Lightweight Keeda Labs product reference rendered as a card in
+ *  the chat. Only PUBLISHED products are ever surfaced — the
+ *  /api/tools/ai-search route enforces status:'published' before
+ *  the model even sees the catalog. */
+export type RileyStoreProduct = {
+  _id: string;
+  title: string;
+  slug: string;
+  shortDescription: string;
+  category: string;
+  priceUsdMinor: number;
+  priceInrMinor: number;
+  tags: string[];
+};
+
 type Message =
   | { role: 'bot'; kind: 'text'; body: string }
-  | { role: 'bot'; kind: 'tools'; body: string; tools: Tool[]; links?: NavLink[] }
+  | {
+      role: 'bot';
+      kind: 'tools';
+      body: string;
+      tools: Tool[];
+      storeProducts?: RileyStoreProduct[];
+      links?: NavLink[];
+    }
   | { role: 'user'; kind: 'text'; body: string };
 
 const BOT_NAME = 'Riley';
@@ -136,6 +158,17 @@ export function KeedaChat() {
       if (!res.ok) throw new Error(`request failed (${res.status})`);
       const data = await res.json();
       const tools = Array.isArray(data?.tools) ? (data.tools as Tool[]).slice(0, 6) : [];
+      const storeProducts: RileyStoreProduct[] = Array.isArray(data?.storeProducts)
+        ? (data.storeProducts as RileyStoreProduct[])
+            .filter(
+              (p) =>
+                p &&
+                typeof p.title === 'string' &&
+                typeof p.slug === 'string' &&
+                typeof p.priceUsdMinor === 'number'
+            )
+            .slice(0, 6)
+        : [];
       const links: NavLink[] = Array.isArray(data?.links)
         ? (data.links as NavLink[])
             .filter(
@@ -150,14 +183,21 @@ export function KeedaChat() {
       const reply =
         typeof data?.reply === 'string' && data.reply.trim().length > 0
           ? data.reply.trim()
-          : tools.length > 0
+          : tools.length > 0 || storeProducts.length > 0
             ? "Here's what I'd reach for:"
             : links.length > 0
               ? 'Here are a few places that might help:'
               : "I couldn't find a strong match. Try rephrasing what you want to do?";
       setMessages((m) => [
         ...m,
-        { role: 'bot', kind: 'tools', body: reply, tools, links: links.length > 0 ? links : undefined },
+        {
+          role: 'bot',
+          kind: 'tools',
+          body: reply,
+          tools,
+          storeProducts: storeProducts.length > 0 ? storeProducts : undefined,
+          links: links.length > 0 ? links : undefined,
+        },
       ]);
     } catch {
       setMessages((m) => [
@@ -443,6 +483,75 @@ function Bubble({ msg }: { msg: Message }) {
                   }}
                 >
                   open →
+                </span>
+              </Link>
+            ))}
+          </div>
+        )}
+        {msg.storeProducts && msg.storeProducts.length > 0 && (
+          <div className="flex flex-col gap-1.5">
+            <div
+              className="px-1 text-[9px]"
+              style={{
+                color: 'var(--accent)',
+                fontFamily: 'var(--mono)',
+                letterSpacing: '0.22em',
+                textTransform: 'uppercase',
+              }}
+            >
+              § keeda labs · workflows you can buy
+            </div>
+            {msg.storeProducts.map((p) => (
+              <Link
+                key={p._id}
+                href={`/store/${p.slug}`}
+                className="flex items-center gap-2.5 rounded-xl p-2 transition-colors"
+                style={{
+                  background: 'var(--accent-soft)',
+                  border: '1px solid var(--rule)',
+                }}
+              >
+                <div
+                  className="grid h-8 w-8 shrink-0 place-items-center rounded-lg"
+                  style={{
+                    background: 'var(--bg)',
+                    color: 'var(--accent)',
+                    fontFamily: 'var(--mono)',
+                    fontSize: 9,
+                    letterSpacing: '0.04em',
+                  }}
+                >
+                  KL
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div
+                    className="truncate text-[12px] font-semibold"
+                    style={{ color: 'var(--ink)' }}
+                  >
+                    {p.title}
+                  </div>
+                  <div
+                    className="truncate text-[10px]"
+                    style={{
+                      color: 'var(--ink-soft)',
+                      fontFamily: 'var(--mono)',
+                      letterSpacing: '0.06em',
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    {p.category.replace(/-/g, ' ')} · ${(p.priceUsdMinor / 100).toFixed(0)}
+                  </div>
+                </div>
+                <span
+                  style={{
+                    fontFamily: 'var(--mono)',
+                    fontSize: 9,
+                    color: 'var(--accent)',
+                    letterSpacing: '0.16em',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  buy →
                 </span>
               </Link>
             ))}
