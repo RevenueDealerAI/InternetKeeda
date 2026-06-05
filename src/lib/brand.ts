@@ -50,6 +50,29 @@ export const BRAND = {
   corpEmail: "info@revenuedealer.com",
 } as const;
 
+/**
+ * WhatsApp number used by every "Connect / Chat on WhatsApp" CTA on
+ * the site — footer button, AgentSection ("Try Riley"), Keeda Labs
+ * delivery email's "$99 setup help" CTA, and the AI-search system
+ * prompt.
+ *
+ * Format: E.164 WITHOUT the leading "+". wa.me only routes calls to
+ * a real digit sequence — handles ("internetkeeda") return a "phone
+ * number shared via url is invalid" page.
+ *
+ * Replace this with the real support number once you have one. Until
+ * then it's a placeholder and the WhatsApp CTAs will surface that
+ * "invalid number" page.
+ */
+export const WHATSAPP_SETUP_NUMBER = "REPLACE_WITH_E164_NO_PLUS";
+
+/** Build the public wa.me URL with an optional pre-filled message. */
+export function whatsappLink(prefilledMessage?: string): string {
+  const base = `https://wa.me/${WHATSAPP_SETUP_NUMBER}`;
+  if (!prefilledMessage) return base;
+  return `${base}?text=${encodeURIComponent(prefilledMessage)}`;
+}
+
 export const LEGAL_ENTITIES = {
   inr: {
     name: "Revenue Dealer MarTech Pvt Ltd",

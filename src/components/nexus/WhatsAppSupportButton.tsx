@@ -1,18 +1,20 @@
 'use client';
 
 /**
- * Primary customer-support contact channel. The deep link
- * `https://wa.me/internetkeeda` is the same one already in use in
- * Footer.tsx, AgentSection.tsx, the AI search route's system
- * prompt, and the KeedaChat link allowlist — keep them all in
- * sync if the WA number ever changes.
+ * Primary customer-support contact channel. The WhatsApp number
+ * lives in ONE place — src/lib/brand.ts WHATSAPP_SETUP_NUMBER —
+ * and every CTA on the site (this button, AgentSection's "Try
+ * Riley" branch, the Keeda Labs delivery email's setup-help block,
+ * the AI-search system prompt) derives its href from it.
  *
  * Two sizes:
  *   - "md" (default) — matches the footer's pill button
  *   - "sm"           — for inline use inside legal-page paragraphs
  */
 
-const WA_HREF = 'https://wa.me/internetkeeda';
+import { whatsappLink } from '@/lib/brand';
+
+const WA_HREF = whatsappLink();
 
 export function WhatsAppSupportButton({
   label = 'Connect on WhatsApp',

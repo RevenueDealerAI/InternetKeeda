@@ -2,6 +2,7 @@
 
 import { ArrowRight, Brain, Database, Share2 } from 'lucide-react';
 import { NeuralCanvas } from './NeuralCanvas';
+import { whatsappLink } from '@/lib/brand';
 
 const BULLETS = [
   {
@@ -120,7 +121,7 @@ export function AgentSection() {
             </button>
 
             <a
-              href="https://wa.me/internetkeeda"
+              href={whatsappLink()}
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Connect with us on WhatsApp"

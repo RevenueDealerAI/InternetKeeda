@@ -20,18 +20,18 @@
 import { Resend } from 'resend';
 import { STORE_BRAND } from '../config';
 import { formatPrice } from './pricing';
+import { whatsappLink } from '@/lib/brand';
 import type { StoreCurrency } from '../config';
 
 const FROM_ADDRESS = `${STORE_BRAND.name} <labs@internetkeeda.com>`;
 const REPLY_TO_ADDRESS = 'hello@internetkeeda.com';
 const SETUP_HELP_USD = 99;
 
-/** WhatsApp handle — same one used everywhere (WhatsAppSupportButton,
- *  Footer, AgentSection, KeedaChat allowlist). The CTA in the email
- *  pre-fills a message via the `?text=` param so support knows what
- *  the buyer is asking about before they even type. */
-const WHATSAPP_BASE = 'https://wa.me/internetkeeda';
-
+/** Build the WhatsApp $99 setup-help CTA URL with a pre-filled
+ *  message that carries the workflow title + order id. The number
+ *  itself is sourced from src/lib/brand.ts WHATSAPP_SETUP_NUMBER —
+ *  changing it there updates this CTA, the footer button, the
+ *  AgentSection branch, and the AI-search system prompt in one go. */
 function whatsappHelpUrl(productTitle: string, purchaseId?: string): string {
   const lines = [
     `Hi ${STORE_BRAND.parentName} team,`,
@@ -39,7 +39,7 @@ function whatsappHelpUrl(productTitle: string, purchaseId?: string): string {
   ];
   if (purchaseId) lines.push(`Order: ${purchaseId}.`);
   lines.push(`Thanks!`);
-  return `${WHATSAPP_BASE}?text=${encodeURIComponent(lines.join('\n'))}`;
+  return whatsappLink(lines.join('\n'));
 }
 
 export interface DeliveryEmailInput {
