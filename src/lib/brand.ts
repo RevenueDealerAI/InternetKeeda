@@ -64,7 +64,7 @@ export const BRAND = {
  * then it's a placeholder and the WhatsApp CTAs will surface that
  * "invalid number" page.
  */
-export const WHATSAPP_SETUP_NUMBER = "REPLACE_WITH_E164_NO_PLUS";
+export const WHATSAPP_SETUP_NUMBER = "919899155499";
 
 /** Build the public wa.me URL with an optional pre-filled message. */
 export function whatsappLink(prefilledMessage?: string): string {

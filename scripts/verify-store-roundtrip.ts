@@ -64,12 +64,14 @@ async function run() {
   if (!uri) throw new Error('MONGODB_URI not set');
   await mongoose.connect(uri);
 
-  const product = await StoreProduct.findOne({
-    slug: 'n8n-stripe-invoice-to-sheets',
-  });
+  // Use any product the store has — the script doesn't care which.
+  // Prefer the starter-pack slug first; fall back to any product.
+  const product =
+    (await StoreProduct.findOne({ slug: 'n8n-stripe-paid-invoices-to-sheets' })) ||
+    (await StoreProduct.findOne({}));
   if (!product) {
     throw new Error(
-      'Seed product missing. Run: npx tsx scripts/seed-store-sample.ts'
+      'No StoreProduct in DB. Run: npx tsx scripts/seed-store-starter-pack.ts'
     );
   }
   const productId = String(product._id);

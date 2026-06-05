@@ -14,7 +14,6 @@
  *   - The /api/payments/status polling-fallback (future) — same.
  */
 
-import { clerkClient } from '@clerk/nextjs/server';
 import { connectDB } from '@/app/api/lib/db';
 import { Payment, type PaymentDocument } from '@/app/api/models/Payment';
 import { StoreProduct, type StoreProductDocument } from '../models/StoreProduct';
@@ -40,12 +39,17 @@ function getSiteBaseUrl(): string {
 }
 
 /** Best-effort buyer-email lookup via Clerk. Returns nulls on any
- *  failure so the calling reconciler never crashes. */
+ *  failure so the calling reconciler never crashes. The import is
+ *  deferred so this module is loadable from raw tsx scripts (the
+ *  verify-store-roundtrip script and friends) where Next's bundler
+ *  isn't resolving '@clerk/nextjs/server' for us — if the import
+ *  fails, we degrade to "no email" rather than crash. */
 async function lookupBuyerForEmail(
   clerkUserId: string
 ): Promise<{ email: string | null; name: string | null }> {
   try {
-    const client = await clerkClient();
+    const mod = await import('@clerk/nextjs/server');
+    const client = await mod.clerkClient();
     const user = await client.users.getUser(clerkUserId);
     const email = user.emailAddresses?.[0]?.emailAddress ?? null;
     const name =
