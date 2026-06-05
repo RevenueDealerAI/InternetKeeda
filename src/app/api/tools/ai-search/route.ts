@@ -183,8 +183,13 @@ export async function POST(req: NextRequest) {
         .lean(),
     ]);
 
-    if (tools.length === 0) {
-      return NextResponse.json({ reply: "The catalog hasn't been indexed yet — check back in a minute.", tools: [] });
+    // Both catalogs empty → genuinely nothing to recommend. Riley
+    // would hallucinate without anything to pick from. Bail early.
+    if (tools.length === 0 && storeProducts.length === 0) {
+      return NextResponse.json({
+        reply: "The catalog hasn't been indexed yet — check back in a minute.",
+        tools: [],
+      });
     }
 
     const summaries: ToolSummary[] = tools.map((t) => ({
@@ -200,12 +205,15 @@ export async function POST(req: NextRequest) {
       views: t.views || 0,
     }));
 
-    const catalog = summaries
-      .map(
-        (s, i) =>
-          `${i + 1}. ${s.name} (${s.category}) [${s.pricing.type}]: ${s.description}. Tags: ${s.tags.slice(0, 5).join(', ')}.`,
-      )
-      .join('\n');
+    const catalog =
+      summaries.length === 0
+        ? '(Tool catalog is empty on this MongoDB cluster — never populate tool_indices. If the user asks for an AI tool, reply that the catalog has not been indexed yet on this site and point them at /store for Keeda Labs workflows or /faq.)'
+        : summaries
+            .map(
+              (s, i) =>
+                `${i + 1}. ${s.name} (${s.category}) [${s.pricing.type}]: ${s.description}. Tags: ${s.tags.slice(0, 5).join(', ')}.`,
+            )
+            .join('\n');
 
     // Build the Keeda Labs catalog block. Empty string when no
     // products are published, in which case Riley is still aware of
