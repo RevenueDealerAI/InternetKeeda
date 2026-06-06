@@ -91,32 +91,24 @@ export async function POST(req: NextRequest) {
     const orderId = `store_${payment._id.toString()}_${Date.now()}`;
     const orderAmountRupees = Math.round(totalInr) / 100;
 
-    // Cashfree requires verified phone for INR orders — same gate the
-    // boost path enforces. Reuse the Clerk read.
+    // Cashfree requires customer_phone in customer_details. For
+    // subscription mandates the verified phone is mandatory (mandate
+    // SMS routing). For one-time PG orders like Keeda Labs purchases
+    // it isn't — Cashfree just needs a syntactically valid number to
+    // accept the request. Use the Clerk verified phone if we have one;
+    // otherwise fall back to a placeholder so the buyer can complete
+    // checkout even without a verified phone on their profile.
     const clerkUser = await getAuth();
     const verifiedPhone = clerkUser?.phoneNumbers?.find(
       (p) => p?.verification?.status === 'verified'
     );
-    if (!verifiedPhone?.phoneNumber) {
-      return NextResponse.json(
-        {
-          error: 'PHONE_REQUIRED',
-          message:
-            'A verified phone number is required for INR checkout. Add one in your profile.',
-        },
-        { status: 400 }
-      );
-    }
-    const customerPhone = verifiedPhone.phoneNumber.trim();
+    let customerPhone = (verifiedPhone?.phoneNumber || '').trim();
     if (!/^\+\d{8,15}$/.test(customerPhone)) {
-      return NextResponse.json(
-        {
-          error: 'PHONE_INVALID',
-          message:
-            'Phone number is not in international format. Re-add it in your profile.',
-        },
-        { status: 400 }
-      );
+      // Placeholder Indian number Cashfree accepts in PROD orders for
+      // accounts that haven't surfaced a verified mobile yet. Phone
+      // contact for the order travels through email + WhatsApp via
+      // the delivery email, not via this field.
+      customerPhone = '+919999999999';
     }
     const customerEmail =
       clerkUser?.emailAddresses?.[0]?.emailAddress ||
@@ -148,7 +140,12 @@ export async function POST(req: NextRequest) {
           productType: STORE_PRODUCT_TYPE,
           storeProductId: String(product._id),
           paymentDbId: String(payment._id),
-          addOnIds: validAddOnIds.join(',') || '(none)',
+          // Cashfree order_tag VALUES are restricted to alphanumeric +
+          // '_'/'-' (parens, spaces, commas all rejected with a 400).
+          // Sanitise the IDs and use 'none' (no parens) when empty.
+          addOnIds: validAddOnIds.length
+            ? validAddOnIds.map((id) => id.replace(/[^A-Za-z0-9_-]/g, '_')).join('_')
+            : 'none',
         },
       });
 
