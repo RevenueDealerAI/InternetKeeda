@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
-import { useUser } from '@clerk/nextjs';
+import { useClerkSession } from '@/hooks/useClerkSession';
 import { Download as DownloadIcon, Mail as MailIcon } from 'lucide-react';
 import { PriceTag, useStoreCurrency } from './PriceTag';
 import { AddOnToggle } from './AddOnToggle';
@@ -39,7 +39,12 @@ export function CheckoutCard({
   priceInrMinor: number;
 }) {
   const [currency] = useStoreCurrency();
-  const { isLoaded, isSignedIn } = useUser();
+  // Cookie-based auth detection. ClerkProvider is NOT mounted at
+  // root in this app — public routes use this hook so the Clerk SDK
+  // never enters the critical path. Returns a boolean only; for the
+  // signed-in path we still hand off to /sign-in / /store/my-downloads
+  // (server-side gated) where the full Clerk session is in scope.
+  const { isLoaded, isSignedIn } = useClerkSession();
 
   // Signed-in: skip the chooser entirely.
   // Signed-out: start in 'choosing' so the buyer picks sign-in or guest.
