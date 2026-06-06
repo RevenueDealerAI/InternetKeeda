@@ -18,6 +18,7 @@
  */
 
 import { Resend } from 'resend';
+import { get as blobGet } from '@vercel/blob';
 import { STORE_BRAND } from '../config';
 import { formatPrice } from './pricing';
 import { whatsappLink } from '@/lib/brand';
@@ -60,6 +61,15 @@ export interface DeliveryEmailInput {
   /** Add-on IDs the buyer included at checkout — drives the
    *  "Implementation Support" block + the postPurchaseNote section. */
   addOnIds?: string[];
+  /** Guest checkout flag. Guests have no /store/my-downloads — the
+   *  download URL block is replaced with an inline "your workflow
+   *  is attached" message, and the workflow zip is attached. */
+  isGuest?: boolean;
+  /** Vercel Blob URL of the workflow zip to attach (guest path).
+   *  Ignored for signed-in buyers. */
+  attachFile?: string | null;
+  /** Filename for the attachment (e.g. "stripe-to-sheets.zip"). */
+  attachFileName?: string | null;
 }
 
 export interface DeliverySendResult {
@@ -98,6 +108,30 @@ export async function sendDeliveryEmail(
     const text = renderDeliveryEmailText(input);
     const subject = `Your ${STORE_BRAND.name} workflow is ready — ${input.productTitle}`;
 
+    // For guest buyers we attach the workflow zip directly. They have
+    // no account-gated /store/my-downloads to come back to, so the
+    // file rides along with the email itself. Workflow zips are small
+    // (~5KB), well under Resend's 40MB per-message attachment cap.
+    let attachments: { filename: string; content: string }[] | undefined;
+    if (input.isGuest && input.attachFile) {
+      const fileBytes = await fetchBlobBytes(input.attachFile);
+      if (fileBytes) {
+        attachments = [
+          {
+            filename:
+              input.attachFileName ||
+              `${input.productSlug || 'workflow'}.zip`,
+            content: fileBytes.toString('base64'),
+          },
+        ];
+      } else {
+        console.warn(
+          '[store/mailer] guest attachment fetch failed — sending email without file',
+          { productSlug: input.productSlug }
+        );
+      }
+    }
+
     const resend = new Resend(apiKey);
     const result = await resend.emails.send({
       from: FROM_ADDRESS,
@@ -106,6 +140,7 @@ export async function sendDeliveryEmail(
       subject,
       html,
       text,
+      ...(attachments ? { attachments } : {}),
       headers: {
         // Helps gmail/outlook thread + group store transactionals.
         'X-Entity-Ref-ID': `keeda-labs-purchase-${input.purchaseId || 'unknown'}`,
@@ -145,6 +180,7 @@ export function renderDeliveryEmailHtml(input: DeliveryEmailInput): string {
     : 'Hi there,';
   const purchasedAddOns = pickAddOnsFromIds(input.addOnIds || []);
   const followUpAddOns = purchasedAddOns.filter((a) => !!a.postPurchaseNote);
+  const isGuest = !!input.isGuest;
 
   const mailtoSubject = `Workflow setup help — ${input.productTitle} ($${SETUP_HELP_USD})`;
   const mailtoBody =
@@ -213,6 +249,25 @@ export function renderDeliveryEmailHtml(input: DeliveryEmailInput): string {
         <!-- Primary CTA -->
         <tr>
           <td align="center" style="padding:28px 36px 4px 36px;">
+            ${
+              isGuest
+                ? `
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+              <tr>
+                <td align="center" style="background:rgba(255,59,59,0.10);border:1px solid rgba(255,59,59,0.35);border-radius:14px;padding:22px 24px;">
+                  <div style="font-family:'IBM Plex Mono',Menlo,Consolas,monospace;font-size:10px;letter-spacing:0.3em;text-transform:uppercase;color:#ff3b3b;">
+                    Your workflow is attached
+                  </div>
+                  <div style="margin-top:8px;color:#f4f3f0;font-size:16px;line-height:1.4;font-weight:600;letter-spacing:-0.01em;">
+                    Look for the ${escapeHtml(input.attachFileName || `${input.productSlug || 'workflow'}.zip`)} attachment on this email.
+                  </div>
+                  <p style="margin:10px 0 0 0;color:rgba(244,243,240,0.60);font-size:13px;line-height:1.55;">
+                    Reply to this email anytime to re-download or get help — same address, same humans.
+                  </p>
+                </td>
+              </tr>
+            </table>`
+                : `
             <table role="presentation" cellpadding="0" cellspacing="0" border="0">
               <tr>
                 <td bgcolor="#ff3b3b" style="border-radius:999px;">
@@ -225,7 +280,8 @@ export function renderDeliveryEmailHtml(input: DeliveryEmailInput): string {
             </table>
             <p style="margin:14px 0 0 0;color:rgba(244,243,240,0.50);font-size:12px;line-height:1.5;">
               Opens your private library. You can re-download anytime, on any device.
-            </p>
+            </p>`
+            }
           </td>
         </tr>
 
@@ -325,7 +381,11 @@ export function renderDeliveryEmailHtml(input: DeliveryEmailInput): string {
                   Item &nbsp;·&nbsp; <a href="${escapeAttr(productUrl)}" style="color:#f4f3f0;">${escapeHtml(input.productTitle)}</a><br>
                   Paid &nbsp;·&nbsp; ${escapeHtml(priceLabel)}<br>
                   ${input.purchaseId ? `Order &nbsp;·&nbsp; ${escapeHtml(input.purchaseId)}<br>` : ''}
-                  Library &nbsp;·&nbsp; <a href="${escapeAttr(downloadUrl)}" style="color:#ff3b3b;">${escapeHtml(downloadUrl.replace(/^https?:\/\//, ''))}</a>
+                  ${
+                    isGuest
+                      ? `Delivery &nbsp;·&nbsp; attached to this email`
+                      : `Library &nbsp;·&nbsp; <a href="${escapeAttr(downloadUrl)}" style="color:#ff3b3b;">${escapeHtml(downloadUrl.replace(/^https?:\/\//, ''))}</a>`
+                  }
                 </td>
               </tr>
             </table>
@@ -363,6 +423,7 @@ export function renderDeliveryEmailText(input: DeliveryEmailInput): string {
   const priceLabel = formatPrice(input.amountPaidMinor, input.currency);
   const purchasedAddOns = pickAddOnsFromIds(input.addOnIds || []);
   const followUpAddOns = purchasedAddOns.filter((a) => !!a.postPurchaseNote);
+  const isGuest = !!input.isGuest;
 
   const addOnLines: string[] = [];
   for (const a of followUpAddOns) {
@@ -371,14 +432,21 @@ export function renderDeliveryEmailText(input: DeliveryEmailInput): string {
     addOnLines.push(``);
   }
 
+  const deliveryBlock = isGuest
+    ? [
+        `Your workflow is attached to this email.`,
+        `  File: ${input.attachFileName || `${input.productSlug || 'workflow'}.zip`}`,
+        `  Reply to this email anytime to re-download or get help.`,
+        ``,
+      ]
+    : [`Download your workflow:`, `  ${downloadUrl}`, ``];
+
   return [
     `Purchase confirmed.`,
     ``,
     `${priceLabel} captured. Your "${input.productTitle}" is ready to download — yours to keep, lifetime updates included.`,
     ``,
-    `Download your workflow:`,
-    `  ${downloadUrl}`,
-    ``,
+    ...deliveryBlock,
     ...addOnLines,
     `Setup in 5 minutes:`,
     `  1. Unzip — you'll find workflow.json + README.md.`,
@@ -395,7 +463,7 @@ export function renderDeliveryEmailText(input: DeliveryEmailInput): string {
     `  Item:    ${input.productTitle}`,
     `  Paid:    ${priceLabel}`,
     input.purchaseId ? `  Order:   ${input.purchaseId}` : '',
-    `  Library: ${downloadUrl}`,
+    isGuest ? `  Delivery: attached to this email` : `  Library: ${downloadUrl}`,
     ``,
     `${STORE_BRAND.name} · ${STORE_BRAND.parentName}`,
     `Operated by Revenue Dealer MarTech Pvt Ltd (India) and Viom Global Inc (USA).`,
@@ -422,4 +490,31 @@ function escapeAttr(s: string): string {
 
 function stripTrailing(u: string): string {
   return u.replace(/\/+$/, '');
+}
+
+/** Fetch a Vercel Blob private object into a Buffer for email
+ *  attachment. Returns null on any failure so the caller can still
+ *  send the body of the email without crashing. */
+async function fetchBlobBytes(blobUrl: string): Promise<Buffer | null> {
+  try {
+    const result = await blobGet(blobUrl, {
+      access: 'private',
+      token: process.env.BLOB_READ_WRITE_TOKEN,
+    });
+    if (!result || result.statusCode !== 200) return null;
+    const chunks: Uint8Array[] = [];
+    const reader = result.stream.getReader();
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (value) chunks.push(value);
+    }
+    return Buffer.concat(chunks.map((c) => Buffer.from(c)));
+  } catch (err) {
+    console.warn(
+      '[store/mailer] fetchBlobBytes failed:',
+      err instanceof Error ? err.message : String(err)
+    );
+    return null;
+  }
 }

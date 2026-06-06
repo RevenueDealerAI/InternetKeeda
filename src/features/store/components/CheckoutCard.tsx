@@ -3,11 +3,12 @@
 import { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
-import { Download as DownloadIcon } from 'lucide-react';
+import { useUser } from '@clerk/nextjs';
+import { Download as DownloadIcon, Mail as MailIcon } from 'lucide-react';
 import { PriceTag, useStoreCurrency } from './PriceTag';
 import { AddOnToggle } from './AddOnToggle';
 import { AnimatedTotal } from './AnimatedTotal';
-import { BuyButton } from './BuyButton';
+import { BuyButton, type GuestBuyerInput } from './BuyButton';
 import { STORE_ADDONS, sumAddOnInrMinor, sumAddOnUsdMinor } from '../lib/addons';
 import { formatPrice } from '../lib/pricing';
 import type { StoreCurrency } from '../config';
@@ -26,6 +27,8 @@ import type { StoreCurrency } from '../config';
  * All add-on copy + pricing reads from src/features/store/lib/addons.ts.
  * To ship a new add-on, edit that file — no changes here.
  */
+type GuestMode = 'choosing' | 'guest';
+
 export function CheckoutCard({
   productId,
   priceUsdMinor,
@@ -36,6 +39,16 @@ export function CheckoutCard({
   priceInrMinor: number;
 }) {
   const [currency] = useStoreCurrency();
+  const { isLoaded, isSignedIn } = useUser();
+
+  // Signed-in: skip the chooser entirely.
+  // Signed-out: start in 'choosing' so the buyer picks sign-in or guest.
+  const [guestMode, setGuestMode] = useState<GuestMode>('choosing');
+  const [guestForm, setGuestForm] = useState<GuestBuyerInput>({
+    email: '',
+    name: '',
+    phone: '',
+  });
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => {
     return new Set(STORE_ADDONS.filter((a) => a.defaultOn).map((a) => a.id));
@@ -61,6 +74,38 @@ export function CheckoutCard({
       ? sumAddOnInrMinor(selectedAddOns)
       : sumAddOnUsdMinor(selectedAddOns);
   const grandTotal = basePrice + addOnTotal;
+
+  // Validate the guest form locally so the BuyButton stays disabled
+  // until the buyer has typed something we can send to the server.
+  const guestEmailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestForm.email.trim());
+  const guestPhoneOk =
+    !guestForm.phone || /^\+?\d{8,15}$/.test(guestForm.phone.replace(/[\s-]/g, ''));
+  const guestNameOk = guestForm.name.trim().length > 0;
+  const guestFormReady = guestEmailOk && guestNameOk && guestPhoneOk;
+
+  // The actual guest payload we send. Trim whitespace on the wire.
+  const guestPayload: GuestBuyerInput | null =
+    !isSignedIn && guestMode === 'guest' && guestFormReady
+      ? {
+          email: guestForm.email.trim(),
+          name: guestForm.name.trim() || undefined,
+          phone: guestForm.phone
+            ? guestForm.phone.replace(/[\s-]/g, '')
+            : undefined,
+        }
+      : null;
+
+  // Decide whether the BuyButton should be disabled and what
+  // label to show. Three states:
+  //   - signed in → button enabled, standard label
+  //   - signed out, chooser still showing → button hidden
+  //   - signed out, guest mode + form invalid → button disabled
+  //     with an "Enter your details" label
+  const buyDisabled =
+    isLoaded && !isSignedIn && guestMode === 'guest' && !guestFormReady;
+  const buyLabel = buyDisabled ? 'Enter your details' : undefined;
+  const showBuyButton =
+    !isLoaded || isSignedIn || (guestMode === 'guest');
 
   return (
     <div
@@ -168,13 +213,160 @@ export function CheckoutCard({
         </div>
       </div>
 
-      <div className="mt-5">
-        <BuyButton
-          productId={productId}
-          addOnIds={Array.from(selectedIds)}
-          grandTotalMinor={grandTotal}
-        />
-      </div>
+      {/* Signed-out chooser: sign-in vs continue as guest. Renders ABOVE
+          the BuyButton so the buyer makes the identity choice before
+          clicking pay. Signed-in users never see this block. */}
+      {isLoaded && !isSignedIn && (
+        <div className="mt-5">
+          {guestMode === 'choosing' ? (
+            <div className="flex flex-col gap-2.5">
+              <div
+                className="text-[10px] uppercase tracking-[0.24em]"
+                style={{ color: 'var(--ink-soft)', fontFamily: 'var(--mono)' }}
+              >
+                Checkout
+              </div>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Link
+                  href={`/sign-in?redirect_url=${typeof window !== 'undefined' ? encodeURIComponent(window.location.pathname) : ''}`}
+                  className="inline-flex flex-1 items-center justify-center rounded-full px-5 py-2.5 text-[11.5px] uppercase tracking-[0.16em] font-semibold transition-colors"
+                  style={{
+                    border: '1px solid var(--rule)',
+                    color: 'var(--ink)',
+                    background: 'var(--surface)',
+                    fontFamily: 'var(--mono)',
+                  }}
+                >
+                  Sign in
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => setGuestMode('guest')}
+                  className="inline-flex flex-1 items-center justify-center rounded-full px-5 py-2.5 text-[11.5px] uppercase tracking-[0.16em] font-semibold transition-colors hover:opacity-90"
+                  style={{
+                    background: 'var(--accent)',
+                    color: 'var(--on-accent)',
+                    fontFamily: 'var(--mono)',
+                  }}
+                >
+                  Continue as guest
+                </button>
+              </div>
+              <p
+                className="text-[11.5px] leading-[1.5] mt-1"
+                style={{ color: 'var(--ink-soft)' }}
+              >
+                Guest checkout sends the workflow to your email. Signed-in
+                accounts also get a private library you can re-download from.
+              </p>
+            </div>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.18 }}
+              className="flex flex-col gap-3"
+            >
+              <div className="flex items-center justify-between">
+                <div
+                  className="text-[10px] uppercase tracking-[0.24em] flex items-center gap-2"
+                  style={{ color: 'var(--ink-soft)', fontFamily: 'var(--mono)' }}
+                >
+                  <MailIcon
+                    className="h-3 w-3"
+                    style={{ color: 'var(--accent)' }}
+                  />
+                  Send to
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setGuestMode('choosing')}
+                  className="text-[10.5px] uppercase tracking-[0.18em] underline-offset-2 hover:underline"
+                  style={{ color: 'var(--ink-soft)', fontFamily: 'var(--mono)' }}
+                >
+                  ← Sign in instead
+                </button>
+              </div>
+              <div className="flex flex-col gap-2">
+                <input
+                  type="text"
+                  placeholder="Your name"
+                  value={guestForm.name}
+                  onChange={(e) =>
+                    setGuestForm((g) => ({ ...g, name: e.target.value }))
+                  }
+                  className="rounded-lg px-3.5 py-2.5 text-[14px] outline-none"
+                  style={{
+                    background: 'var(--surface)',
+                    border: '1px solid var(--rule)',
+                    color: 'var(--ink)',
+                  }}
+                />
+                <input
+                  type="email"
+                  placeholder="Email — we'll send the workflow here"
+                  value={guestForm.email}
+                  onChange={(e) =>
+                    setGuestForm((g) => ({ ...g, email: e.target.value }))
+                  }
+                  inputMode="email"
+                  autoComplete="email"
+                  className="rounded-lg px-3.5 py-2.5 text-[14px] outline-none"
+                  style={{
+                    background: 'var(--surface)',
+                    border: `1px solid ${
+                      guestForm.email && !guestEmailOk ? 'var(--accent)' : 'var(--rule)'
+                    }`,
+                    color: 'var(--ink)',
+                  }}
+                />
+                <input
+                  type="tel"
+                  placeholder={
+                    currency === 'INR'
+                      ? 'Phone with country code (e.g. +9198…)'
+                      : 'Phone (optional)'
+                  }
+                  value={guestForm.phone}
+                  onChange={(e) =>
+                    setGuestForm((g) => ({ ...g, phone: e.target.value }))
+                  }
+                  inputMode="tel"
+                  autoComplete="tel"
+                  className="rounded-lg px-3.5 py-2.5 text-[14px] outline-none"
+                  style={{
+                    background: 'var(--surface)',
+                    border: `1px solid ${
+                      guestForm.phone && !guestPhoneOk ? 'var(--accent)' : 'var(--rule)'
+                    }`,
+                    color: 'var(--ink)',
+                  }}
+                />
+              </div>
+              <p
+                className="text-[11.5px] leading-[1.5]"
+                style={{ color: 'var(--ink-soft)' }}
+              >
+                No account needed. We send the workflow zip + a receipt to
+                this email after payment clears.
+              </p>
+            </motion.div>
+          )}
+        </div>
+      )}
+
+      {showBuyButton && (
+        <div className="mt-5">
+          <BuyButton
+            productId={productId}
+            addOnIds={Array.from(selectedIds)}
+            grandTotalMinor={grandTotal}
+            guest={guestPayload}
+            disabled={buyDisabled}
+            label={buyLabel}
+          />
+        </div>
+      )}
 
       <div
         className="mt-7 flex items-start gap-2 rounded-xl p-4 text-[12.5px] leading-[1.5]"
@@ -188,13 +380,20 @@ export function CheckoutCard({
           className="h-4 w-4 shrink-0"
           style={{ color: 'var(--accent)' }}
         />
-        <span>
-          After purchase, this lives in{' '}
-          <Link href="/store/my-downloads" style={{ color: 'var(--accent)' }}>
-            My Downloads
-          </Link>
-          . You can re-download anytime.
-        </span>
+        {isLoaded && !isSignedIn && guestMode === 'guest' ? (
+          <span>
+            After payment clears we email the workflow zip to the address
+            above. Reply to that email anytime to re-download.
+          </span>
+        ) : (
+          <span>
+            After purchase, this lives in{' '}
+            <Link href="/store/my-downloads" style={{ color: 'var(--accent)' }}>
+              My Downloads
+            </Link>
+            . You can re-download anytime.
+          </span>
+        )}
       </div>
     </div>
   );

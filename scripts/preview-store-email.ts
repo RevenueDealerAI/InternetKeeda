@@ -17,7 +17,7 @@ import {
   type DeliveryEmailInput,
 } from '../src/features/store/lib/mailer';
 
-const sample: DeliveryEmailInput = {
+const signedInSample: DeliveryEmailInput = {
   buyerEmail: 'alex@acme.io',
   buyerName: 'Alex',
   productTitle: 'Stripe Paid Invoices → Google Sheets (n8n)',
@@ -29,16 +29,30 @@ const sample: DeliveryEmailInput = {
   addOnIds: ['implementation-support'],
 };
 
+const guestSample: DeliveryEmailInput = {
+  ...signedInSample,
+  buyerEmail: 'guest@example.com',
+  buyerName: 'Jane',
+  isGuest: true,
+  attachFile: 'https://example.com/fake-blob/workflow.zip',
+  attachFileName: 'n8n-stripe-paid-invoices-to-sheets.zip',
+  // Drop the add-on for guest preview so we see the plain "Not feeling techy?" branch
+  addOnIds: [],
+  amountPaidMinor: 4900,
+};
+
 const outDir = path.resolve('scripts/.preview');
 mkdirSync(outDir, { recursive: true });
 
-const html = renderDeliveryEmailHtml(sample);
-const text = renderDeliveryEmailText(sample);
-
-writeFileSync(path.join(outDir, 'store-delivery.html'), html, 'utf8');
-writeFileSync(path.join(outDir, 'store-delivery.txt'), text, 'utf8');
-
-console.log('wrote', path.join(outDir, 'store-delivery.html'));
-console.log('wrote', path.join(outDir, 'store-delivery.txt'));
-console.log('html size:', html.length, 'bytes');
-console.log('text size:', text.length, 'bytes');
+for (const [name, sample] of [
+  ['signed-in', signedInSample],
+  ['guest', guestSample],
+] as const) {
+  const html = renderDeliveryEmailHtml(sample);
+  const text = renderDeliveryEmailText(sample);
+  writeFileSync(path.join(outDir, `store-delivery-${name}.html`), html, 'utf8');
+  writeFileSync(path.join(outDir, `store-delivery-${name}.txt`), text, 'utf8');
+  console.log(
+    `wrote ${name}: html=${html.length}b, text=${text.length}b`
+  );
+}

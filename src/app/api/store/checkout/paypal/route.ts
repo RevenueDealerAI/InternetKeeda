@@ -7,10 +7,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import crypto from 'node:crypto';
 import mongoose from 'mongoose';
 import { z } from 'zod';
 import { connectDB } from '@/app/api/lib/db';
-import { errorResponse } from '@/app/api/lib/auth';
+import { errorResponse, getAuth } from '@/app/api/lib/auth';
 import { requireUser } from '@/lib/auth/user';
 import { Payment } from '@/app/api/models/Payment';
 import { createOneTimeOrder, getPaypalMode, PayPalError } from '@/lib/paypal';
@@ -22,10 +23,22 @@ import {
   sumAddOnUsdMinor,
 } from '@/features/store/lib/addons';
 
+/** Guest checkout payload. Same shape as the Cashfree route's guest
+ *  block — phone is optional for USD since PayPal doesn't require it. */
+const guestSchema = z.object({
+  email: z.string().email('A valid email is required.'),
+  name: z.string().min(1).max(120).optional(),
+  phone: z
+    .string()
+    .regex(/^\+?\d{8,15}$/, 'Phone must be 8-15 digits, optionally with +.')
+    .optional(),
+});
+
 const bodySchema = z.object({
   productId: z.string().min(1, 'productId is required'),
   /** Same validation contract as the Cashfree route. */
   addOnIds: z.array(z.string()).optional(),
+  guest: guestSchema.optional(),
 });
 
 function siteOrigin(req: NextRequest): string {
@@ -41,11 +54,22 @@ function siteOrigin(req: NextRequest): string {
 export async function POST(req: NextRequest) {
   try {
     await connectDB();
+    const { productId, addOnIds: rawAddOnIds, guest } = bodySchema.parse(
+      await req.json()
+    );
+
     const auth = await requireUser();
-    if (auth.kind !== 'ok') {
-      return NextResponse.json({ error: 'unauthenticated' }, { status: 401 });
+    const isAuthed = auth.kind === 'ok';
+    if (!isAuthed && !guest) {
+      return NextResponse.json(
+        {
+          error: 'unauthenticated',
+          message:
+            'Sign in, or include a guest { email, name?, phone? } block to check out without an account.',
+        },
+        { status: 401 }
+      );
     }
-    const { productId, addOnIds: rawAddOnIds } = bodySchema.parse(await req.json());
 
     const product = await StoreProduct.findById(productId);
     if (!product || product.status !== 'published') {
@@ -58,12 +82,35 @@ export async function POST(req: NextRequest) {
     const validAddOnIds = addOns.map((a) => a.id);
     const needsFollowUp = addOns.some((a) => !!a.followUpTag);
 
+    // Identity resolution — same pattern as the Cashfree route.
+    const clerkUser = isAuthed ? await getAuth() : null;
+    const buyerUserId = isAuthed
+      ? auth.userId
+      : `guest_${crypto.randomBytes(8).toString('hex')}`;
+    const buyerEmail = isAuthed
+      ? clerkUser?.emailAddresses?.[0]?.emailAddress ||
+        `${auth.userId}@no-email.internetkeeda.com`
+      : guest!.email;
+    const buyerName = isAuthed
+      ? `${clerkUser?.firstName ?? ''} ${clerkUser?.lastName ?? ''}`.trim() ||
+        undefined
+      : guest!.name;
+    const buyerPhone = isAuthed
+      ? clerkUser?.phoneNumbers?.find(
+          (p) => p?.verification?.status === 'verified'
+        )?.phoneNumber || undefined
+      : guest?.phone
+        ? guest.phone.startsWith('+')
+          ? guest.phone
+          : `+${guest.phone}`
+        : undefined;
+
     const dbId = new mongoose.Types.ObjectId();
     const placeholder = `paypal_pending_${dbId.toString()}_${Date.now()}`;
 
     const payment = await Payment.create({
       _id: dbId,
-      userId: auth.userId,
+      userId: buyerUserId,
       provider: 'paypal',
       orderId: placeholder,
       amount: totalUsd,
@@ -78,6 +125,17 @@ export async function POST(req: NextRequest) {
         addOnIds: validAddOnIds,
         addOnAmountMinor: addOnTotalUsd,
         needsFollowUp,
+        buyerEmail,
+        buyerName,
+        buyerPhone,
+        guest: !isAuthed
+          ? {
+              isGuest: true,
+              email: guest!.email,
+              name: guest!.name,
+              phone: buyerPhone,
+            }
+          : undefined,
       },
     });
 

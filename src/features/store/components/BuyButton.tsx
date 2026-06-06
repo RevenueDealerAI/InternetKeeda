@@ -44,10 +44,19 @@ async function loadCashfreeSdk(): Promise<CashfreeFactory> {
   return w.Cashfree;
 }
 
+export interface GuestBuyerInput {
+  email: string;
+  name?: string;
+  phone?: string;
+}
+
 export function BuyButton({
   productId,
   addOnIds,
   grandTotalMinor,
+  guest,
+  disabled,
+  label,
 }: {
   productId: string;
   /** Optional canonical add-on IDs from CheckoutCard. Server re-
@@ -59,6 +68,14 @@ export function BuyButton({
    *  in the summary. The server still computes its own total from
    *  productId + addOnIds and ignores this value. */
   grandTotalMinor?: number;
+  /** When the buyer chose "Continue as guest" we pass their form
+   *  values. Server uses them to mint a guest_<random> userId and
+   *  to populate the Cashfree customer_details / delivery email. */
+  guest?: GuestBuyerInput | null;
+  /** Disable the button (e.g. guest form not yet valid). */
+  disabled?: boolean;
+  /** Optional CTA label override. Default is "Pay in INR" / "Pay in USD". */
+  label?: string;
 }) {
   const [currency] = useStoreCurrency();
   const [busy, setBusy] = useState(false);
@@ -75,13 +92,23 @@ export function BuyButton({
       const res = await fetch(route, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productId, addOnIds: addOnIds ?? [] }),
+        body: JSON.stringify({
+          productId,
+          addOnIds: addOnIds ?? [],
+          ...(guest ? { guest } : {}),
+        }),
       });
       const data = await res.json();
       if (res.status === 401) {
-        // Send the buyer to sign-in then back here.
-        const next = encodeURIComponent(window.location.pathname);
-        window.location.href = `/sign-in?redirect_url=${next}`;
+        // If the buyer hasn't filled the guest form either, send them
+        // to sign-in. Guest checkout that 401s usually means a stale
+        // form payload — fall through to the visible error instead.
+        if (!guest) {
+          const next = encodeURIComponent(window.location.pathname);
+          window.location.href = `/sign-in?redirect_url=${next}`;
+          return;
+        }
+        setError(data?.message || 'Sign in or fill the guest form to continue.');
         return;
       }
       if (!res.ok) {
@@ -117,7 +144,7 @@ export function BuyButton({
       <button
         type="button"
         onClick={handleBuy}
-        disabled={busy}
+        disabled={busy || disabled}
         className="inline-flex flex-1 items-center justify-center gap-2 rounded-full px-7 py-3.5 text-[13px] uppercase tracking-[0.16em] font-semibold transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70"
         style={{
           background: 'var(--accent)',
@@ -126,7 +153,7 @@ export function BuyButton({
           boxShadow: 'var(--shadow-accent)',
         }}
       >
-        {busy ? 'Starting checkout…' : currencyLabel(currency)}
+        {busy ? 'Starting checkout…' : label || currencyLabel(currency)}
       </button>
       {error && (
         <span

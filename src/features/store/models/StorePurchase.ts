@@ -15,8 +15,17 @@ import type { StoreCurrency } from '../config';
  */
 
 export interface IStorePurchase {
-  /** Clerk userId of the buyer. */
+  /** Buyer identifier. Either a Clerk userId (`user_…`) for
+   *  signed-in buyers OR a synthesised `guest_<random>` id for
+   *  guest-checkout buyers. The `isGuest` flag disambiguates. */
   userId: string;
+  /** True when the buyer checked out without a Clerk account. */
+  isGuest: boolean;
+  /** Buyer-supplied contact details. Populated for BOTH guest and
+   *  signed-in flows so admin queries don't need to join Clerk. */
+  buyerEmail: string;
+  buyerName?: string;
+  buyerPhone?: string;
   /** Mongo _id of the StoreProduct (string for lookup convenience). */
   productId: string;
   /** Denormalized slug for fast My-Downloads list rendering. */
@@ -66,6 +75,10 @@ export type StorePurchaseDocument = Document & IStorePurchase;
 const storePurchaseSchema = new mongoose.Schema<IStorePurchase>(
   {
     userId: { type: String, required: true, index: true },
+    isGuest: { type: Boolean, default: false, index: true },
+    buyerEmail: { type: String, required: true, index: true },
+    buyerName: { type: String },
+    buyerPhone: { type: String },
     productId: { type: String, required: true, index: true },
     productSlug: { type: String, required: true },
     productTitle: { type: String, required: true },

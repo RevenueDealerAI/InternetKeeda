@@ -73,7 +73,20 @@ async function fireDeliveryEmail(
   purchase: StorePurchaseDocument | null
 ): Promise<void> {
   try {
-    const { email, name } = await lookupBuyerForEmail(payment.userId);
+    // Guests provided their contact info at checkout. Signed-in users
+    // we look up via Clerk. Either way we end up with an email + name.
+    let email: string | null = null;
+    let name: string | null = null;
+    const isGuest = !!purchase?.isGuest;
+    if (purchase?.buyerEmail) {
+      email = purchase.buyerEmail;
+      name = purchase.buyerName ?? null;
+    } else if (!isGuest) {
+      const looked = await lookupBuyerForEmail(payment.userId);
+      email = looked.email;
+      name = looked.name;
+    }
+
     if (!email) {
       console.warn(
         '[store/markPaid] no buyer email for', payment.userId,
@@ -91,6 +104,12 @@ async function fireDeliveryEmail(
       baseUrl: getSiteBaseUrl(),
       purchaseId: purchase ? String(purchase._id) : undefined,
       addOnIds: purchase?.addOnIds ?? [],
+      // Guests have no /store/my-downloads page to re-download from,
+      // so the mailer attaches the workflow zip directly. Signed-in
+      // users get the link only — they can re-download anytime.
+      isGuest,
+      attachFile: isGuest ? product.filePath : null,
+      attachFileName: isGuest ? product.fileName : null,
     });
     if (!result.ok) {
       console.warn(
@@ -184,11 +203,35 @@ export async function markStorePaid(
   const needsFollowUp =
     addOns.some((a) => !!a.followUpTag) || meta.needsFollowUp === true;
 
+  // Pull buyer contact off payment.metadata. For Clerk-authenticated
+  // purchases the checkout route copies them from Clerk; for guests it
+  // copies them from the form fields. We persist them on the purchase
+  // row so admin queries and delivery email don't need a second lookup.
+  const guestMeta = (meta.guest || {}) as Record<string, unknown>;
+  const isGuest =
+    payment.userId.startsWith('guest_') || guestMeta.isGuest === true;
+  const buyerEmail =
+    (typeof meta.buyerEmail === 'string' && meta.buyerEmail) ||
+    (typeof guestMeta.email === 'string' && guestMeta.email) ||
+    '';
+  const buyerName =
+    (typeof meta.buyerName === 'string' && meta.buyerName) ||
+    (typeof guestMeta.name === 'string' && guestMeta.name) ||
+    undefined;
+  const buyerPhone =
+    (typeof meta.buyerPhone === 'string' && meta.buyerPhone) ||
+    (typeof guestMeta.phone === 'string' && guestMeta.phone) ||
+    undefined;
+
   // Idempotent StorePurchase creation — unique index on
   // (userId, productId, paymentId) means a second call is a no-op.
   try {
     await StorePurchase.create({
       userId: payment.userId,
+      isGuest,
+      buyerEmail,
+      buyerName,
+      buyerPhone,
       productId: String(product._id),
       productSlug: product.slug,
       productTitle: product.title,
