@@ -27,19 +27,35 @@ const bodySchema = z.object({
 export async function POST(req: NextRequest) {
   try {
     await connectDB();
-    const auth = await requireUser();
-    if (auth.kind !== 'ok') {
-      return NextResponse.json({ error: 'unauthenticated' }, { status: 401 });
-    }
     const { orderId } = bodySchema.parse(await req.json());
 
     let payment = await Payment.findOne({ orderId });
     if (!payment) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
-    if (payment.userId !== auth.userId) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+
+    // Identity gate. Same shape as the /status endpoint:
+    //   - Guest payment (userId starts with "guest_"): orderId is
+    //     the bearer secret, no Clerk session needed. This is the
+    //     ONLY way a guest can capture — they have no session to
+    //     match against. PayPal already authenticated them via the
+    //     hosted-checkout flow before returning.
+    //   - Signed-in payment: require Clerk session matching the
+    //     row, same as before.
+    const isGuestPayment = payment.userId.startsWith('guest_');
+    if (!isGuestPayment) {
+      const auth = await requireUser();
+      if (auth.kind !== 'ok') {
+        return NextResponse.json(
+          { error: 'unauthenticated' },
+          { status: 401 }
+        );
+      }
+      if (payment.userId !== auth.userId) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
     }
+
     if (payment.provider !== 'paypal') {
       return NextResponse.json(
         { error: 'Not a PayPal order' },
