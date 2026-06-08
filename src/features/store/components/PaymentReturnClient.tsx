@@ -37,6 +37,11 @@ interface StatusResponse {
   purchaseId?: string;
   productSlug?: string;
   productTitle?: string;
+  /** Set by the status endpoint for guest_* payments. Drives the
+   *  "check your email" branch on the success card — guests have no
+   *  /store/my-downloads access, so we point them at the email
+   *  instead of an in-app download link. */
+  isGuest?: boolean;
 }
 
 const POLL_INTERVAL_MS = 2500;
@@ -97,6 +102,7 @@ export default function PaymentReturnClient() {
   // Poll until terminal status or timeout.
   const [data, setData] = useState<StatusResponse | null>(null);
   const [pollError, setPollError] = useState<string | null>(null);
+  const [pollTimedOut, setPollTimedOut] = useState(false);
 
   useEffect(() => {
     if (!orderId || cancelled || captureRunning) return;
@@ -116,7 +122,16 @@ export default function PaymentReturnClient() {
         }
         if (active) setData(body as StatusResponse);
         if (body?.status && body.status !== 'pending') return; // terminal
-        if (Date.now() - start > POLL_TIMEOUT_MS) return;
+        if (Date.now() - start > POLL_TIMEOUT_MS) {
+          // We've waited long enough. Stop spinning — surface the
+          // ambiguous-state UX so the buyer can act (try again, check
+          // email, contact support). The server will also auto-fail
+          // the row at the 30-minute mark; the next visit to this URL
+          // will then see a terminal "failed" status and show the
+          // failure card directly.
+          if (active) setPollTimedOut(true);
+          return;
+        }
         if (active) setTimeout(tick, POLL_INTERVAL_MS);
       } catch (err) {
         if (active) {
@@ -134,10 +149,11 @@ export default function PaymentReturnClient() {
 
   const showCancelled = cancelled;
   const showMissing = !orderId && !cancelled;
+  const stillPending = captureRunning || !data || data.status === 'pending';
   const showPending =
-    !showCancelled &&
-    !showMissing &&
-    (captureRunning || !data || data.status === 'pending');
+    !showCancelled && !showMissing && stillPending && !pollTimedOut;
+  const showPollTimeout =
+    !showCancelled && !showMissing && stillPending && pollTimedOut;
   const showSuccess = !showCancelled && !showMissing && data?.status === 'success';
   const showRefunded = data?.status === 'refunded';
 
@@ -167,6 +183,8 @@ export default function PaymentReturnClient() {
             />
           ) : showPending ? (
             <Pending orderId={orderId!} />
+          ) : showPollTimeout ? (
+            <PollTimeout orderId={orderId!} />
           ) : showSuccess ? (
             <SuccessCard data={data!} />
           ) : showRefunded ? (
@@ -251,6 +269,7 @@ function Pending({ orderId }: { orderId: string }) {
 
 function SuccessCard({ data }: { data: StatusResponse }) {
   const price = formatPrice(data.amount, data.currency);
+  const isGuest = !!data.isGuest;
   return (
     <>
       <div
@@ -263,20 +282,78 @@ function SuccessCard({ data }: { data: StatusResponse }) {
         <Check className="h-6 w-6" />
       </div>
       <Heading>Purchase confirmed</Heading>
-      <Body>
-        {price} captured. Your {data.productTitle ? `“${data.productTitle}”` : 'download'} is ready in My Downloads — re-download anytime.
-      </Body>
+      {isGuest ? (
+        <Body>
+          {price} captured. We've emailed{' '}
+          {data.productTitle ? `“${data.productTitle}”` : 'your workflow'} —
+          the ZIP is attached. Reply to that email anytime to re-download or
+          get help.
+        </Body>
+      ) : (
+        <Body>
+          {price} captured. Your{' '}
+          {data.productTitle ? `“${data.productTitle}”` : 'download'} is ready
+          in My Downloads — re-download anytime.
+        </Body>
+      )}
       <OrderMeta orderId={data.orderId} />
       <CtaRow>
-        {data.purchaseId && (
-          <PrimaryButton href={`/api/store/download/${data.purchaseId}`}>
-            <DownloadIcon className="h-3.5 w-3.5" />
-            Download now
+        {isGuest ? (
+          <PrimaryButton href={STORE_BRAND.routeBase}>
+            Back to {STORE_BRAND.name}
+            <ArrowRight className="h-3.5 w-3.5" />
           </PrimaryButton>
+        ) : (
+          <>
+            {data.purchaseId && (
+              <PrimaryButton href={`/api/store/download/${data.purchaseId}`}>
+                <DownloadIcon className="h-3.5 w-3.5" />
+                Download now
+              </PrimaryButton>
+            )}
+            <GhostButton href="/store/my-downloads">
+              My Downloads
+              <ArrowRight className="h-3.5 w-3.5" />
+            </GhostButton>
+          </>
         )}
-        <GhostButton href="/store/my-downloads">
+      </CtaRow>
+    </>
+  );
+}
+
+function PollTimeout({ orderId }: { orderId: string }) {
+  return (
+    <>
+      <Icon kind="warn" />
+      <Heading>Still confirming with the bank…</Heading>
+      <Body>
+        Your payment can take a few minutes after you leave the bank page. If
+        it lands you'll get an email with the workflow attached — signed-in
+        accounts also find it in{' '}
+        <Link href="/store/my-downloads" style={{ color: 'var(--accent)' }}>
           My Downloads
-          <ArrowRight className="h-3.5 w-3.5" />
+        </Link>
+        . If nothing arrives in 10 minutes the order will be cancelled
+        automatically with no charge.
+      </Body>
+      <OrderMeta orderId={orderId} />
+      <CtaRow>
+        <button
+          type="button"
+          onClick={() => window.location.reload()}
+          className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[12px] uppercase tracking-[0.16em] font-semibold transition-transform hover:-translate-y-0.5"
+          style={{
+            background: 'var(--accent)',
+            color: 'var(--on-accent)',
+            fontFamily: 'var(--mono)',
+            boxShadow: 'var(--shadow-accent)',
+          }}
+        >
+          Re-check now
+        </button>
+        <GhostButton href={STORE_BRAND.routeBase}>
+          Back to {STORE_BRAND.name}
         </GhostButton>
       </CtaRow>
     </>

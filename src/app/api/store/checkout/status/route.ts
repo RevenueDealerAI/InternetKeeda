@@ -30,12 +30,16 @@ import { STORE_PRODUCT_TYPE } from '@/features/store/config';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(req: NextRequest) {
-  const auth = await requireUser();
-  if (auth.kind !== 'ok') {
-    return NextResponse.json({ error: 'unauthenticated' }, { status: 401 });
-  }
+// Stale-pending TTL: if a Payment row has been pending this long and
+// the PSP can't or won't confirm a terminal state, we mark it failed
+// so the return page can move on instead of spinning forever. 30
+// minutes is well past every PSP's normal confirmation window
+// (Cashfree confirms in seconds; PayPal in seconds-to-minutes) and
+// well under their own order-expiry windows (Cashfree ~1h, PayPal
+// ~3h), so we won't auto-fail an order that's still actually live.
+const STALE_PENDING_MS = 30 * 60 * 1000;
 
+export async function GET(req: NextRequest) {
   const orderId = new URL(req.url).searchParams.get('orderId');
   if (!orderId) {
     return NextResponse.json(
@@ -49,14 +53,33 @@ export async function GET(req: NextRequest) {
   if (!payment) {
     return NextResponse.json({ error: 'Order not found' }, { status: 404 });
   }
-  if (payment.userId !== auth.userId) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-  }
   if (payment.productType !== STORE_PRODUCT_TYPE) {
     return NextResponse.json(
       { error: 'Not a store order' },
       { status: 400 }
     );
+  }
+
+  // Identity gate. Two paths:
+  //   - Signed-in buyer: require Clerk session matching payment.userId.
+  //   - Guest buyer (payment.userId starts with "guest_"): the orderId
+  //     itself is the bearer secret — it's a server-minted, opaque
+  //     string we never expose anywhere except the return URL we
+  //     constructed for THIS buyer. Allow anon reads in that case.
+  //
+  // This is the same shape PSP "return URLs" everywhere use:
+  // anyone with the order id can read its status. It's safe because
+  // the orderId reveals nothing the buyer doesn't already know — and
+  // they need to know whether their payment landed.
+  const isGuestPayment = payment.userId.startsWith('guest_');
+  if (!isGuestPayment) {
+    const auth = await requireUser();
+    if (auth.kind !== 'ok') {
+      return NextResponse.json({ error: 'unauthenticated' }, { status: 401 });
+    }
+    if (payment.userId !== auth.userId) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
   }
 
   // Self-heal: if status is still pending, ask the PSP what it knows.
@@ -125,6 +148,29 @@ export async function GET(req: NextRequest) {
     }
   }
 
+  // Time-based auto-fail. If the row is STILL pending after we've
+  // asked the PSP, and it was created more than STALE_PENDING_MS ago,
+  // the buyer most likely opened the hosted page and walked away. The
+  // PSP order may still be technically active (1-3h expiry window) but
+  // the buyer is gone; failing it here means the return page can stop
+  // spinning, and a future re-check is cheap because the matured PSP
+  // status will overwrite this if a webhook eventually does land.
+  if (payment.status === 'pending') {
+    const ageMs = Date.now() - new Date(payment.createdAt).getTime();
+    if (ageMs > STALE_PENDING_MS) {
+      await Payment.updateOne(
+        { orderId, status: 'pending' },
+        {
+          $set: {
+            status: 'failed',
+            paymentVerifiedVia: 'stale-timeout',
+          },
+        }
+      );
+      payment = (await Payment.findOne({ orderId })) ?? payment;
+    }
+  }
+
   // If the payment is now success, surface the matching StorePurchase
   // id so the return page can link straight to the download.
   let purchaseId: string | undefined;
@@ -154,5 +200,10 @@ export async function GET(req: NextRequest) {
     purchaseId,
     productSlug,
     productTitle,
+    // Tells the return page to show "check your email — workflow
+    // attached" instead of the in-app Download CTA. Guests have no
+    // /store/my-downloads access (no Clerk session); delivery is
+    // the Resend email with the ZIP attachment.
+    isGuest: isGuestPayment,
   });
 }
