@@ -9,6 +9,14 @@ import { whatsappLink } from '@/lib/brand';
 
 export const dynamic = 'force-dynamic';
 
+// Vercel default is 10s. Riley loads the published Tool catalog
+// (~5,000 rows, capped at 500 in-prompt), builds a ~75KB system
+// prompt, then calls Claude Haiku with constrained JSON decoding —
+// 6-11s end-to-end on a cold prompt cache. The default cuts that
+// off mid-flight as FUNCTION_INVOCATION_TIMEOUT. 30s is the same
+// budget the store upload route uses for blob writes.
+export const maxDuration = 30;
+
 const WA_URL = whatsappLink();
 
 // POST /api/tools/ai-search
@@ -176,7 +184,12 @@ export async function POST(req: NextRequest) {
     // store:'published' filter is enforced here — Riley NEVER sees
     // drafts.
     const [tools, storeProducts] = await Promise.all([
-      Tool.find({ status: { $in: ['published', 'approved'] } }).limit(500),
+      // .lean() to skip Mongoose document hydration — the catalog
+      // build path only reads fields, never writes. Free 50-200ms
+      // off the request path at this collection size.
+      Tool.find({ status: { $in: ['published', 'approved'] } })
+        .limit(500)
+        .lean(),
       StoreProduct.find({ status: 'published' })
         .sort({ salesCount: -1, createdAt: -1 })
         .limit(60)
