@@ -175,7 +175,11 @@ export default function PaymentReturnClient() {
             <MissingOrder />
           ) : showCancelled ? (
             <Cancelled orderId={orderId} />
-          ) : captureError && !data ? (
+          ) : captureError && (!data || data.status === 'pending') ? (
+            // Capture errors are stronger evidence than a "still pending"
+            // status — PayPal has actively told us something is wrong.
+            // Surface that immediately instead of spinning a "confirming"
+            // UI that will only resolve at the 30-minute stale-fail mark.
             <FailureCard
               title="Unable to capture your PayPal payment"
               description={captureError}
