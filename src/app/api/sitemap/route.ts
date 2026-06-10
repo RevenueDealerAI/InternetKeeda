@@ -42,8 +42,11 @@ export async function GET(req: NextRequest) {
             { url: '/categories', priority: '0.8', changefreq: 'weekly' },
             { url: '/trending', priority: '0.7', changefreq: 'daily' },
             { url: '/blog', priority: '0.7', changefreq: 'daily' },
-            { url: '/latest-news', priority: '0.7', changefreq: 'daily' },
-            { url: '/news', priority: '0.7', changefreq: 'daily' },
+            // News→Reviews rename: /latest-news and /news both 308 to
+            // their /reviews counterparts via next.config.js. Listing
+            // the redirect source here just means Google indexes a 308,
+            // wasting crawl budget. Emit the canonical destination.
+            { url: '/reviews', priority: '0.8', changefreq: 'weekly' },
             { url: '/about', priority: '0.5', changefreq: 'monthly' },
             { url: '/guides', priority: '0.6', changefreq: 'weekly' },
             { url: '/faq', priority: '0.5', changefreq: 'monthly' },
@@ -87,11 +90,16 @@ export async function GET(req: NextRequest) {
   </url>`;
         });
 
+        // News→Reviews rename: NewsPost is the underlying Mongo model
+        // name but the public URL is /reviews/<slug> after the rename
+        // shipped with the canonical-URL refactor. Match the primary
+        // sitemap (src/app/sitemap.xml/route.ts) which already emits
+        // the correct /reviews/ path.
         newsPosts.forEach(post => {
             const lastmod = post.updatedAt || new Date(post.date);
             sitemap += `
   <url>
-    <loc>${frontendUrl}/news/${post.slug}</loc>
+    <loc>${frontendUrl}/reviews/${post.slug}</loc>
     <lastmod>${lastmod.toISOString()}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
