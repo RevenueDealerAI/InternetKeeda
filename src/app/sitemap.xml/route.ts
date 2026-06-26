@@ -4,26 +4,24 @@ import { Tool } from '../api/models/Tool';
 import { BlogPost } from '../api/models/BlogPost';
 import { NewsPost } from '../api/models/NewsPost';
 import { Category } from '../api/models/Category';
-
-export const dynamic = 'force-dynamic';
+import { StoreProduct } from '@/features/store/models/StoreProduct';
+import { SITE_ORIGIN } from '@/lib/seo/siteOrigin';
 
 /**
- * Hardened canonical base URL.
+ * ISR revalidation window. We re-render at most once an hour and serve
+ * a static cached XML to every crawler in between. Google polls
+ * sitemaps far less frequently than that; faster regeneration just
+ * burns serverless function time and risks a cold-start timeout when
+ * Googlebot hits us in a burst (we scan ~5,000+ tools + 678
+ * categories + posts per render).
  *
- * Resolution order:
- *   1. process.env.NEXT_PUBLIC_SITE_URL (trailing slash stripped)
- *   2. fixed string "https://internetkeeda.com"
- *
- * Deliberately NO fallback to req.headers.host, vercel.app preview
- * domains, or localhost. The sitemap is a search-engine artifact;
- * it must always advertise the canonical production domain even
- * when a crawler accidentally reaches a preview deploy, otherwise
- * Google indexes a non-canonical host and Search Console flags
- * mismatched canonicals.
+ * Previously `dynamic = 'force-dynamic'` ran the full DB scan on
+ * every fetch, which on Vercel's 10s function limit was a latent
+ * timeout for the largest sitemaps.
  */
-const BASE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ||
-  'https://internetkeeda.com';
+export const revalidate = 3600;
+
+const BASE_URL = SITE_ORIGIN;
 
 interface SitemapUrl {
   loc: string;
@@ -63,6 +61,22 @@ const STATIC_PAGES: Array<Omit<SitemapUrl, 'loc' | 'lastmod'> & { url: string }>
   // Brand / info.
   { url: '/about', priority: '0.5', changefreq: 'monthly' },
   { url: '/faq', priority: '0.5', changefreq: 'monthly' },
+
+  // Programmatic SEO landing pages — "best X" buyer-intent surfaces.
+  // These are hand-built pages with their own metadata + canonical;
+  // they're not linked from the public nav, so the sitemap is their
+  // primary discovery path. Without listing them here they remain
+  // orphaned and never enter the index.
+  { url: '/best-ai-meeting-tools', priority: '0.6', changefreq: 'monthly' },
+  { url: '/best-ai-note-taking-software', priority: '0.6', changefreq: 'monthly' },
+  { url: '/best-ai-email-management-tools', priority: '0.6', changefreq: 'monthly' },
+  { url: '/best-ai-daily-planning-software', priority: '0.6', changefreq: 'monthly' },
+  { url: '/best-crm-software-for-teams', priority: '0.6', changefreq: 'monthly' },
+  { url: '/best-productivity-tools-for-adhd', priority: '0.6', changefreq: 'monthly' },
+  { url: '/best-project-management-tools', priority: '0.6', changefreq: 'monthly' },
+
+  // Keeda Labs storefront — public catalog root.
+  { url: '/store', priority: '0.6', changefreq: 'weekly' },
 
   // Legal — low priority, change rarely.
   { url: '/terms', priority: '0.3', changefreq: 'yearly' },
@@ -106,7 +120,7 @@ export async function GET() {
     // public reads: published/approved status only, never soft-deleted,
     // never in an unpaid-pending or unpaid-hidden listing state. A tool
     // that wouldn't render publicly should not be in the sitemap.
-    const [tools, blogPosts, newsPosts, categories] = await Promise.all([
+    const [tools, blogPosts, newsPosts, categories, storeProducts] = await Promise.all([
       Tool.find({
         status: { $in: ['published', 'approved'] },
         deletedAt: null,
@@ -125,6 +139,12 @@ export async function GET() {
         .lean(),
       Category.find({ isActive: { $ne: false } })
         .select('slug name updatedAt')
+        .lean(),
+      // Keeda Labs store — only PUBLISHED products are buyable and
+      // crawlable; drafts/archived must stay out of the sitemap.
+      StoreProduct.find({ status: 'published' })
+        .select('slug updatedAt createdAt')
+        .sort({ updatedAt: -1 })
         .lean(),
     ]);
 
@@ -196,6 +216,24 @@ export async function GET() {
         lastmod: updated.toISOString(),
         changefreq: 'monthly',
         priority: '0.6',
+      });
+    }
+
+    // Keeda Labs store product pages — each published workflow has its
+    // own server-rendered, crawlable /store/<slug> page.
+    for (const product of storeProducts) {
+      if (!product.slug) continue;
+      const updated =
+        (product as { updatedAt?: Date }).updatedAt ||
+        (product as { createdAt?: Date }).createdAt;
+      urls.push({
+        loc: `${BASE_URL}/store/${product.slug}`,
+        lastmod: (updated instanceof Date
+          ? updated
+          : new Date(updated || now)
+        ).toISOString(),
+        changefreq: 'weekly',
+        priority: '0.7',
       });
     }
 

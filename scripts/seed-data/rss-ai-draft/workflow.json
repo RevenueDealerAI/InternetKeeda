@@ -1,0 +1,303 @@
+{
+  "name": "rss-ai-draft",
+  "nodes": [
+    {
+      "parameters": {
+        "feedUrl": "https://REPLACE_WITH_YOUR_FEED_URL/feed.xml",
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyX",
+              "value": 1,
+              "unit": "hours"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f3a2c3d4-0001-4a01-9001-rssfeedtrigger",
+      "name": "Watch RSS Feed",
+      "type": "n8n-nodes-base.rssFeedReadTrigger",
+      "typeVersion": 1,
+      "position": [
+        -260,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Second-layer dedupe: only pass items we have never drafted before.\n// The RSS trigger already emits only items newer than the last poll; this guards\n// against restarts, overlapping polls, and feeds that re-publish the same item.\nconst store = $getWorkflowStaticData('global');\nif (!Array.isArray(store.seenGuids)) store.seenGuids = [];\nconst seen = new Set(store.seenGuids);\n\nconst out = [];\nfor (const item of $input.all()) {\n  const j = item.json;\n  const key = j.guid || j.id || j.link || j.title || '';\n  if (!key || seen.has(key)) continue;\n  seen.add(key);\n  out.push({ json: {\n    guid: key,\n    title: (j.title || '').toString().trim(),\n    link: (j.link || '').toString().trim(),\n    source: (j.creator || j.author || (j.link || '').toString().split('/')[2] || 'RSS').toString().trim(),\n    snippet: (j.contentSnippet || j.content || j.summary || '').toString().replace(/<[^>]+>/g, ' ').replace(/\\s+/g, ' ').trim().slice(0, 4000),\n    pubDate: (j.isoDate || j.pubDate || '').toString()\n  } });\n}\n\n// Persist, keeping only the most recent 1000 keys so static data stays small.\nstore.seenGuids = Array.from(seen).slice(-1000);\n\nreturn out;\n"
+      },
+      "id": "f3a2c3d4-0002-4a02-9002-dedupenewitems",
+      "name": "Dedupe New Items",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -20,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-sonnet-4-6\",\n  \"max_tokens\": 2000,\n  \"system\": \"You are a blog writer for a single brand. Write an ORIGINAL take inspired by the source headline — never copy or closely paraphrase it. Voice: clear, helpful, lightly opinionated expert. Add genuine perspective; do not fabricate quotes or statistics. Respond with ONLY a JSON object, no prose, no markdown fences, of the exact shape: {\\\"title\\\": \\\"a compelling original blog title\\\", \\\"body\\\": \\\"a 400-600 word post in 3-5 short paragraphs with a 1-sentence intro hook\\\"}\",\n  \"messages\": [\n    { \"role\": \"user\", \"content\": {{ JSON.stringify('Source headline: ' + $json.title + '\\nSource link: ' + $json.link + '\\nSource summary: ' + $json.snippet) }} }\n  ]\n}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "f3a2c3d4-0003-4a03-9003-anthropicdraft",
+      "name": "Draft Post (Claude)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        220,
+        320
+      ],
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_ANTHROPIC_CREDENTIAL_ID",
+          "name": "Anthropic API key (replace me)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Robustly parse the model's draft into title + body.\nconst out = $input.first().json;\nconst text = (out.content && out.content[0] && out.content[0].text) ? out.content[0].text : '';\n\nlet title = '';\nlet body = '';\ntry {\n  const cleaned = text.replace(/^```(?:json)?/i, '').replace(/```$/,'').trim();\n  const obj = JSON.parse(cleaned);\n  title = (obj.title || '').toString().trim();\n  body = (obj.body || '').toString().trim();\n} catch (e) {\n  // Fallback: first non-empty line is the title, the rest is the body.\n  const lines = text.split('\\n').map(l => l.trim()).filter(Boolean);\n  title = (lines.shift() || 'Untitled draft').replace(/^#+\\s*/, '');\n  body = lines.join('\\n\\n');\n}\n\nconst src = $('Dedupe New Items').first().json;\nreturn [{ json: {\n  suggestedTitle: title || 'Untitled draft',\n  draftBody: body || text,\n  sourceTitle: src.title,\n  sourceLink: src.link,\n  source: src.source\n} }];\n"
+      },
+      "id": "f3a2c3d4-0004-4a04-9004-parsedraftnode",
+      "name": "Parse Draft",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        460,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Drafts for Review",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $now.toISO() }}",
+            "Source": "={{ $json.source }} — {{ $json.sourceLink }}",
+            "Suggested Title": "={{ $json.suggestedTitle }}",
+            "Draft Body": "={{ $json.draftBody }}",
+            "Status": "NEEDS REVIEW"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Source",
+              "displayName": "Source",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Suggested Title",
+              "displayName": "Suggested Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Draft Body",
+              "displayName": "Draft Body",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "id": "f3a2c3d4-0005-4a05-9005-draftstoreview",
+      "name": "Save Draft (Review Only)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        700,
+        320
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_WITH_GOOGLE_CREDENTIAL_ID",
+          "name": "Google Sheets account (replace me)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## 📝 rss-ai-draft — START HERE\n\nWatches an RSS feed; when something new appears, Claude drafts an original blog post and drops it in a **review** sheet. It NEVER publishes — a human approves first.\n\n```\nWatch RSS Feed → Dedupe New Items → Draft Post (Claude) → Parse Draft → Save Draft (Review Only)\n```\n\n### Buyer setup checklist\n- [ ] **Watch RSS Feed** → set your `feedUrl` and poll schedule\n- [ ] **Draft Post (Claude)** → add Anthropic key (Header Auth `x-api-key`); edit the system prompt / voice\n- [ ] **Save Draft (Review Only)** → pick Google account + Sheet + tab (`Drafts for Review`)\n- [ ] Activate. Review rows where Status = `NEEDS REVIEW`, then publish by hand.\n\nAll credentials are placeholders — nothing runs until you connect your own.",
+        "height": 440,
+        "width": 380,
+        "color": 7
+      },
+      "id": "f3a2c3d4-0006-4a06-9006-stickyoverview",
+      "name": "Note - Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -720,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 🛑 Review-only by design — DO NOT auto-publish\n\nSafety is the product. Every draft lands as **Status = NEEDS REVIEW** and stops there. There is intentionally **no** WordPress / publish node.\n\nDo **not** wire this straight into a publish step. AI drafts can be wrong, off-brand, or legally risky. Always keep a human approval between this sheet and your live site.\n\nWhen a draft is approved, copy it out (or build a SEPARATE, manually-triggered publish flow that only runs on rows you set to `APPROVED`).",
+        "height": 340,
+        "width": 340,
+        "color": 2
+      },
+      "id": "f3a2c3d4-0007-4a07-9007-stickyreviewon",
+      "name": "Note - Review Only",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        620,
+        -120
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Dedupe — how it works & limits\n\nTwo layers:\n1. The **RSS trigger** only emits items newer than the last poll.\n2. **Dedupe New Items** remembers every item's `guid`/`link` in workflow static data (last 1000) and drops anything seen before — surviving restarts and overlapping polls.\n\n**Limits:** if a feed omits guids and rewrites links, or republishes with a new id, a duplicate can slip through. Clearing execution data / static data resets memory. One workflow tracks one running list.",
+        "height": 320,
+        "width": 320,
+        "color": 5
+      },
+      "id": "f3a2c3d4-0008-4a08-9008-stickydedupe00",
+      "name": "Note - Dedupe",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -60,
+        -180
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 🔑 LLM key + voice\n\n**Add your key:** Credentials → New → **Header Auth** → Name = `x-api-key`, Value = your Anthropic key. Select it on *Draft Post (Claude)*.\n\n**Edit the voice:** change the `system` prompt inside *Draft Post (Claude)*'s JSON body — that's where tone, length, and angle live.\n\n**OpenAI instead?** URL → `https://api.openai.com/v1/chat/completions`, Header Auth Name `Authorization` / Value `Bearer sk-...`, swap body to OpenAI shape (BUILD_NOTES).\n\nDefault model: `claude-sonnet-4-6`.",
+        "height": 340,
+        "width": 320,
+        "color": 6
+      },
+      "id": "f3a2c3d4-0009-4a09-9009-stickyllmvoice",
+      "name": "Note - LLM",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        280,
+        -140
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Watch RSS Feed": {
+      "main": [
+        [
+          {
+            "node": "Dedupe New Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dedupe New Items": {
+      "main": [
+        [
+          {
+            "node": "Draft Post (Claude)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Draft Post (Claude)": {
+      "main": [
+        [
+          {
+            "node": "Parse Draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Draft": {
+      "main": [
+        [
+          {
+            "node": "Save Draft (Review Only)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": []
+}

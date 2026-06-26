@@ -1,0 +1,323 @@
+{
+  "name": "review-request-engine",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "review-request",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "d1a2c3d4-0001-4a01-9001-jobdonewebhook",
+      "name": "Job Complete Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -220,
+        320
+      ],
+      "webhookId": "d1a2c3d4-0001-4a01-9001-jobdonewebhook"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e1000001-0000-4000-8000-000000000001",
+              "name": "name",
+              "value": "={{ ($json.body?.name ?? $json.query?.name ?? $json.name ?? 'there').toString().trim() || 'there' }}",
+              "type": "string"
+            },
+            {
+              "id": "e1000001-0000-4000-8000-000000000002",
+              "name": "phone",
+              "value": "={{ (() => { const raw = ($json.body?.phone ?? $json.query?.phone ?? $json.phone ?? '').toString().trim(); if (!raw) return ''; if (raw.startsWith('+')) return '+' + raw.slice(1).replace(/\\D/g, ''); let d = raw.replace(/\\D/g, ''); if (d.startsWith('00')) return '+' + d.slice(2); const defaultCountryCode = '1'; return '+' + defaultCountryCode + d; })() }}",
+              "type": "string"
+            },
+            {
+              "id": "e1000001-0000-4000-8000-000000000003",
+              "name": "email",
+              "value": "={{ ($json.body?.email ?? $json.query?.email ?? $json.email ?? '').toString().trim() }}",
+              "type": "string"
+            },
+            {
+              "id": "e1000001-0000-4000-8000-000000000004",
+              "name": "reviewLink",
+              "value": "https://g.page/r/REPLACE_WITH_YOUR_REVIEW_LINK/review",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "d1a2c3d4-0002-4a02-9002-capturecustomr",
+      "name": "Capture Customer",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        20,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 2,
+        "unit": "hours"
+      },
+      "id": "d1a2c3d4-0003-4a03-9003-waittwohours00",
+      "name": "Wait 2 Hours",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        260,
+        320
+      ],
+      "webhookId": "d1a2c3d4-0003-4a03-9003-waittwohours00"
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "from": "+15555555555",
+        "to": "={{ $('Capture Customer').item.json.phone }}",
+        "toWhatsapp": false,
+        "message": "=Hi {{ $('Capture Customer').item.json.name }}, thanks for choosing [Business]! If we did a good job, a quick review means the world to us: {{ $('Capture Customer').item.json.reviewLink }}",
+        "options": {}
+      },
+      "id": "d1a2c3d4-0004-4a04-9004-reviewrequestsms",
+      "name": "Send Review Request",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [
+        500,
+        320
+      ],
+      "retryOnFail": true,
+      "waitBetweenTries": 3000,
+      "continueOnFail": true,
+      "credentials": {
+        "twilioApi": {
+          "id": "REPLACE_WITH_TWILIO_CREDENTIAL_ID",
+          "name": "Twilio account (replace me)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Review Requests",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Phone": "={{ $('Capture Customer').item.json.phone }}",
+            "Name": "={{ $('Capture Customer').item.json.name }}",
+            "Email": "={{ $('Capture Customer').item.json.email }}",
+            "Requested At": "={{ $now.toISO() }}",
+            "Status": "Requested",
+            "Reviewed?": ""
+          },
+          "matchingColumns": [
+            "Phone"
+          ],
+          "schema": [
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Requested At",
+              "displayName": "Requested At",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Reviewed?",
+              "displayName": "Reviewed?",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "id": "d1a2c3d4-0005-4a05-9005-logreviewreqst",
+      "name": "Log Review Request",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        740,
+        320
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_WITH_GOOGLE_CREDENTIAL_ID",
+          "name": "Google Sheets account (replace me)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## ⭐ review-request-engine — START HERE\n\nA couple hours after a job/order is marked done, this texts the customer a one-tap Google review link — when they're happiest. More reviews = higher local ranking + more trust.\n\n```\nJob Complete Webhook → Capture Customer → Wait 2h → Send Review Request → Log Review Request\n```\n\n### Buyer setup checklist\n- [ ] **Webhook** → activate, copy *Production URL*, fire it when a job is marked complete (POST `name`, `phone`, `email`)\n- [ ] **Capture Customer** → set your **reviewLink** field (THE key step — see the green sticky)\n- [ ] **Wait 2h** → change the delay if you like\n- [ ] **Send Review Request** → Twilio creds + `from` number + edit message / `[Business]`\n- [ ] **Log Review Request** → pick Sheet + tab (`Review Requests`)\n- [ ] Activate. (Wait nodes only resume on an **active** workflow.)\n\nAll credentials are placeholders — nothing sends until you connect your own.",
+        "height": 500,
+        "width": 380,
+        "color": 7
+      },
+      "id": "d1a2c3d4-0006-4a06-9006-stickyoverview",
+      "name": "Note - Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -660,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 🔑 Your Google review link (set once)\n\nEdit the **reviewLink** field in *Capture Customer* — this is the single variable the buyer sets once.\n\n**Get your short link:**\n1. Search your business on Google → open your Business Profile.\n2. Click **\"Ask for reviews\"** (or *Get more reviews*).\n3. Copy the short link — looks like `https://g.page/r/XXXXXXXX/review`.\n\nNo Business Profile yet? Create/claim it at business.google.com first. Paste the exact link so the SMS opens the review box in one tap.",
+        "height": 360,
+        "width": 320,
+        "color": 3
+      },
+      "id": "d1a2c3d4-0007-4a07-9007-stickyrevlink0",
+      "name": "Note - Review Link",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -180,
+        -200
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Wait duration\n\nDefault is **2 hours** after the job is marked done — long enough that the experience is over, fresh enough that they still feel it.\n\nChange `amount` / `unit` here (e.g. 1 day for slower-burn services).\n\n⚠️ Wait nodes pause the execution and resume later — they only work when the workflow is **Active**.",
+        "height": 280,
+        "width": 280,
+        "color": 5
+      },
+      "id": "d1a2c3d4-0008-4a08-9008-stickywaitnote",
+      "name": "Note - Wait",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        220,
+        -120
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Track & don't ask twice\n\n*Log Review Request* uses **Append or Update** matched on **Phone**, so the same customer isn't logged twice.\n\nColumns (header row 1):\n`Phone | Name | Email | Requested At | Status | Reviewed?`\n\nMark **Reviewed?** = yes when a review lands, to keep your list clean. Want to skip already-reviewed customers automatically? Add an *IF* before the SMS that checks this sheet (notes in BUILD_NOTES).",
+        "height": 300,
+        "width": 320,
+        "color": 4
+      },
+      "id": "d1a2c3d4-0009-4a09-9009-stickytracknot",
+      "name": "Note - Tracking",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        700,
+        -120
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Job Complete Webhook": {
+      "main": [
+        [
+          {
+            "node": "Capture Customer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Capture Customer": {
+      "main": [
+        [
+          {
+            "node": "Wait 2 Hours",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 2 Hours": {
+      "main": [
+        [
+          {
+            "node": "Send Review Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Review Request": {
+      "main": [
+        [
+          {
+            "node": "Log Review Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": []
+}

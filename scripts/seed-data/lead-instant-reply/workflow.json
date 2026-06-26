@@ -1,0 +1,353 @@
+{
+  "name": "lead-instant-reply",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lead-instant-reply",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "b1a2c3d4-0001-4a01-9001-webhooktrigger",
+      "name": "Lead Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -160,
+        320
+      ],
+      "webhookId": "b1a2c3d4-0001-4a01-9001-webhooktrigger"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f0000001-0000-4000-8000-000000000001",
+              "name": "name",
+              "value": "={{ ($json.body?.name ?? $json.query?.name ?? $json.name ?? 'there').toString().trim() || 'there' }}",
+              "type": "string"
+            },
+            {
+              "id": "f0000001-0000-4000-8000-000000000002",
+              "name": "phone",
+              "value": "={{ (() => { const raw = ($json.body?.phone ?? $json.query?.phone ?? $json.phone ?? '').toString().trim(); if (!raw) return ''; if (raw.startsWith('+')) return '+' + raw.slice(1).replace(/\\D/g, ''); let d = raw.replace(/\\D/g, ''); if (d.startsWith('00')) return '+' + d.slice(2); const defaultCountryCode = '1'; return '+' + defaultCountryCode + d; })() }}",
+              "type": "string"
+            },
+            {
+              "id": "f0000001-0000-4000-8000-000000000003",
+              "name": "email",
+              "value": "={{ ($json.body?.email ?? $json.query?.email ?? $json.email ?? '').toString().trim() }}",
+              "type": "string"
+            },
+            {
+              "id": "f0000001-0000-4000-8000-000000000004",
+              "name": "message",
+              "value": "={{ ($json.body?.message ?? $json.query?.message ?? $json.message ?? '').toString().trim() || '(no message provided)' }}",
+              "type": "string"
+            },
+            {
+              "id": "f0000001-0000-4000-8000-000000000005",
+              "name": "source",
+              "value": "={{ ($json.body?.source ?? $json.query?.source ?? $json.source ?? '').toString().trim() || 'Website form' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b1a2c3d4-0002-4a02-9002-formatleadnode",
+      "name": "Format Lead",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        80,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Leads",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Time": "={{ $now.toISO() }}",
+            "Name": "={{ $('Format Lead').item.json.name }}",
+            "Phone": "={{ $('Format Lead').item.json.phone }}",
+            "Email": "={{ $('Format Lead').item.json.email }}",
+            "Message": "={{ $('Format Lead').item.json.message }}",
+            "Source": "={{ $('Format Lead').item.json.source }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Time",
+              "displayName": "Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Message",
+              "displayName": "Message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Source",
+              "displayName": "Source",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "id": "b1a2c3d4-0003-4a03-9003-sheetsappendnd",
+      "name": "Save Lead to Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        320,
+        320
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_WITH_GOOGLE_CREDENTIAL_ID",
+          "name": "Google Sheets account (replace me)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "from": "+15555555555",
+        "to": "={{ $('Format Lead').item.json.phone }}",
+        "toWhatsapp": false,
+        "message": "=Hi {{ $('Format Lead').item.json.name }}, thanks for reaching out to [Business Name] — we got your message and will call you shortly!",
+        "options": {}
+      },
+      "id": "b1a2c3d4-0004-4a04-9004-twiliosendsms0",
+      "name": "Send Auto-Reply SMS",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [
+        560,
+        320
+      ],
+      "retryOnFail": true,
+      "waitBetweenTries": 3000,
+      "continueOnFail": true,
+      "credentials": {
+        "twilioApi": {
+          "id": "REPLACE_WITH_TWILIO_CREDENTIAL_ID",
+          "name": "Twilio account (replace me)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "owner@example.com",
+        "subject": "=🔥 New lead: {{ $('Format Lead').item.json.name }} ({{ $('Format Lead').item.json.source }})",
+        "emailType": "text",
+        "message": "=A new lead just came in — call them while it's still warm!\n\nName:    {{ $('Format Lead').item.json.name }}\nPhone:   {{ $('Format Lead').item.json.phone }}\nEmail:   {{ $('Format Lead').item.json.email }}\nMessage: {{ $('Format Lead').item.json.message }}\nSource:  {{ $('Format Lead').item.json.source }}\nTime:    {{ $now.toISO() }}",
+        "options": {}
+      },
+      "id": "b1a2c3d4-0005-4a05-9005-notifyowneeml0",
+      "name": "Notify You",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        800,
+        320
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "REPLACE_WITH_GMAIL_CREDENTIAL_ID",
+          "name": "Gmail account (replace me)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## ⚡ lead-instant-reply — START HERE\n\nWhen a new lead hits your website form, this flow:\n1. **Saves** the lead to Google Sheets (so it's never lost)\n2. **Texts the lead** an instant personalized auto-reply\n3. **Alerts you** by email so you can call while they're warm\n\n### Buyer setup checklist\n- [ ] **Webhook** → copy this node's *Production URL* into your website form's action / integration\n- [ ] **Save Lead to Sheet** → pick your Google account + Sheet + tab (tab `Leads`)\n- [ ] **Send Auto-Reply SMS** → add Twilio creds, set your `from` number, edit the message text\n- [ ] **Notify You** → add your email account + set the destination address\n- [ ] Toggle the workflow **Active** (top-right) and send a test submission\n\nAll credentials below are placeholders — swap in your own. Nothing here calls out until you do.",
+        "height": 460,
+        "width": 360,
+        "color": 7
+      },
+      "id": "b1a2c3d4-0006-4a06-9006-stickyoverview",
+      "name": "Note - Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 1. Lead Webhook\n\nAfter you **activate** the workflow, click this node and copy the **Production URL**.\n\nPaste it as the **action / POST target** of your website form (or your form tool's webhook/integration field).\n\nExpected fields: `name`, `phone`, `email`, `message`, `source`. Missing fields get safe defaults in *Format Lead* — extra fields are ignored. Works with JSON **or** standard form posts.",
+        "height": 300,
+        "width": 280,
+        "color": 4
+      },
+      "id": "b1a2c3d4-0007-4a07-9007-stickywebhook0",
+      "name": "Note - Webhook",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        -120
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 3. Save Lead to Sheet\n\nSet **Document** = your Google Sheet and **Sheet** = the tab (default `Leads`).\n\nAdd this header row in row 1 of the tab:\n\n`Time | Name | Phone | Email | Message | Source`\n\nThis runs **before** the SMS, so the lead is saved even if the text later fails.",
+        "height": 300,
+        "width": 280,
+        "color": 3
+      },
+      "id": "b1a2c3d4-0008-4a08-9008-stickysheets00",
+      "name": "Note - Google Sheet",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        320,
+        -120
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 4. Send Auto-Reply SMS\n\n**Edit the reply text** in the single `Message` field of this node — keep `{{ $('Format Lead').item.json.name }}` to personalize, change `[Business Name]` to yours.\n\nSet your Twilio **From** number (full international, e.g. `+14155550100`) and add your Twilio credentials.\n\n📞 **Phone format:** *Format Lead* converts numbers to `+<country><number>`. The default country code is `1` (US/Canada) — change it in *Format Lead* if your leads are elsewhere.\n\n`continueOnFail` is on, so a bad number still lets the owner alert go out.",
+        "height": 360,
+        "width": 300,
+        "color": 5
+      },
+      "id": "b1a2c3d4-0009-4a09-9009-stickytwilio00",
+      "name": "Note - Twilio SMS",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        540,
+        -120
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 5. Notify You\n\nSet **To** to the address that should get lead alerts and connect your email account.\n\n**Prefer Slack?** Delete this node, add a **Slack → Send Message** node in its place, connect *Send Auto-Reply SMS → Slack*, and reuse the same `$('Format Lead').item.json.*` fields in the message.",
+        "height": 300,
+        "width": 280,
+        "color": 6
+      },
+      "id": "b1a2c3d4-0010-4a10-9010-stickynotify00",
+      "name": "Note - Notify",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        860,
+        -120
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Lead Webhook": {
+      "main": [
+        [
+          {
+            "node": "Format Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Lead": {
+      "main": [
+        [
+          {
+            "node": "Save Lead to Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Lead to Sheet": {
+      "main": [
+        [
+          {
+            "node": "Send Auto-Reply SMS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Auto-Reply SMS": {
+      "main": [
+        [
+          {
+            "node": "Notify You",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": []
+}

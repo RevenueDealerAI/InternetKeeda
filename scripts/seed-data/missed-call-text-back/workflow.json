@@ -1,0 +1,363 @@
+{
+  "name": "missed-call-text-back",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "missed-call-text-back",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "c1a2c3d4-0001-4a01-9001-callstatushook",
+      "name": "Twilio Call Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -200,
+        320
+      ],
+      "webhookId": "c1a2c3d4-0001-4a01-9001-callstatushook"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a0000001-0000-4000-8000-000000000001",
+              "leftValue": "={{ ['no-answer','busy','failed','canceled'].includes(String($json.body?.CallStatus ?? $json.body?.DialCallStatus ?? '').toLowerCase()) }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "c1a2c3d4-0002-4a02-9002-ismissedfilter",
+      "name": "Was Call Missed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        40,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f1000001-0000-4000-8000-000000000001",
+              "name": "caller",
+              "value": "={{ ($json.body?.From ?? $json.body?.Caller ?? '').toString().trim() }}",
+              "type": "string"
+            },
+            {
+              "id": "f1000001-0000-4000-8000-000000000002",
+              "name": "calledNumber",
+              "value": "={{ ($json.body?.To ?? $json.body?.Called ?? '').toString().trim() }}",
+              "type": "string"
+            },
+            {
+              "id": "f1000001-0000-4000-8000-000000000003",
+              "name": "status",
+              "value": "={{ ($json.body?.CallStatus ?? $json.body?.DialCallStatus ?? '').toString().trim().toLowerCase() }}",
+              "type": "string"
+            },
+            {
+              "id": "f1000001-0000-4000-8000-000000000004",
+              "name": "callSid",
+              "value": "={{ ($json.body?.CallSid ?? '').toString().trim() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c1a2c3d4-0003-4a03-9003-formatcallnode",
+      "name": "Format Call",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        280,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "from": "+15555555555",
+        "to": "={{ $('Format Call').item.json.caller }}",
+        "toWhatsapp": false,
+        "message": "=Hi! Sorry we missed your call to [Business Name]. How can we help? Reply to this text and we'll get right back to you.",
+        "options": {}
+      },
+      "id": "c1a2c3d4-0004-4a04-9004-textbacksmsnod",
+      "name": "Text Caller Back",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [
+        520,
+        220
+      ],
+      "retryOnFail": true,
+      "waitBetweenTries": 3000,
+      "continueOnFail": true,
+      "credentials": {
+        "twilioApi": {
+          "id": "REPLACE_WITH_TWILIO_CREDENTIAL_ID",
+          "name": "Twilio account (replace me)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Missed Calls",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Time": "={{ $now.toISO() }}",
+            "Caller Number": "={{ $('Format Call').item.json.caller }}",
+            "Status": "={{ $('Format Call').item.json.status }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Time",
+              "displayName": "Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Caller Number",
+              "displayName": "Caller Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "id": "c1a2c3d4-0005-4a05-9005-logmissedcall0",
+      "name": "Log Missed Call",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        760,
+        220
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_WITH_GOOGLE_CREDENTIAL_ID",
+          "name": "Google Sheets account (replace me)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "owner@example.com",
+        "subject": "=📞 Missed call from {{ $('Format Call').item.json.caller }}",
+        "emailType": "text",
+        "message": "=You missed a call — text-back already sent. Call them back to close the loop.\n\nCaller:  {{ $('Format Call').item.json.caller }}\nStatus:  {{ $('Format Call').item.json.status }}\nCalled:  {{ $('Format Call').item.json.calledNumber }}\nTime:    {{ $now.toISO() }}",
+        "options": {}
+      },
+      "id": "c1a2c3d4-0006-4a06-9006-notifyowner000",
+      "name": "Notify You (optional)",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1000,
+        220
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "REPLACE_WITH_GMAIL_CREDENTIAL_ID",
+          "name": "Gmail account (replace me)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## ⚡ missed-call-text-back — START HERE\n\nEvery time someone calls and no one answers, this flow instantly texts the caller back so the lead isn't lost — and logs it for follow-up.\n\n```\nTwilio call webhook → Was Call Missed? → Format Call → Text Caller Back → Log Missed Call → Notify You\n```\n\n### Buyer setup checklist\n- [ ] **Twilio Call Webhook** → activate workflow, copy this node's *Production URL*\n- [ ] In **Twilio Console**, paste that URL into your number's *Call status changes* webhook (see the Twilio sticky →)\n- [ ] **Text Caller Back** → add Twilio creds, set `from` number, edit the message\n- [ ] **Log Missed Call** → pick your Google account + Sheet + tab (`Missed Calls`)\n- [ ] **Notify You** → optional; set your email or delete the node\n- [ ] Toggle **Active** and place a test call you don't answer\n\nAll credentials are placeholders — nothing sends until you connect your own.",
+        "height": 520,
+        "width": 380,
+        "color": 7
+      },
+      "id": "c1a2c3d4-0007-4a07-9007-stickyoverview",
+      "name": "Note - Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -620,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## ⭐ #1 GOTCHA — wire Twilio correctly\n\nThis is the step everyone gets wrong.\n\n**Twilio Console → Phone Numbers → your number → Voice Configuration.**\n\n1. **\"A call comes in\"** must still route the call somewhere (your cell via a TwiML Bin `<Dial>`, a forwarding number, or voicemail). If this is empty the call fails before a status is ever reported.\n2. Scroll to **\"Call status changes\"** → set it to **HTTP POST** and paste the *Production URL* from the webhook node. **Save.**\n\nTwilio then POSTs every call's final status here. We keep only **missed** ones.",
+        "height": 360,
+        "width": 320,
+        "color": 4
+      },
+      "id": "c1a2c3d4-0008-4a08-9008-stickytwiliohk",
+      "name": "Note - Twilio Webhook",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -200,
+        -260
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Was Call Missed?\n\nTwilio fires the status webhook several times per call (ringing, in-progress, completed…). We forward **only terminal missed statuses**:\n\n`no-answer` · `busy` · `failed` · `canceled`\n\nAnswered calls end as `completed` → **false** branch → nothing happens (no text). These four are terminal, so at most one fires per call = exactly one text-back, no duplicates.\n\nAlso reads `DialCallStatus` as a fallback if you used a `<Dial>` action callback instead.",
+        "height": 320,
+        "width": 300,
+        "color": 5
+      },
+      "id": "c1a2c3d4-0009-4a09-9009-stickyfilter00",
+      "name": "Note - Filter",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        160,
+        540
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Text Caller Back\n\nEdit the reply in the single **Message** field. Change `[Business Name]`; keep it short (one SMS segment is cheapest).\n\nSet your Twilio **From** number (full international, e.g. `+14155550100`) and add Twilio credentials.\n\n💡 **Auto-reply from the number they dialled:** set `From` to\n`={{ $('Format Call').item.json.calledNumber }}`\nso multi-number accounts always reply from the right line.\n\n`continueOnFail` is on, so logging + notify still run if a text can't send.",
+        "height": 360,
+        "width": 320,
+        "color": 6
+      },
+      "id": "c1a2c3d4-0010-4a10-9010-stickytwiliosm",
+      "name": "Note - Text Back",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        480,
+        540
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Log Missed Call & Notify\n\n**Log Missed Call** → set Document = your Sheet, Sheet = tab (default `Missed Calls`). Header row 1:\n\n`Time | Caller Number | Status`\n\nThis is your follow-up call list.\n\n**Notify You** is optional — set the destination email, or delete the node. Prefer Slack? Swap in a *Slack → Send Message* node and reuse `$('Format Call').item.json.*`.",
+        "height": 320,
+        "width": 320,
+        "color": 3
+      },
+      "id": "c1a2c3d4-0011-4a11-9011-stickylognotif",
+      "name": "Note - Log & Notify",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        820,
+        540
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Twilio Call Webhook": {
+      "main": [
+        [
+          {
+            "node": "Was Call Missed?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Was Call Missed?": {
+      "main": [
+        [
+          {
+            "node": "Format Call",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Format Call": {
+      "main": [
+        [
+          {
+            "node": "Text Caller Back",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Text Caller Back": {
+      "main": [
+        [
+          {
+            "node": "Log Missed Call",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Missed Call": {
+      "main": [
+        [
+          {
+            "node": "Notify You (optional)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": []
+}

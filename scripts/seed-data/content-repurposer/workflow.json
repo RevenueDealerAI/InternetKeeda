@@ -1,0 +1,357 @@
+{
+  "name": "content-repurposer",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Content Repurposer",
+        "formDescription": "Paste a blog or YouTube URL and pick a tone. Get a Twitter/X thread, 3 LinkedIn posts, and a newsletter blurb.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Content URL",
+              "placeholder": "https://example.com/blog-post",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Tone",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "casual"
+                  },
+                  {
+                    "option": "professional"
+                  }
+                ]
+              },
+              "requiredField": false
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a2a2c3d4-0001-4a01-9001-formtriggernod",
+      "name": "Paste Content URL",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2,
+      "position": [
+        -260,
+        320
+      ],
+      "webhookId": "a2a2c3d4-0001-4a01-9001-formtriggernod"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json['Content URL'] }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (compatible; n8n-content-repurposer/1.0)"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 30000
+        }
+      },
+      "id": "a2a2c3d4-0002-4a02-9002-fetchsourcehtml",
+      "name": "Fetch Source",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -20,
+        320
+      ],
+      "retryOnFail": true,
+      "waitBetweenTries": 3000
+    },
+    {
+      "parameters": {
+        "jsCode": "// Strip a fetched HTML page down to readable text and cap length for the LLM.\nconst raw = $input.first().json.data || $input.first().json.body || '';\nlet text = String(raw);\n\n// Drop script/style/noscript blocks, then all tags, then decode a few entities.\ntext = text\n  .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ')\n  .replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n  .replace(/<noscript[\\s\\S]*?<\\/noscript>/gi, ' ')\n  .replace(/<[^>]+>/g, ' ')\n  .replace(/&nbsp;/gi, ' ')\n  .replace(/&amp;/gi, '&')\n  .replace(/&quot;/gi, '\\\"')\n  .replace(/&#39;/gi, \"'\")\n  .replace(/&lt;/gi, '<')\n  .replace(/&gt;/gi, '>')\n  .replace(/\\s+/g, ' ')\n  .trim();\n\n// Cap at ~24000 chars (~6k tokens) so we stay well inside the model context.\nconst MAX = 24000;\nif (text.length > MAX) text = text.slice(0, MAX);\n\nconst tone = $('Paste Content URL').first().json['Tone'] || 'professional';\nconst sourceUrl = $('Paste Content URL').first().json['Content URL'] || '';\n\nreturn [{ json: { sourceUrl, tone, articleText: text, charCount: text.length } }];\n"
+      },
+      "id": "a2a2c3d4-0003-4a03-9003-extractarticle",
+      "name": "Extract Article Text",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-sonnet-4-6\",\n  \"max_tokens\": 2500,\n  \"system\": \"You are an expert content repurposer. Rewrite the supplied source content into platform-native formats in a {{ $json.tone }} tone. Keep the author's meaning and facts; do not invent statistics. Output EXACTLY these three sections with these literal delimiter lines and nothing before or after:\\n===TWITTER===\\n(a 5-7 tweet thread, each tweet on its own line, numbered 1/ 2/ etc, hook first, no hashtags spam)\\n===LINKEDIN===\\n(3 distinct LinkedIn posts separated by a line containing only ---, each 80-150 words, different angle each)\\n===NEWSLETTER===\\n(one warm 60-90 word newsletter blurb with a subject line on the first row prefixed 'Subject: ')\",\n  \"messages\": [\n    { \"role\": \"user\", \"content\": {{ JSON.stringify('Source URL: ' + $json.sourceUrl + '\\n\\nSource content:\\n' + $json.articleText) }} }\n  ]\n}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "a2a2c3d4-0004-4a04-9004-anthropicgener",
+      "name": "Generate (Claude)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        460,
+        320
+      ],
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_ANTHROPIC_CREDENTIAL_ID",
+          "name": "Anthropic API key (replace me)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Split Claude's delimited response into the three pieces.\nconst out = $input.first().json;\nconst text = (out.content && out.content[0] && out.content[0].text) ? out.content[0].text : '';\n\nfunction section(name, body) {\n  const marker = '===' + name + '===';\n  const start = body.indexOf(marker);\n  if (start === -1) return '';\n  const rest = body.slice(start + marker.length);\n  const next = rest.match(/===[A-Z]+===/);\n  const end = next ? next.index : rest.length;\n  return rest.slice(0, end).trim();\n}\n\nconst twitter = section('TWITTER', text);\nconst linkedin = section('LINKEDIN', text);\nconst newsletter = section('NEWSLETTER', text);\n\nreturn [{ json: {\n  sourceUrl: $('Extract Article Text').first().json.sourceUrl,\n  tone: $('Extract Article Text').first().json.tone,\n  twitterThread: twitter,\n  linkedinPosts: linkedin,\n  newsletterBlurb: newsletter,\n  raw: text\n} }];\n"
+      },
+      "id": "a2a2c3d4-0005-4a05-9005-splitsections0",
+      "name": "Split Sections",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        700,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Repurposed",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Time": "={{ $now.toISO() }}",
+            "Source URL": "={{ $json.sourceUrl }}",
+            "Tone": "={{ $json.tone }}",
+            "Twitter Thread": "={{ $json.twitterThread }}",
+            "LinkedIn Posts": "={{ $json.linkedinPosts }}",
+            "Newsletter": "={{ $json.newsletterBlurb }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Time",
+              "displayName": "Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Source URL",
+              "displayName": "Source URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Tone",
+              "displayName": "Tone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Twitter Thread",
+              "displayName": "Twitter Thread",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "LinkedIn Posts",
+              "displayName": "LinkedIn Posts",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Newsletter",
+              "displayName": "Newsletter",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "id": "a2a2c3d4-0006-4a06-9006-saverepurposed",
+      "name": "Save Repurposed Content",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        940,
+        320
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_WITH_GOOGLE_CREDENTIAL_ID",
+          "name": "Google Sheets account (replace me)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## ⚡ content-repurposer — START HERE\n\nPaste one URL → get a Twitter/X thread, 3 LinkedIn posts, and a newsletter blurb in your tone, saved to a Sheet you can copy from.\n\n```\nPaste URL (form) → Fetch Source → Extract Text → Generate (Claude) → Split Sections → Save to Sheet\n```\n\n### Buyer setup checklist\n- [ ] **Generate (Claude)** → add your Anthropic API key as a *Header Auth* credential (see purple sticky)\n- [ ] **Save Repurposed Content** → pick Google account + Sheet + tab (`Repurposed`)\n- [ ] Edit tone/prompt in *Generate (Claude)* if you want a different style\n- [ ] Activate → open the form's *Production URL* → paste a URL → submit\n\nAll credentials are placeholders — nothing runs until you connect your own.",
+        "height": 460,
+        "width": 380,
+        "color": 7
+      },
+      "id": "a2a2c3d4-0007-4a07-9007-stickyoverview",
+      "name": "Note - Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -700,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 🔑 LLM key + provider swap\n\nThis calls **Anthropic** via a plain HTTP node so it's provider-swappable.\n\n**Add your key:** Credentials → New → **Header Auth** → Name = `x-api-key`, Value = your Anthropic key (`sk-ant-...`). Select it on *Generate (Claude)*.\n\n**Want OpenAI instead?** Change URL to `https://api.openai.com/v1/chat/completions`, set Header Auth Name = `Authorization`, Value = `Bearer sk-...`, and swap the JSON body to the OpenAI chat shape (BUILD_NOTES has the exact body + the one-line parser change).\n\nDefault model: `claude-sonnet-4-6` — edit in the JSON body.",
+        "height": 380,
+        "width": 320,
+        "color": 6
+      },
+      "id": "a2a2c3d4-0008-4a08-9008-stickyllmnote0",
+      "name": "Note - LLM",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        420,
+        -180
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## ⚠️ Content fetch reality\n\n*Fetch Source* works reliably on **public blog / article pages** (HTML).\n\nIt does **NOT** reliably get YouTube transcripts (YouTube serves an app shell, not the transcript) or pages behind logins / paywalls / heavy JS / bot-blocks.\n\nFor YouTube: paste the transcript text or video description into a blog-style page, or use a transcript provider. Full guidance + what reliably works is in BUILD_NOTES.",
+        "height": 320,
+        "width": 300,
+        "color": 2
+      },
+      "id": "a2a2c3d4-0009-4a09-9009-stickyfetchnot",
+      "name": "Note - Fetch Limits",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -60,
+        -180
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Paste Content URL": {
+      "main": [
+        [
+          {
+            "node": "Fetch Source",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Source": {
+      "main": [
+        [
+          {
+            "node": "Extract Article Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Article Text": {
+      "main": [
+        [
+          {
+            "node": "Generate (Claude)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate (Claude)": {
+      "main": [
+        [
+          {
+            "node": "Split Sections",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Sections": {
+      "main": [
+        [
+          {
+            "node": "Save Repurposed Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": []
+}
