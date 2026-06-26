@@ -2,7 +2,15 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Pencil, Plus, Trash2 } from 'lucide-react';
+import {
+  Pencil,
+  Plus,
+  Trash2,
+  Eye,
+  Rocket,
+  Undo2,
+  Workflow as WorkflowIcon,
+} from 'lucide-react';
 import { STORE_BRAND } from '../../config';
 import { formatPrice } from '../../lib/pricing';
 
@@ -21,6 +29,7 @@ interface AdminProductRow {
 export default function AdminProductList() {
   const [items, setItems] = useState<AdminProductRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [busyId, setBusyId] = useState<string | null>(null);
 
   async function load() {
     setLoading(true);
@@ -36,12 +45,36 @@ export default function AdminProductList() {
     load();
   }, []);
 
+  /** One-click status change (publish / unpublish) straight from the
+   *  list — no need to open the edit form. Hits the same PATCH route
+   *  the edit form uses. */
+  async function setStatus(id: string, status: AdminProductRow['status']) {
+    setBusyId(id);
+    try {
+      await fetch(`/api/store/admin/products/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      });
+      await load();
+    } finally {
+      setBusyId(null);
+    }
+  }
+
   async function archive(id: string) {
     if (!confirm('Archive this product? It will be hidden from the catalog.'))
       return;
-    await fetch(`/api/store/admin/products/${id}`, { method: 'DELETE' });
-    load();
+    setBusyId(id);
+    try {
+      await fetch(`/api/store/admin/products/${id}`, { method: 'DELETE' });
+      await load();
+    } finally {
+      setBusyId(null);
+    }
   }
+
+  const workflows = items.filter((i) => i.category === 'n8n-workflow');
 
   return (
     <main
@@ -99,8 +132,84 @@ export default function AdminProductList() {
           </div>
         </div>
 
+        {/* ───────────── Workflows section — quick publish controls ─────────────
+            Surfaces the n8n workflow products with one-click publish/
+            unpublish, edit, and view-live, so an admin never has to know
+            a product id or dig through the full table to go live. */}
+        <section className="mt-12">
+          <div className="flex items-center gap-2.5">
+            <WorkflowIcon className="h-4 w-4" style={{ color: 'var(--accent)' }} />
+            <h2
+              className="m-0 text-[13px] uppercase tracking-[0.24em]"
+              style={{ color: 'var(--ink)', fontFamily: 'var(--mono)', fontWeight: 600 }}
+            >
+              Workflows
+            </h2>
+            <span
+              className="text-[11px]"
+              style={{ color: 'var(--ink-soft)', fontFamily: 'var(--mono)' }}
+            >
+              {workflows.length} · n8n
+            </span>
+          </div>
+          <p
+            className="mt-2 text-[12.5px] leading-[1.6]"
+            style={{ color: 'var(--ink-soft)' }}
+          >
+            Publish to make a workflow live and buyable at /store. Unpublish
+            flips it back to a draft (hidden from the catalog, existing
+            downloads unaffected).
+          </p>
+
+          {loading ? (
+            <div
+              className="mt-6 rounded-2xl px-5 py-10 text-center text-[13px]"
+              style={{
+                background: 'var(--bg-2)',
+                border: '1px solid var(--rule)',
+                color: 'var(--ink-soft)',
+                fontFamily: 'var(--mono)',
+              }}
+            >
+              Loading…
+            </div>
+          ) : workflows.length === 0 ? (
+            <div
+              className="mt-6 rounded-2xl px-5 py-10 text-center text-[13px]"
+              style={{
+                background: 'var(--bg-2)',
+                border: '1px solid var(--rule)',
+                color: 'var(--ink-soft)',
+                fontFamily: 'var(--mono)',
+              }}
+            >
+              No workflow products yet.
+            </div>
+          ) : (
+            <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+              {workflows.map((it) => (
+                <WorkflowCard
+                  key={it._id}
+                  item={it}
+                  busy={busyId === it._id}
+                  onPublish={() => setStatus(it._id, 'published')}
+                  onUnpublish={() => setStatus(it._id, 'draft')}
+                  onArchive={() => archive(it._id)}
+                />
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* ───────────── Full catalog table (all products) ───────────── */}
+        <h2
+          className="m-0 mt-14 mb-4 text-[13px] uppercase tracking-[0.24em]"
+          style={{ color: 'var(--ink-2)', fontFamily: 'var(--mono)', fontWeight: 600 }}
+        >
+          All products
+        </h2>
         <div
-          className="mt-10 overflow-hidden rounded-2xl"
+          className="overflow-hidden rounded-2xl"
           style={{
             background: 'var(--bg-2)',
             border: '1px solid var(--rule)',
@@ -237,6 +346,131 @@ export default function AdminProductList() {
         </div>
       </div>
     </main>
+  );
+}
+
+function WorkflowCard({
+  item,
+  busy,
+  onPublish,
+  onUnpublish,
+  onArchive,
+}: {
+  item: AdminProductRow;
+  busy: boolean;
+  onPublish: () => void;
+  onUnpublish: () => void;
+  onArchive: () => void;
+}) {
+  const isPublished = item.status === 'published';
+  return (
+    <div
+      className="flex flex-col rounded-2xl p-5"
+      style={{
+        background: 'var(--bg-2)',
+        border: '1px solid var(--rule)',
+        opacity: busy ? 0.6 : 1,
+      }}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div
+            className="truncate text-[15px]"
+            style={{ color: 'var(--ink)', fontWeight: 600, letterSpacing: '-0.01em' }}
+          >
+            {item.title}
+          </div>
+          <div
+            className="mt-0.5 truncate text-[11px]"
+            style={{ color: 'var(--ink-soft)', fontFamily: 'var(--mono)' }}
+          >
+            /store/{item.slug} · {formatPrice(item.priceInrMinor, 'INR')} ·{' '}
+            {formatPrice(item.priceUsdMinor, 'USD')}
+          </div>
+        </div>
+        <StatusPill status={item.status} />
+      </div>
+
+      <div className="mt-5 flex flex-wrap items-center gap-2">
+        {isPublished ? (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={onUnpublish}
+            className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-[11px] uppercase tracking-[0.14em] font-semibold disabled:cursor-not-allowed"
+            style={{
+              background: 'var(--surface)',
+              color: 'var(--ink)',
+              border: '1px solid var(--rule)',
+              fontFamily: 'var(--mono)',
+            }}
+          >
+            <Undo2 className="h-3.5 w-3.5" />
+            Unpublish
+          </button>
+        ) : (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={onPublish}
+            className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-[11px] uppercase tracking-[0.14em] font-semibold disabled:cursor-not-allowed"
+            style={{
+              background: 'var(--accent)',
+              color: 'var(--on-accent)',
+              fontFamily: 'var(--mono)',
+              boxShadow: 'var(--shadow-accent)',
+            }}
+          >
+            <Rocket className="h-3.5 w-3.5" />
+            {busy ? 'Working…' : 'Publish'}
+          </button>
+        )}
+
+        <Link
+          href={`/store/admin/${item._id}/edit`}
+          className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-[11px] uppercase tracking-[0.14em] font-semibold"
+          style={{
+            background: 'var(--surface)',
+            color: 'var(--ink-2)',
+            border: '1px solid var(--rule)',
+            fontFamily: 'var(--mono)',
+          }}
+        >
+          <Pencil className="h-3.5 w-3.5" />
+          Edit
+        </Link>
+
+        <Link
+          href={`/store/${item.slug}`}
+          target="_blank"
+          className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-[11px] uppercase tracking-[0.14em] font-semibold"
+          style={{
+            background: 'var(--surface)',
+            color: 'var(--ink-2)',
+            border: '1px solid var(--rule)',
+            fontFamily: 'var(--mono)',
+          }}
+        >
+          <Eye className="h-3.5 w-3.5" />
+          {isPublished ? 'View live' : 'Preview'}
+        </Link>
+
+        <button
+          type="button"
+          disabled={busy}
+          onClick={onArchive}
+          className="ml-auto inline-grid h-8 w-8 place-items-center rounded-full disabled:cursor-not-allowed"
+          style={{
+            background: 'var(--surface)',
+            border: '1px solid var(--rule)',
+            color: 'var(--accent)',
+          }}
+          aria-label="Archive"
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </button>
+      </div>
+    </div>
   );
 }
 
