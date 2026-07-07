@@ -42,14 +42,15 @@ import {
 } from '../src/features/store/lib/storage';
 
 // ── Brand style, appended verbatim to every prompt so all 5 read as a set ──
-// Strengthened with premium-render art direction for a higher-quality,
-// cohesive look across the set (the required tokens are preserved).
+// Realistic, relatable photography: each cover shows the workflow's real-
+// world moment (a phone getting an auto-reply, a laptop with drafted posts)
+// rather than an abstract diagram. Shared photographic direction keeps the
+// warm palette + lighting cohesive across all five.
 const STYLE_SUFFIX =
-  'editorial ivory/paper background, warm muted palette, clean minimal ' +
-  'isometric illustration representing the workflow’s function, soft ' +
-  'studio lighting, premium 3D render, high detail, crisp clean edges, ' +
-  'subtle depth and soft shadows, cohesive color grading, polished ' +
-  'professional product illustration, no text, no words, no logos.';
+  'realistic professional photograph, warm modern workspace, natural soft ' +
+  'window light, shallow depth of field, photorealistic, high detail, clean ' +
+  'premium composition, warm inviting color palette, 35mm, no gibberish ' +
+  'text, no logos, no watermark.';
 
 // Output size we upscale to before upload. Pollinations' free tier (model
 // "sana") caps native output at 1024×576 for 16:9 — we fetch at that native
@@ -68,38 +69,39 @@ const COVERS: CoverSpec[] = [
   {
     slug: 'n8n-lead-instant-reply',
     subject:
-      'An isometric illustration of a website contact form instantly sending ' +
-      'a text-message reply to a smartphone, with a spreadsheet row and an ' +
-      'email envelope beside it, connected by soft flowing lines showing an ' +
-      'automated lead-response flow.',
+      'A smartphone on a warm wooden desk showing a friendly text-message ' +
+      'reply sent to a new website lead, with an open laptop displaying a ' +
+      'website contact form softly blurred in the background, a small ' +
+      'business office setting.',
   },
   {
     slug: 'n8n-missed-call-text-back',
     subject:
-      'An isometric illustration of a smartphone showing a missed call that ' +
-      'automatically sends a text message back to the caller, with a small ' +
-      'spreadsheet logging the missed call beside it.',
+      'A smartphone lying on a warm wooden desk showing a missed call ' +
+      'notification and an automatic reply text-message bubble being sent ' +
+      'back to the caller, a cozy small-business office softly blurred ' +
+      'behind it.',
   },
   {
     slug: 'n8n-review-request-engine',
     subject:
-      'An isometric illustration of a completed-job checkmark triggering a ' +
-      'timed text message that politely requests a five-star review, with ' +
-      'review stars and a one-tap review link floating nearby.',
+      'A hand holding a smartphone that shows a glowing five-star rating and ' +
+      'a friendly message asking a happy customer to leave a review, a warm ' +
+      'small shop or cafe counter softly blurred in the background.',
   },
   {
     slug: 'n8n-content-repurposer',
     subject:
-      'An isometric illustration of a single article document splitting into ' +
-      'multiple social outputs — a short thread, a set of post cards, and ' +
-      'a newsletter — arranged as branching outputs from one source.',
+      'An open laptop on a content creator’s desk displaying several social ' +
+      'media posts arranged side by side on screen, a coffee cup and a ' +
+      'notebook nearby, a bright warm home-office setting.',
   },
   {
     slug: 'n8n-rss-ai-draft',
     subject:
-      'An isometric illustration of an RSS feed feeding into a document being ' +
-      'drafted by an AI pen, the finished draft landing in a review tray ' +
-      'marked for human approval, with no publish step.',
+      'An open laptop on a tidy editor’s desk showing a draft blog article ' +
+      'in a text editor waiting for review, an open notebook and pen beside ' +
+      'it, a calm warm morning workspace.',
   },
 ];
 
@@ -128,7 +130,8 @@ async function fetchCover(prompt: string, seed: number): Promise<Buffer> {
     `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}` +
     `?width=1024&height=576&model=flux&nologo=true&seed=${seed}`;
 
-  const maxAttempts = 3;
+  // Pollinations runs on shared GPUs and 500s in bursts, so retry generously.
+  const maxAttempts = 6;
   let lastErr: unknown;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     const controller = new AbortController();
@@ -152,7 +155,8 @@ async function fetchCover(prompt: string, seed: number): Promise<Buffer> {
         /Pollinations 5\d\d/.test(msg) ||
         msg.includes('small image');
       if (!retryable || attempt === maxAttempts) break;
-      const backoff = 1000 * 2 ** (attempt - 1); // 1s, 2s, 4s
+      // 2s, 4s, 8s, 16s, 30s (capped) — ride out a GPU burst.
+      const backoff = Math.min(2000 * 2 ** (attempt - 1), 30_000);
       console.log(
         `    attempt ${attempt} failed (${msg}) — retrying in ${backoff}ms`
       );
@@ -233,34 +237,46 @@ async function main() {
       continue;
     }
 
-    // On --force with an existing cover, remove the old blob first so we don't
-    // leave orphans (uploadPublicCover random-suffixes, so URLs never collide).
+    // Generate → upload → point the DB at the NEW blob, and only THEN delete
+    // the old one. This ordering matters: if generation fails we must never
+    // have already deleted the live cover (which would leave the product
+    // pointing at a dead blob). Wrap per-product so one failure doesn't abort
+    // the batch — a re-run picks up whatever is still missing.
     const oldUrl = product.coverImageUrl;
-    if (oldUrl && force) {
-      console.log(`  --force: deleting old blob -> ${oldUrl}`);
-      await deletePrivateFile(oldUrl);
+    try {
+      const raw = await fetchCover(prompt, seed);
+      const bytes = await upscale(raw);
+      console.log(
+        `  fetched -> ${raw.length.toLocaleString()}B native, upscaled -> ` +
+          `${bytes.length.toLocaleString()}B @ ${OUT_W}×${OUT_H} (seed=${seed})`
+      );
+
+      const blob = new Blob([bytes], { type: 'image/jpeg' });
+      const uploaded = await uploadPublicCover(
+        blob as unknown as File,
+        `${spec.slug}.jpg`
+      );
+      console.log(`  blob URL -> ${uploaded.url}`);
+
+      await StoreProduct.updateOne(
+        { _id: product._id },
+        { $set: { coverImageUrl: uploaded.url } }
+      );
+      console.log(`  write status -> UPDATED coverImageUrl in Mongo`);
+
+      // Old blob is now safe to remove (random suffix → URLs never collide).
+      if (oldUrl && oldUrl !== uploaded.url) {
+        await deletePrivateFile(oldUrl);
+        console.log(`  cleaned up old blob -> ${oldUrl}\n`);
+      } else {
+        console.log('');
+      }
+      results.push({ slug: spec.slug, id, blobUrl: uploaded.url, status: 'UPDATED' });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      console.log(`  FAILED — ${msg}\n    (old cover left intact; re-run to retry)\n`);
+      results.push({ slug: spec.slug, id, blobUrl: product.coverImageUrl, status: `FAILED: ${msg}` });
     }
-
-    const raw = await fetchCover(prompt, seed);
-    const bytes = await upscale(raw);
-    console.log(
-      `  fetched -> ${raw.length.toLocaleString()}B native, upscaled -> ` +
-        `${bytes.length.toLocaleString()}B @ ${OUT_W}×${OUT_H} (seed=${seed})`
-    );
-
-    const blob = new Blob([bytes], { type: 'image/jpeg' });
-    const uploaded = await uploadPublicCover(
-      blob as unknown as File,
-      `${spec.slug}.jpg`
-    );
-    console.log(`  blob URL -> ${uploaded.url}`);
-
-    await StoreProduct.updateOne(
-      { _id: product._id },
-      { $set: { coverImageUrl: uploaded.url } }
-    );
-    console.log(`  write status -> UPDATED coverImageUrl in Mongo\n`);
-    results.push({ slug: spec.slug, id, blobUrl: uploaded.url, status: 'UPDATED' });
   }
 
   // ── Verification ──
