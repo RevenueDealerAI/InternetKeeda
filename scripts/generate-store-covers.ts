@@ -103,6 +103,14 @@ const COVERS: CoverSpec[] = [
       'in a text editor waiting for review, an open notebook and pen beside ' +
       'it, a calm warm morning workspace.',
   },
+  {
+    slug: 'n8n-seo-research-bot',
+    subject:
+      'An open laptop on a warm wooden desk showing a clean email briefing ' +
+      'with a short list of headline findings and a simple upward trend ' +
+      'chart, a fresh morning coffee beside it, a calm sunlit home office ' +
+      'suggesting research done automatically overnight.',
+  },
 ];
 
 /** Deterministic 31-bit seed from the slug (FNV-1a) so re-runs reproduce the

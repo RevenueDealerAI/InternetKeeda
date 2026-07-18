@@ -1,0 +1,358 @@
+{
+  "name": "Automated SEO Research Bot",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 6 * * 1"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1080,
+        -160
+      ],
+      "id": "trig-schedule",
+      "name": "Weekly Schedule (Mon 06:00)"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1080,
+        40
+      ],
+      "id": "trig-manual",
+      "name": "Manual Trigger"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ======================= BUYER CONFIG — EDIT ME =======================\n// This Code node is the ONLY node you need to edit after import.\n// Fill in the values below, save, and activate the workflow.\n\nreturn [{ json: {\n  // Where your weekly briefing is sent. CHANGE THIS to your inbox.\n  DIGEST_EMAIL_TO: \"your-email@example.com\",\n\n  // What the briefing should focus on. Steers the analysis, not the feeds.\n  // Examples: \"technical SEO + indexing\", \"local SEO\", \"e-commerce SEO\".\n  SEO_FOCUS: \"technical SEO + indexing\",\n\n  // RSS feeds to research. Free + keyless. Add or remove lines as you\n  // like — a feed that is down is skipped without breaking the run.\n  SOURCE_FEEDS: [\n    \"https://feeds.feedburner.com/blogspot/amDG\",           // Google Search Central Blog (official)\n    \"https://feeds.feedburner.com/SearchEngineRoundtable1\", // Search Engine Roundtable\n    \"https://searchengineland.com/feed\"                     // Search Engine Land\n  ],\n\n  // Only articles published within this many days are considered.\n  RECENCY_WINDOW_DAYS: 14,\n\n  // Claude model for the one weekly call. sonnet = smart and cheap.\n  // See the README for how to pick a different model.\n  ANTHROPIC_MODEL: \"claude-sonnet-4-6\",\n  DIGEST_MAX_TOKENS: 4000,\n\n  // Internals — fine at their defaults.\n  MAX_RAW_TEXT_CHARS: 30000,  // per-article cap fed to Claude\n  HISTORY_CAP: 500            // how many processed-article keys to remember\n} }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -860,
+        -60
+      ],
+      "id": "cfg-node",
+      "name": "Config"
+    },
+    {
+      "parameters": {
+        "jsCode": "// One item per configured feed URL — feeds the single RSS-read node,\n// which runs once per item. Add feeds in Config, not here.\nconst cfg = $('Config').first().json;\nreturn cfg.SOURCE_FEEDS.map(function (u) { return { json: { feed_url: u } }; });"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -640,
+        -60
+      ],
+      "id": "split-feeds",
+      "name": "Split Feeds"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.feed_url }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.1,
+      "position": [
+        -420,
+        -60
+      ],
+      "id": "rss-read",
+      "name": "Fetch RSS Feeds",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Normalize every feed item to one schema, keep the last RECENCY_WINDOW_DAYS,\n// drop items already processed (staticData) and in-run duplicates.\n// Zero new items -> return [] -> the run ends quietly (no email, no spend).\n// NOTE: staticData persists on PRODUCTION executions only, not manual tests.\nconst cfg = $('Config').first().json;\nconst cutoff = Date.now() - cfg.RECENCY_WINDOW_DAYS * 24 * 60 * 60 * 1000;\nconst sd = $getWorkflowStaticData('global');\nconst seen = sd.processedKeys || [];\nconst seenThisRun = {};\nconst out = [];\nfor (const item of items) {\n  const j = item.json;\n  if (!j || j.error || !j.link) continue;\n  // Some aggregator feeds (e.g. Bing News RSS) wrap links in apiclick\n  // redirects with the real publisher URL in url= — unwrap those.\n  let url = j.link;\n  const m = /bing\\.com\\/news\\/apiclick[^\\s]*[?&]url=([^&]+)/.exec(url);\n  if (m) {\n    try { url = decodeURIComponent(m[1]); } catch (e) { continue; }\n  }\n  if (!/^https?:\\/\\//i.test(url)) continue;\n  let source = '';\n  try { source = new URL(url).hostname.replace(/^www\\./, ''); } catch (e) { continue; }\n  const published = j.isoDate || (j.pubDate ? new Date(j.pubDate).toISOString() : null);\n  const t = new Date(published).getTime();\n  if (isNaN(t) || t < cutoff) continue;\n  const key = url + '|' + published;\n  if (seen.indexOf(key) !== -1) continue;\n  if (seenThisRun[url]) continue;\n  seenThisRun[url] = true;\n  out.push({ json: {\n    dedup_key: key,\n    source_name: source,\n    url: url,\n    title: j.title,\n    published_date: published,\n    teaser: String(j.contentSnippet || j.content || '').trim()\n  } });\n}\nconsole.log('Filter: ' + items.length + ' in, ' + out.length + ' new within ' + cfg.RECENCY_WINDOW_DAYS + ' days (history: ' + seen.length + ')');\nreturn out; // [] = nothing new, run ends quietly"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -200,
+        -60
+      ],
+      "id": "filter-new",
+      "name": "Filter New Items"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 15000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        20,
+        -60
+      ],
+      "id": "fetch-article",
+      "name": "Fetch Article HTML",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract each article's readable text and combine EVERYTHING into one\n// research blob, then build the single Claude digest request.\nconst cfg = $('Config').first().json;\nconst srcItems = $('Filter New Items').all();\nconst today = new Date().toISOString().slice(0, 10);\n\nfunction strip(slice) {\n  return slice\n    .replace(/<script[\\s\\S]*?<\\/script>/gi, ' ').replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n    .replace(/<[^>]+>/g, ' ')\n    .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')\n    .replace(/&quot;/g, String.fromCharCode(34)).replace(/&#39;/g, String.fromCharCode(39))\n    .replace(/&mdash;/g, '\\u2014').replace(/&ndash;/g, '\\u2013')\n    .replace(/\\s+/g, ' ').trim();\n}\nfunction extractBody(html) {\n  if (typeof html !== 'string' || !html) return '';\n  const idx = html.indexOf('devsite-article-body'); // Google blog layout\n  if (idx !== -1) {\n    const end = html.indexOf('</article>', idx);\n    const t = strip(html.substring(idx, end === -1 ? Math.min(idx + 80000, html.length) : end));\n    if (t.length >= 200) return t;\n  }\n  for (const re of [/<article[\\s\\S]*?<\\/article>/i, /<main[\\s\\S]*?<\\/main>/i, /<body[\\s\\S]*?<\\/body>/i]) {\n    const m = re.exec(html);\n    if (m) { const t = strip(m[0]); if (t.length >= 200) return t; }\n  }\n  return '';\n}\n\n// items = HTTP responses, 1:1 and in order with the filtered items\nconst chunks = [];\nconst keys = [];\nfor (let i = 0; i < items.length; i++) {\n  const base = srcItems[i] ? srcItems[i].json : null;\n  if (!base) continue;\n  let text = extractBody(items[i].json ? items[i].json.data : '');\n  if (!text) text = base.teaser; // fetch failed/blocked -> fall back to the feed teaser\n  if (!text) continue;\n  keys.push(base.dedup_key);\n  chunks.push('=== SOURCE: ' + base.source_name + ' | ' + base.published_date + ' | ' + base.url + ' ===\\n'\n    + String(base.title || '') + '\\n' + text.slice(0, cfg.MAX_RAW_TEXT_CHARS));\n}\nif (chunks.length === 0) throw new Error('DIGEST: no article text could be extracted from any new item.');\n\nconst PROMPT = \"You are an expert SEO analyst who writes a weekly research briefing for a busy website owner. You are given this week's new articles from authoritative SEO sources (Google Search Central and reputable SEO news), each tagged with source + date + URL.\\n\\nWrite a clean plain-text email briefing with exactly these sections:\\n\\nHEADLINE FINDINGS\\nThe most important developments of the week (3-8 items). For each: a one-line headline, then 2-3 sentences on what happened and what the reader should do about it, then the source URL on its own line.\\n\\nWHAT CHANGED / WHY IT MATTERS\\nA short closing section (4-8 sentences) connecting the week's items: what actually changed in how Google crawls, indexes, or ranks, what is probably noise, and the single action most worth taking this week.\\n\\nHard rules:\\n- Every finding must be supported by one of the provided articles and cited with its URL. Never invent news or URLs.\\n- Weight official Google statements (Search Central blog, named Googlers, official docs) above third-party speculation — and say which is which.\\n- Be specific and opinionated; no filler, no generic SEO advice the reader has heard a hundred times.\\n- If the week's articles contain nothing significant, say exactly that in two or three honest sentences instead of padding.\\n- Plain text only: no markdown headers, asterisks, or code fences — this goes straight into an email body.\";\nconst message = PROMPT\n  + '\\n\\nFOCUS AREA: ' + cfg.SEO_FOCUS\n  + '\\nToday\\u2019s date: ' + today + '.'\n  + '\\n\\nTHIS WEEK\\u2019S NEW ARTICLES (' + chunks.length + '):\\n\\n' + chunks.join('\\n\\n');\n\nreturn [{ json: {\n  run_date: today,\n  record_keys: keys,\n  articles_used: chunks.length,\n  requestBody: {\n    model: cfg.ANTHROPIC_MODEL,\n    max_tokens: cfg.DIGEST_MAX_TOKENS,\n    messages: [{ role: 'user', content: message }]\n  }\n} }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        -60
+      ],
+      "id": "build-digest",
+      "name": "Build Digest Prompt"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.requestBody) }}",
+        "options": {
+          "timeout": 600000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        460,
+        -60
+      ],
+      "id": "claude-digest",
+      "name": "Claude: Research Digest",
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 10000,
+      "credentials": {
+        "anthropicApi": {
+          "id": "REPLACE_WITH_ANTHROPIC_CREDENTIAL",
+          "name": "Anthropic account (replace me)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Turn the Claude response into the briefing email. Throws (no email, no\n// recording) if the response is missing or suspiciously short — the same\n// items are then retried on the next run.\nconst resp = items[0].json;\nconst meta = $('Build Digest Prompt').first().json;\nif (!resp || !Array.isArray(resp.content)) {\n  throw new Error('DIGEST: no Claude response (node disabled or call failed). Nothing emailed, nothing recorded.');\n}\nconst text = resp.content.filter(function (b) { return b.type === 'text'; }).map(function (b) { return b.text; }).join('').trim();\nif (text.length < 200) {\n  throw new Error('DIGEST: response too short to be a real briefing (' + text.length + ' chars). Nothing emailed, nothing recorded.');\n}\n\nconst body = text\n  + '\\n\\n\\u2014\\nAutomated SEO Research Bot \\u00b7 ' + meta.articles_used + ' new article(s) analyzed this run.'\n  + '\\nTo change the focus, feeds, or model, edit the Config node in n8n.';\n\nreturn [{ json: {\n  email_subject: 'Your weekly SEO research briefing \\u2014 ' + meta.run_date,\n  email_body: body,\n  record_keys: meta.record_keys\n} }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        680,
+        -60
+      ],
+      "id": "compose-email",
+      "name": "Compose Digest Email"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Config').first().json.DIGEST_EMAIL_TO }}",
+        "subject": "={{ $json.email_subject }}",
+        "emailType": "text",
+        "message": "={{ $json.email_body }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        900,
+        -60
+      ],
+      "id": "gmail-send",
+      "name": "Gmail: Send Briefing",
+      "webhookId": "gmail-send-briefing",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "REPLACE_WITH_GMAIL_CREDENTIAL",
+          "name": "Gmail account (replace me)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Record dedup keys — reachable only after the Gmail node succeeded\n// (it throws on failure, which skips this node and leaves keys unrecorded).\nconst cfg = $('Config').first().json;\nconst keys = $('Compose Digest Email').first().json.record_keys || [];\nconst sd = $getWorkflowStaticData('global');\nsd.processedKeys = sd.processedKeys || [];\nlet recorded = 0;\nfor (const k of keys) {\n  if (k && sd.processedKeys.indexOf(k) === -1) { sd.processedKeys.push(k); recorded++; }\n}\nif (sd.processedKeys.length > cfg.HISTORY_CAP) {\n  sd.processedKeys = sd.processedKeys.slice(-cfg.HISTORY_CAP);\n}\nreturn [{ json: { recorded_keys: recorded, history_size: sd.processedKeys.length } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        -60
+      ],
+      "id": "record-processed",
+      "name": "Record Processed Keys"
+    },
+    {
+      "parameters": {
+        "content": "## Automated SEO Research Bot (weekly, one LLM call)\nYour RSS sources -> last-N-days new items -> article text -> ONE Claude call writes a sourced briefing (headline findings with source links + a \"what changed / why it matters\" wrap-up) -> emailed to you via Gmail -> dedup keys recorded only after the email sends.\n\n- Fill in the CONFIG node (email, focus, feeds, model) — it is the only node you need to edit.\n- Nothing new this week -> the run ends quietly after \"Filter New Items\" (no email, no token spend).\n- A malformed model response -> \"Compose Digest Email\" THROWS: no email, nothing recorded, the same items retry next week. Optional: set an Error Trigger workflow (Settings -> Error Workflow) to get alerted.\n- Only paid dependency: your Anthropic API key (billing must be enabled). Credentials: Anthropic + Gmail.",
+        "width": 640,
+        "height": 300,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -860,
+        -500
+      ],
+      "id": "s-note",
+      "name": "Note"
+    }
+  ],
+  "connections": {
+    "Weekly Schedule (Mon 06:00)": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Split Feeds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Feeds": {
+      "main": [
+        [
+          {
+            "node": "Fetch RSS Feeds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch RSS Feeds": {
+      "main": [
+        [
+          {
+            "node": "Filter New Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter New Items": {
+      "main": [
+        [
+          {
+            "node": "Fetch Article HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Article HTML": {
+      "main": [
+        [
+          {
+            "node": "Build Digest Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Digest Prompt": {
+      "main": [
+        [
+          {
+            "node": "Claude: Research Digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude: Research Digest": {
+      "main": [
+        [
+          {
+            "node": "Compose Digest Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compose Digest Email": {
+      "main": [
+        [
+          {
+            "node": "Gmail: Send Briefing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail: Send Briefing": {
+      "main": [
+        [
+          {
+            "node": "Record Processed Keys",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}

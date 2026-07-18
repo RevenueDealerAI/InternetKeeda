@@ -156,6 +156,31 @@ export const WORKFLOW_SALES_CONTENT: Record<string, WorkflowSalesContent> = {
       'A Google account (Google Sheets for the review folder)',
     ],
   },
+  'n8n-seo-research-bot': {
+    hook: 'Google ships updates faster than anyone can read about them — and the ones you miss are the ones that cost you traffic.',
+    whatItAutomates: {
+      before:
+        'You skim a dozen SEO blogs when you remember to, miss the week Google changes something that matters, and find out from a rankings drop.',
+      after:
+        'Every week it reads the new articles from Google Search Central and reputable SEO news, and Claude emails you one sourced briefing: headline findings with links, plus what changed and why it matters.',
+    },
+    benefits: [
+      'A Claude-written research briefing in your inbox weekly — zero manual reading',
+      'Every finding cited to its source; official Google statements weighted above speculation',
+      'Never repeats itself — persistent dedup means each article is analyzed exactly once',
+      'Quiet weeks cost nothing: no new articles means no email and no API spend',
+    ],
+    whoFor: [
+      'Site owners and founders who live or die by organic traffic',
+      'SEO consultants and agencies briefing clients on what changed',
+      'Content and dev teams who need to catch indexing changes early',
+    ],
+    requirements: [
+      'n8n (cloud or self-hosted)',
+      'An Anthropic API key with billing enabled (one call/week — a few cents on the default model)',
+      'A Gmail account (sends the briefing to you)',
+    ],
+  },
 };
 
 /** Lookup helper — returns the sales content for a slug, or null when
