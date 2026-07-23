@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { SITE_ORIGIN } from '@/lib/seo/siteOrigin';
 
 /**
  * Server-rendered breadcrumb + schema.org BreadcrumbList JSON-LD.
@@ -23,11 +24,12 @@ export interface BreadcrumbItem {
 
 export function BreadcrumbSSR({
   items,
-  origin = 'https://www.internetkeeda.com',
+  origin = SITE_ORIGIN,
 }: {
   items: BreadcrumbItem[];
   /** Absolute origin used to build the JSON-LD `item` URLs. Defaults
-   *  to the canonical prod origin. */
+   *  to the centralized SITE_ORIGIN so robots/sitemap/canonicals stay
+   *  in lockstep. */
   origin?: string;
 }) {
   if (items.length === 0) return null;

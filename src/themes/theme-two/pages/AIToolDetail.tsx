@@ -41,6 +41,7 @@ import mongoose from 'mongoose';
 import ReviewForm from "../components/reviews/ReviewForm";
 import ReviewList from "../components/reviews/ReviewList";
 import { formatTextIntoParagraphs } from "@/utils/textFormatter";
+import { isAffiliateSlug, outboundRel, AFFILIATE_DISCLOSURE } from "@/lib/affiliate/links";
 
 // Logo cache utilities
 const LOGO_CACHE_KEY = 'ai_tools_logo_cache';
@@ -492,6 +493,12 @@ export const AIToolDetail = () => {
                       </Button>
                     </div>
 
+                    {isAffiliateSlug(tool.slug) && (
+                      <p className="mt-3 text-xs text-gray-500 leading-relaxed">
+                        {AFFILIATE_DISCLOSURE}
+                      </p>
+                    )}
+
                     {/* Tabs Section */}
                     <div className="mt-8 sm:mt-12">
                       <Tabs defaultValue="about" className="w-full">
@@ -648,7 +655,7 @@ export const AIToolDetail = () => {
                         <a
                           href={tool.websiteUrl}
                           target="_blank"
-                          rel="noopener noreferrer"
+                          rel={outboundRel(tool.slug)}
                           className="flex items-center gap-2 text-sm sm:text-base text-gray-600 hover:text-purple-600 transition-colors"
                         >
                           <Globe className="w-4 h-4" />
