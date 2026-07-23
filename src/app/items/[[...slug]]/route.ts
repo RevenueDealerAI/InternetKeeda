@@ -24,10 +24,9 @@
  */
 
 import { NextRequest } from 'next/server';
+import { SITE_ORIGIN } from '@/lib/seo/siteOrigin';
 
-const BASE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ||
-  'https://www.internetkeeda.com';
+const BASE_URL = SITE_ORIGIN;
 
 // Built once at module load — never rebuilt per request. The body is
 // intentionally minimal: Google reads the 410 status code and the

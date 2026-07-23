@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Space_Grotesk, IBM_Plex_Mono, Instrument_Serif } from 'next/font/google';
 import { ClientProviders } from './ClientProviders';
 import { BRAND } from '@/lib/brand';
+import { SITE_ORIGIN } from '@/lib/seo/siteOrigin';
 import '../index.css';
 
 // No-FOUC theme init — runs BEFORE React hydrates so the page paints
@@ -32,15 +33,12 @@ const THEME_INIT_SCRIPT = `
 }})();
 `;
 
-// Hardened canonical origin. Same resolution rules as the sitemap:
-// env first, hardcoded www-canonical second, never localhost, never
-// vercel.app. metadataBase governs how every page-level
-// alternates.canonical + openGraph.url + twitter URL is resolved
-// against an absolute origin.
-const SITE_ORIGIN =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ||
-  'https://www.internetkeeda.com';
-
+// metadataBase governs how every page-level alternates.canonical +
+// openGraph.url + twitter URL is resolved against an absolute origin.
+// Shared with sitemap, robots, BreadcrumbSSR, and /items/* 410 page
+// via the centralized SITE_ORIGIN constant so they never disagree
+// about www vs apex — a mismatch produces "Duplicate, Google chose a
+// different canonical" in Search Console and silent de-indexing.
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_ORIGIN),
   title: {
@@ -97,6 +95,37 @@ const fontAliasesStyle = {
   '--font-jetbrains-mono': 'var(--font-mono)',
 } as React.CSSProperties;
 
+// Organization JSON-LD. Ships in the initial HTML of every page so
+// Google has a stable entity to associate the site, logo, and brand
+// name with — feeds Knowledge Graph and Sitelinks. Constant-string,
+// no untrusted input.
+const ORGANIZATION_LD = JSON.stringify({
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: BRAND.name,
+  url: SITE_ORIGIN,
+  logo: `${SITE_ORIGIN}/apple-touch-icon.png`,
+  sameAs: [
+    // Add real social profile URLs here as they go live — currently
+    // empty rather than fake so Google doesn't crawl 404s.
+  ],
+});
+
+// WebSite JSON-LD with SearchAction. Tells Google about the in-site
+// search so SERP can render a sitelinks searchbox under the brand
+// result. Search URL pattern matches the existing on-site search.
+const WEBSITE_LD = JSON.stringify({
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: BRAND.name,
+  url: SITE_ORIGIN,
+  potentialAction: {
+    '@type': 'SearchAction',
+    target: `${SITE_ORIGIN}/?q={search_term_string}`,
+    'query-input': 'required name=search_term_string',
+  },
+});
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
@@ -108,6 +137,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         {/* No-FOUC theme init — must run synchronously before <body> */}
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: ORGANIZATION_LD }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: WEBSITE_LD }}
+        />
       </head>
       <body className="font-sans antialiased">
         <ClientProviders>{children}</ClientProviders>

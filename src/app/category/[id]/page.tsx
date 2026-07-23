@@ -11,6 +11,7 @@ import {
   CATEGORY_TOOLS_PER_PAGE,
 } from '@/components/seo/CategoryToolGrid';
 import { BrowseByCategory } from '@/components/seo/BrowseByCategory';
+import { SITE_ORIGIN } from '@/lib/seo/siteOrigin';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -34,7 +35,10 @@ export async function generateMetadata({ params }: RouteParams): Promise<Metadat
     console.warn('[category/[id]] generateMetadata DB error:', e);
   }
   return {
-    title,
+    // `absolute` bypasses the root layout's `%s · Internet Keeda`
+    // template — the title already ends in "on Internet Keeda", so the
+    // template would duplicate the brand.
+    title: { absolute: title },
     description,
     alternates: { canonical: `/category/${id}` },
     openGraph: { url: `/category/${id}`, title, description, type: 'website' },
@@ -121,8 +125,35 @@ export default async function CategoryDetailPage({
       .lean() as Promise<Array<{ slug: string; name: string }>>,
   ]);
 
+  // CollectionPage + ItemList JSON-LD. Emitted in the initial HTML so
+  // Google (and JS-blind AI crawlers) understand this is a curated
+  // list page and see the ordered set of tool URLs it links to —
+  // reinforcing discovery of the programmatic /ai-tools/{slug} pages
+  // from their category hub. Positions are absolute across pagination.
+  const collectionLd = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: `${category.name} — AI tools on ${BRAND.name}`,
+    url: `${SITE_ORIGIN}/category/${id}`,
+    ...(category.description ? { description: category.description } : {}),
+    mainEntity: {
+      '@type': 'ItemList',
+      numberOfItems: totalCount,
+      itemListElement: tools.map((t, i) => ({
+        '@type': 'ListItem',
+        position: (page - 1) * CATEGORY_TOOLS_PER_PAGE + i + 1,
+        url: `${SITE_ORIGIN}/ai-tools/${t.slug}`,
+        name: t.name,
+      })),
+    },
+  };
+
   return (
     <main style={{ background: 'var(--bg)', color: 'var(--ink)' }}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionLd) }}
+      />
       <BreadcrumbSSR
         items={[
           { label: 'Internet Keeda', href: '/' },

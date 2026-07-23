@@ -8,6 +8,7 @@ import { slugifyCategoryName } from '@/lib/seo/slugify';
 import { BreadcrumbSSR } from '@/components/seo/BreadcrumbSSR';
 import { RelatedToolsRail } from '@/components/seo/RelatedToolsRail';
 import { BrowseByCategory } from '@/components/seo/BrowseByCategory';
+import { ToolJsonLd, type ToolJsonLdInput } from '@/components/seo/ToolJsonLd';
 import AIToolDetailClient from './ClientView';
 
 interface RouteParams {
@@ -49,7 +50,11 @@ export async function generateMetadata({ params }: RouteParams): Promise<Metadat
     console.warn('[ai-tools/[slug]] generateMetadata DB error:', e);
   }
   return {
-    title,
+    // `absolute` bypasses the root layout's `%s · Internet Keeda`
+    // template — the per-tool title already ends in "on Internet
+    // Keeda", so the template would double the brand and push the
+    // title past ~70 chars in SERP.
+    title: { absolute: title },
     description,
     alternates: { canonical: `/ai-tools/${slug}` },
     openGraph: { url: `/ai-tools/${slug}`, title, description, type: 'article' },
@@ -63,7 +68,13 @@ interface ToolForSeo {
   name: string;
   category: string;
   description?: string;
+  description_ai?: string;
   logo?: string;
+  websiteUrl?: string;
+  pricing?: { type?: string; startingPrice?: number };
+  rating?: number;
+  reviews?: number;
+  tags?: string[];
 }
 
 /**
@@ -97,7 +108,9 @@ export default async function AIToolDetailPage({ params }: RouteParams) {
   try {
     await connectDB();
     tool = (await Tool.findOne({ slug, ...PUBLIC_TOOL_FILTER })
-      .select('slug name category description logo')
+      .select(
+        'slug name category description description_ai logo websiteUrl pricing rating reviews tags',
+      )
       .lean()) as ToolForSeo | null;
 
     if (tool) {
@@ -130,6 +143,8 @@ export default async function AIToolDetailPage({ params }: RouteParams) {
 
   return (
     <>
+      {tool && <ToolJsonLd tool={tool as ToolJsonLdInput} />}
+
       {tool && (
         <BreadcrumbSSR
           items={[

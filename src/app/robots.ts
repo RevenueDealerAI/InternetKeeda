@@ -1,29 +1,40 @@
 import type { MetadataRoute } from 'next';
+import { SITE_ORIGIN } from '@/lib/seo/siteOrigin';
 
 /**
  * /robots.txt — App Router file convention. Allows crawlers on the
- * public surface, blocks admin / API / dashboard. Points at the
- * dynamic sitemap.
- *
- * `FRONTEND_URL` should be set in production (Vercel env). Falls back
- * to the canonical domain so the rule still serves a usable sitemap
- * line on first deploy.
+ * public surface, blocks admin / API / dashboard / auth flows. Points
+ * at the dynamic sitemap. Origin comes from the centralized
+ * SITE_ORIGIN so robots, sitemap, canonical tags, and metadataBase
+ * never disagree about www vs apex.
  */
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl =
-    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ||
-    process.env.FRONTEND_URL?.replace(/\/$/, '') ||
-    'https://internetkeeda.com';
-
   return {
     rules: [
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/admin', '/admin/', '/api', '/api/', '/dashboard'],
+        disallow: [
+          '/admin',
+          '/admin/',
+          '/api',
+          '/api/',
+          '/dashboard',
+          '/dashboard/',
+          '/sign-in',
+          '/sign-up',
+          '/sign-out',
+          '/verify-email',
+          '/sso-callback',
+          // Legacy URL surface — returns 410 Gone. Disallow as well so
+          // Googlebot stops re-fetching them and burning crawl budget
+          // on a known-permanent dead surface.
+          '/items',
+          '/items/',
+        ],
       },
     ],
-    sitemap: `${baseUrl}/sitemap.xml`,
-    host: baseUrl,
+    sitemap: `${SITE_ORIGIN}/sitemap.xml`,
+    host: SITE_ORIGIN,
   };
 }
