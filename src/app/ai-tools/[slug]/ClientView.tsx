@@ -11,15 +11,28 @@ import { ParamsProvider } from '@/app/ParamsProvider';
  * logic (useTheme — client-only). The server page.tsx upstream
  * passes params already-resolved so this file doesn't need to
  * `use()` a promise.
+ *
+ * `fallback` is server-rendered content (the <ToolArticleSSR/> article
+ * with the tool's real name/description/features) shown while the
+ * theme provider resolves. Because ThemeProvider starts isLoading=true
+ * and only flips it in a useEffect, both the server render and the
+ * first client (hydration) render emit this fallback — so it lands in
+ * the INITIAL HTML for crawlers, hydrates without mismatch, and is
+ * then replaced by the full interactive UI. This is the soft-404 fix:
+ * no more empty "Loading…" shell in the raw HTML. When no fallback is
+ * supplied (e.g. the SSR tool fetch failed), we degrade to the spinner.
  */
 export default function AIToolDetailClient({
   slug,
+  fallback,
 }: {
   slug: string;
+  fallback?: React.ReactNode;
 }) {
   const { currentTheme, isLoading } = useTheme();
 
   if (isLoading) {
+    if (fallback) return <>{fallback}</>;
     return (
       <div
         className="flex items-center justify-center min-h-screen"

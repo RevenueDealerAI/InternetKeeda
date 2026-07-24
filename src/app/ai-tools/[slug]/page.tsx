@@ -9,6 +9,7 @@ import { BreadcrumbSSR } from '@/components/seo/BreadcrumbSSR';
 import { RelatedToolsRail } from '@/components/seo/RelatedToolsRail';
 import { BrowseByCategory } from '@/components/seo/BrowseByCategory';
 import { ToolJsonLd, type ToolJsonLdInput } from '@/components/seo/ToolJsonLd';
+import { ToolArticleSSR, type ToolArticleData } from '@/components/seo/ToolArticleSSR';
 import AIToolDetailClient from './ClientView';
 
 interface RouteParams {
@@ -75,6 +76,7 @@ interface ToolForSeo {
   rating?: number;
   reviews?: number;
   tags?: string[];
+  features?: string[];
 }
 
 /**
@@ -109,7 +111,7 @@ export default async function AIToolDetailPage({ params }: RouteParams) {
     await connectDB();
     tool = (await Tool.findOne({ slug, ...PUBLIC_TOOL_FILTER })
       .select(
-        'slug name category description description_ai logo websiteUrl pricing rating reviews tags',
+        'slug name category description description_ai logo websiteUrl pricing rating reviews tags features',
       )
       .lean()) as ToolForSeo | null;
 
@@ -155,10 +157,17 @@ export default async function AIToolDetailPage({ params }: RouteParams) {
         />
       )}
 
-      {/* The legacy client view stays unchanged — it owns the
-          interactive tool detail (upvote, save, share, reviews,
-          theme switching). */}
-      <AIToolDetailClient slug={slug} />
+      {/* The client view owns the interactive tool detail (upvote,
+          save, share, reviews, theme switching). We hand it a
+          server-rendered article as its loading fallback so the tool's
+          real content ships in the INITIAL HTML (soft-404 fix) and is
+          then swapped for the interactive UI on hydration — no empty
+          shell for crawlers, no visible double-render for users. When
+          the SSR fetch failed (tool null) it degrades to the spinner. */}
+      <AIToolDetailClient
+        slug={slug}
+        fallback={tool ? <ToolArticleSSR tool={tool as ToolArticleData} /> : undefined}
+      />
 
       {tool && related.length > 0 && (
         <RelatedToolsRail
