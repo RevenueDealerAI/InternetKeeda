@@ -22,7 +22,7 @@ Because seedance.tv is a third-party portal rather than ByteDance, its credit te
 ByteDance's technical report ranks Seedance 1.0 first on the Artificial Analysis text-to-video and image-to-video leaderboards, above Google Veo 3 and Kling 2.0 — though that benchmark muted Veo 3's audio, and Veo 3 generates native sound that Seedance does not.
 
 ## Good fit / poor fit
-A good fit for short, cinematic, multi-shot clips where a top-ranked model matters. A poor fit for buyers wanting first-party billing or clips longer than 12 seconds.
+The product linked from this page is the seedance.tv portal, not ByteDance: accounts, billing, and support run through the third-party operator ASTROINSPIRE LTD, which resells access to ByteDance's model. A good fit for short, cinematic, multi-shot clips where a top-ranked model matters and buying through a reseller is acceptable. A poor fit for buyers who want first-party ByteDance billing, or clips longer than 12 seconds.
 
 ## Sources
 - https://www.seedance.tv/pricing (accessed 2026-07-30)

@@ -89,6 +89,7 @@ async function main() {
             author: fm.author,
             reviewedAt: new Date(fm.reviewedAt),
             pricingCheckedAt: new Date(fm.pricingCheckedAt),
+            ...((fm as any).pricingNote ? { pricingNote: (fm as any).pricingNote } : {}),
             sources: fm.sources,
             body: parsed.bodyMain,
           },

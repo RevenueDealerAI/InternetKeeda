@@ -115,6 +115,7 @@ interface ToolForSeo {
     author: string;
     reviewedAt: Date;
     pricingCheckedAt: Date;
+    pricingNote?: string;
     sources: string[];
     body: string;
   };

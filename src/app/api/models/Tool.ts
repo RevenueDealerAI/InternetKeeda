@@ -62,6 +62,11 @@ export interface ITool {
     author: string;
     reviewedAt: Date;
     pricingCheckedAt: Date;
+    /** Optional override for the "Pricing checked <date>" line when
+     *  pricing came from a source other than the live pricing page
+     *  (e.g. a dated vendor blog) — avoids false "checked today"
+     *  precision on a monetised page. */
+    pricingNote?: string;
     sources: string[];
     body: string;
   };
@@ -144,6 +149,7 @@ const toolSchema = new mongoose.Schema<ITool>({
     author: { type: String },
     reviewedAt: { type: Date },
     pricingCheckedAt: { type: Date },
+    pricingNote: { type: String },
     sources: [{ type: String }],
     body: { type: String },
   },

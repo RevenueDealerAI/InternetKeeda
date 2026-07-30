@@ -83,6 +83,17 @@ const nextConfig = {
         destination: '/reviews/:slug',
         permanent: true,
       },
+      // Duplicate product: elevenlabs-ai-voice-generator is the same tool
+      // as eleven-labs. Two indexable pages for one product is duplicate
+      // content, so the voice-generator slug 301s to the canonical
+      // eleven-labs review (originalContent unset + dropped from sitemap
+      // separately). statusCode:301 for an exact 301 (not the 308 that
+      // `permanent:true` emits).
+      {
+        source: '/ai-tools/elevenlabs-ai-voice-generator',
+        destination: '/ai-tools/eleven-labs',
+        statusCode: 301,
+      },
     ];
   },
 };

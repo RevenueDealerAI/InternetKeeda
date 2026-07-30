@@ -19,6 +19,9 @@ export interface ReviewData {
   author: string;
   reviewedAt: string | Date;
   pricingCheckedAt: string | Date;
+  /** When set, replaces "Pricing checked <date>" — used when pricing
+   *  came from a dated source other than the live pricing page. */
+  pricingNote?: string;
   sources: string[];
   body: string;
 }
@@ -117,7 +120,7 @@ export function ReviewSSR({
         <span aria-hidden="true">·</span>
         <span>Reviewed {fmtDate(review.reviewedAt)}</span>
         <span aria-hidden="true">·</span>
-        <span>Pricing checked {fmtDate(review.pricingCheckedAt)}</span>
+        <span>{review.pricingNote || `Pricing checked ${fmtDate(review.pricingCheckedAt)}`}</span>
         <span aria-hidden="true">·</span>
         <Link href="/how-we-review" style={{ color: 'var(--accent)' }}>
           How we review
@@ -164,9 +167,12 @@ export function ReviewSSR({
             ))}
           </ul>
           <p className="mt-3 text-xs" style={{ color: 'var(--ink-soft)' }}>
-            Pricing and limits are from vendor documentation, verified on{' '}
-            {fmtDate(review.pricingCheckedAt)}. This is desk research, not an
-            independent lab test — see{' '}
+            {review.pricingNote
+              ? `${review.pricingNote}. `
+              : `Pricing and limits are from vendor documentation, verified on ${fmtDate(
+                  review.pricingCheckedAt,
+                )}. `}
+            This is desk research, not an independent lab test — see{' '}
             <Link href="/how-we-review" style={{ color: 'var(--accent)' }}>
               how we review
             </Link>
