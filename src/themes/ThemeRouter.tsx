@@ -80,7 +80,6 @@ import { AIToolDetail as ThemeTwoAIToolDetail } from './theme-two/pages/AIToolDe
 import { Upcoming as ThemeTwoUpcoming } from './theme-two/pages/upcoming';
 import { TopProducts as ThemeTwoTopProducts } from './theme-two/pages/top-products';
 import CategoriesPage from './theme-two/pages/categories';
-import ThemeTwoCategoryPage from './theme-two/pages/category/[id]';
 import TrendingPage from './theme-two/pages/trending';
 import AboutPage from './theme-two/pages/about';
 import GuidesPage from './theme-two/pages/guides';
@@ -262,7 +261,6 @@ export const ThemeRouter: React.FC<ThemeRouterProps> = ({ isAdminRoute }) => {
             <Route path="/recently-added" element={<ThemeTwoUpcoming />} />
             <Route path="/top-products" element={<ThemeTwoTopProducts />} />
             <Route path="/categories" element={<CategoriesPage />} />
-            <Route path="/category/:id" element={<ThemeTwoCategoryPage />} />
             <Route path="/trending" element={<TrendingPage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/guides" element={<GuidesPage />} />

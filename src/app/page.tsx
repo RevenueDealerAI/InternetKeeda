@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import ThemeOneIndex from '@/themes/theme-one/pages/Index';
+import { DiscoverGrid } from '@/components/seo/DiscoverGrid';
 import { BRAND } from '@/lib/brand';
 
 // Server component — exports route-level metadata + canonical so
@@ -21,6 +23,33 @@ export const metadata: Metadata = {
   openGraph: { url: '/', title: `${BRAND.name} — ${BRAND.tagline}` },
 };
 
+// ISR: the DiscoverGrid below is a server component that reads the
+// current wave from Mongo. revalidate keeps the server-rendered links
+// fresh (hourly) without a redeploy, and lets Next serve a cached HTML
+// shell to crawlers instead of hitting the DB on every request.
+export const revalidate = 3600;
+
 export default function Home() {
-  return <ThemeOneIndex />;
+  // ThemeOneIndex is the (client) Nexus homepage; it calls
+  // useSearchParams(), which makes Next BAIL the whole enclosing
+  // Suspense boundary to client-side rendering on this statically
+  // rendered route. Left as a bare sibling, that bailout swallows
+  // DiscoverGrid too — its server HTML never reaches the initial
+  // response (the original "home HTML = nav + footer only" bug).
+  //
+  // Wrapping ThemeOneIndex in its OWN Suspense contains the CSR bailout
+  // to just that subtree. DiscoverGrid — an async SERVER component with
+  // the real <a href="/ai-tools/..."> + <a href="/category/..."> links
+  // — then renders to static HTML in the initial response, landing
+  // directly above the global footer.
+  return (
+    <>
+      <Suspense fallback={null}>
+        <ThemeOneIndex />
+      </Suspense>
+      <Suspense fallback={null}>
+        <DiscoverGrid />
+      </Suspense>
+    </>
+  );
 }

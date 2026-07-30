@@ -38,6 +38,18 @@ export interface ITool {
    * are visible without payment forever. New (user-submitted) tools
    * default to false and must carry a paid subscription to publish. */
   seededTool: boolean;
+  /**
+   * SEO indexability gate. The seeded catalogue's `description` is
+   * scraped third-party copy (taaft.com + vendor marketing) and
+   * `description_ai` is an AI paraphrase of it — both are duplicate /
+   * derivative content that Google already has, which is why the seeded
+   * tool URLs sit in "Discovered – currently not indexed". A tool is
+   * only allowed into the index (sitemap + robots index:true) once it
+   * carries genuinely ORIGINAL, hand-written editorial copy. Defaults
+   * false; flip to true per-tool as original copy is written (see
+   * scripts/backfill-original-content.ts). isIndexable() requires it.
+   */
+  originalContent: boolean;
   listingStatus: ToolListingStatus;
   /** Active paid boosts. A tool can hold multiple at once
    * (e.g. category-top + featured-badge). */
@@ -112,6 +124,7 @@ const toolSchema = new mongoose.Schema<ITool>({
   rating: { type: Number, default: 0 },
   reviews: { type: Number, default: 0 },
   seededTool: { type: Boolean, default: false },
+  originalContent: { type: Boolean, default: false },
   listingStatus: {
     type: String,
     enum: ['free-seeded', 'paid-active', 'paid-expired', 'unpaid-pending', 'unpaid-hidden'],
@@ -149,6 +162,7 @@ toolSchema.index({ createdAt: -1 }); // Sort by date
 toolSchema.index({ rating: -1 }); // Sort by rating
 toolSchema.index({ views: -1 }); // Sort by views
 toolSchema.index({ listingStatus: 1 }); // Filter to publishable tools
+toolSchema.index({ originalContent: 1 }); // SEO index gate — wave query filters on it
 toolSchema.index({ activeBoosts: 1 }); // "give me tools with this boost" lookups
 toolSchema.index({ deletedAt: 1 }); // Public reads exclude soft-deleted
 // Compound supporting category page: filter by category + visibility,

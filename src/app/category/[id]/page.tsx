@@ -12,37 +12,75 @@ import {
 } from '@/components/seo/CategoryToolGrid';
 import { BrowseByCategory } from '@/components/seo/BrowseByCategory';
 import { SITE_ORIGIN } from '@/lib/seo/siteOrigin';
+import {
+  wordCount,
+  MIN_CATEGORY_TOOLS,
+  MIN_CATEGORY_INTRO_WORDS,
+} from '@/lib/seo/wave';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
-export async function generateMetadata({ params }: RouteParams): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+  searchParams,
+}: RouteParams): Promise<Metadata> {
   const { id } = await params;
+  const sp = await searchParams;
+  const pageParam = sp?.page;
+  const pageRaw = Array.isArray(pageParam) ? pageParam[0] : pageParam;
+  const page = Math.max(1, Number.parseInt(String(pageRaw || '1'), 10) || 1);
+
+  // Each paginated page SELF-canonicals: page 2 → /category/x?page=2,
+  // NOT back to page 1. Canonicalising every page to page 1 tells Google
+  // pages 2..N are duplicates of page 1 and drops the tools that only
+  // appear on later pages from discovery. Page 1 has no ?page query.
+  const path = page > 1 ? `/category/${id}?page=${page}` : `/category/${id}`;
+
   let title: string = `${id} — AI tools on ${BRAND.name}`;
   let description: string = `AI tools in the ${id} category on ${BRAND.name}.`;
+  // Category indexability mirrors indexableCategories(): a real inventory
+  // (>= MIN_CATEGORY_TOOLS) AND its own written intro (>= MIN_CATEGORY_
+  // INTRO_WORDS). Doorway categories (thin, no intro) go noindex,follow —
+  // dropped from the index but still crawled so the tools they link
+  // aren't orphaned. Default false until we can confirm both.
+  let indexable = false;
   try {
     await connectDB();
-    const cat = await Category.findOne({ slug: id }).select('name description').lean();
+    const cat = await Category.findOne({ slug: id })
+      .select('name description')
+      .lean();
     if (cat) {
       title = `${cat.name} — AI tools on ${BRAND.name}`;
-      description =
-        (cat as { description?: string }).description ||
-        `AI tools in the ${cat.name} category on ${BRAND.name}.`;
+      const intro = (cat as { description?: string }).description;
+      description = intro || `AI tools in the ${cat.name} category on ${BRAND.name}.`;
+      const count = await Tool.countDocuments({
+        ...PUBLIC_TOOL_FILTER,
+        $or: [{ category: cat.name }, { category: id }],
+      });
+      indexable =
+        count >= MIN_CATEGORY_TOOLS && wordCount(intro) >= MIN_CATEGORY_INTRO_WORDS;
     }
   } catch (e) {
     console.warn('[category/[id]] generateMetadata DB error:', e);
   }
+  // Reflect the page number in the title of paginated pages so page 2+
+  // isn't a duplicate <title> of page 1.
+  if (page > 1) title = `${title} — page ${page}`;
   return {
     // `absolute` bypasses the root layout's `%s · Internet Keeda`
     // template — the title already ends in "on Internet Keeda", so the
     // template would duplicate the brand.
     title: { absolute: title },
     description,
-    alternates: { canonical: `/category/${id}` },
-    openGraph: { url: `/category/${id}`, title, description, type: 'website' },
+    alternates: { canonical: path },
+    openGraph: { url: path, title, description, type: 'website' },
     twitter: { card: 'summary_large_image', title, description },
+    robots: indexable
+      ? { index: true, follow: true }
+      : { index: false, follow: true },
   };
 }
 

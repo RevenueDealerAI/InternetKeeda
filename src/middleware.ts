@@ -131,6 +131,42 @@ function needsClerk(pathname: string): boolean {
 // kept in case the one-time boost flow ever hits the same condition.
 const POST_TO_GET_PATHS = new Set(['/payment/return']);
 
+// Legacy URL surfaces left over from the previous WordPress/marketplace
+// occupant of this domain. They must return HTTP 410 Gone (not 404, not
+// a redirect) so Google permanently drops them and stops spending crawl
+// budget re-fetching dead URLs — the same treatment /items/* already
+// gets via its route handler. Handled in middleware because several of
+// these (e.g. /categories/tools) would otherwise be swallowed by a real
+// page route.
+const GONE_EXACT = new Set(['/categories/tools', '/categories/others']);
+const GONE_SEGMENTS = ['/item', '/bundles', '/flash-sales', '/shop'];
+
+function isGoneLegacyUrl(pathname: string): boolean {
+  if (GONE_EXACT.has(pathname)) return true;
+  // Segment-exact or segment-prefixed. `/item` matches `/item` and
+  // `/item/x` but NOT `/items` (that surface has its own 410 handler).
+  return GONE_SEGMENTS.some(
+    (s) => pathname === s || pathname.startsWith(s + '/'),
+  );
+}
+
+function goneResponse(): NextResponse {
+  return new NextResponse(
+    '<!doctype html><meta name="robots" content="noindex, nofollow"><title>Gone</title>This page no longer exists.',
+    {
+      status: 410,
+      headers: {
+        'Content-Type': 'text/html; charset=utf-8',
+        // 410 is permanent for these URLs — cache hard at the edge.
+        'Cache-Control': 'public, max-age=86400, s-maxage=86400',
+        // Header form of noindex for crawlers that honour it over the
+        // meta tag; belt-and-suspenders with the 410 status.
+        'X-Robots-Tag': 'noindex, nofollow',
+      },
+    },
+  );
+}
+
 function postToGetRedirect(req: NextRequest): NextResponse | null {
   if (req.method === 'GET' || req.method === 'HEAD') return null;
   if (!POST_TO_GET_PATHS.has(req.nextUrl.pathname)) return null;
@@ -140,6 +176,12 @@ function postToGetRedirect(req: NextRequest): NextResponse | null {
 }
 
 export default async function middleware(req: NextRequest, event: NextFetchEvent) {
+  // Kill legacy URL surfaces with a 410 before anything else — no auth,
+  // no DB, no redirect. Cheapest possible dead-URL response.
+  if (isGoneLegacyUrl(req.nextUrl.pathname)) {
+    return goneResponse();
+  }
+
   // Run the POST→GET redirect first; it short-circuits both branches
   // below so we don't run Clerk on a soon-to-be-redirected request.
   const bounce = postToGetRedirect(req);

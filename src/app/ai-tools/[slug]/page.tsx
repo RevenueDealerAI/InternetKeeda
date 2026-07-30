@@ -10,10 +10,30 @@ import { RelatedToolsRail } from '@/components/seo/RelatedToolsRail';
 import { BrowseByCategory } from '@/components/seo/BrowseByCategory';
 import { ToolJsonLd, type ToolJsonLdInput } from '@/components/seo/ToolJsonLd';
 import { ToolArticleSSR, type ToolArticleData } from '@/components/seo/ToolArticleSSR';
+import { isIndexable, indexableWave, WAVE_SIZE } from '@/lib/seo/wave';
 import AIToolDetailClient from './ClientView';
 
 interface RouteParams {
   params: Promise<{ slug: string }>;
+}
+
+// Pre-render the current indexing wave (top WAVE_SIZE tools) as static
+// HTML at build time — these are the pages we're actively pushing into
+// Google's index, so they get the fastest possible first-wave crawl.
+// dynamicParams stays true (the default): tools outside the wave still
+// render on demand (SSR) so nothing 404s. revalidate keeps the static
+// shells fresh without a redeploy.
+export const revalidate = 3600;
+
+export async function generateStaticParams(): Promise<Array<{ slug: string }>> {
+  try {
+    const wave = await indexableWave(WAVE_SIZE);
+    return wave.map((t) => ({ slug: t.slug }));
+  } catch (e) {
+    // Never fail the build on a DB blip — fall back to all-dynamic.
+    console.warn('[ai-tools/[slug]] generateStaticParams DB error:', e);
+    return [];
+  }
 }
 
 /**
@@ -29,13 +49,17 @@ export async function generateMetadata({ params }: RouteParams): Promise<Metadat
   const { slug } = await params;
   let title: string = `AI tool · ${BRAND.name}`;
   let description: string = BRAND.defaultMetaDescription;
+  // Default to indexable; a resolved-but-thin tool flips this to false.
+  // A slug that doesn't resolve keeps index:true (the client view will
+  // 404 inline) — we only actively noindex tools we KNOW are thin.
+  let indexable = true;
   try {
     await connectDB();
     const tool = await Tool.findOne({
       slug,
       ...PUBLIC_TOOL_FILTER,
     })
-      .select('name description description_ai category')
+      .select('name description description_ai category features pricing originalContent')
       .lean();
     if (tool) {
       title = `${tool.name} — ${tool.category} on ${BRAND.name}`;
@@ -44,6 +68,7 @@ export async function generateMetadata({ params }: RouteParams): Promise<Metadat
         ' ',
       );
       description = rawDesc.length > 160 ? `${rawDesc.slice(0, 157)}…` : rawDesc;
+      indexable = isIndexable(tool as Parameters<typeof isIndexable>[0]);
     }
   } catch (e) {
     // Don't let a metadata DB blip 500 the route — the page itself
@@ -60,6 +85,13 @@ export async function generateMetadata({ params }: RouteParams): Promise<Metadat
     alternates: { canonical: `/ai-tools/${slug}` },
     openGraph: { url: `/ai-tools/${slug}`, title, description, type: 'article' },
     twitter: { card: 'summary_large_image', title, description },
+    // Thin tools (below the isIndexable quality floor) are noindex but
+    // STILL follow — Google drops them from the index yet keeps
+    // crawling their in-page links, so a thin tool never dead-ends the
+    // crawl graph. Indexable tools get the normal index/follow.
+    robots: indexable
+      ? { index: true, follow: true }
+      : { index: false, follow: true },
   };
 }
 

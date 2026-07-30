@@ -1,11 +1,9 @@
 import { NextResponse } from 'next/server';
 import { connectDB } from '../api/lib/db';
-import { Tool } from '../api/models/Tool';
 import { BlogPost } from '../api/models/BlogPost';
 import { NewsPost } from '../api/models/NewsPost';
-import { Category } from '../api/models/Category';
 import { StoreProduct } from '@/features/store/models/StoreProduct';
-import { SITE_ORIGIN } from '@/lib/seo/siteOrigin';
+import { canonical, indexableWave, indexableCategories, WAVE_SIZE } from '@/lib/seo/wave';
 
 /**
  * ISR revalidation window. We re-render at most once an hour and serve
@@ -20,8 +18,6 @@ import { SITE_ORIGIN } from '@/lib/seo/siteOrigin';
  * timeout for the largest sitemaps.
  */
 export const revalidate = 3600;
-
-const BASE_URL = SITE_ORIGIN;
 
 interface SitemapUrl {
   loc: string;
@@ -116,19 +112,18 @@ export async function GET() {
   try {
     await connectDB();
 
-    // Tool visibility filter mirrors the same gate /api/tools uses for
-    // public reads: published/approved status only, never soft-deleted,
-    // never in an unpaid-pending or unpaid-hidden listing state. A tool
-    // that wouldn't render publicly should not be in the sitemap.
-    const [tools, blogPosts, newsPosts, categories, storeProducts] = await Promise.all([
-      Tool.find({
-        status: { $in: ['published', 'approved'] },
-        deletedAt: null,
-        listingStatus: { $nin: ['unpaid-pending', 'unpaid-hidden'] },
-      })
-        .select('slug updatedAt createdAt')
-        .sort({ updatedAt: -1 })
-        .lean(),
+    // WAVE STRATEGY (the fix for 5,703 "Discovered – not indexed"):
+    // the sitemap no longer dumps all ~5,000 tools + 678 categories.
+    // It advertises only the current indexing WAVE — the top WAVE_SIZE
+    // tools by score and the categories that clear a 3-tool floor — so
+    // Google gets a bounded, high-quality priority set it can actually
+    // keep pace with. Indexable tools outside the wave stay index:true
+    // and are still discovered through their category hub pages; they
+    // just aren't force-fed here until the wave proves out. Widen by
+    // raising WAVE_SIZE in src/lib/seo/wave.ts.
+    const [tools, categories, blogPosts, newsPosts, storeProducts] = await Promise.all([
+      indexableWave(WAVE_SIZE),
+      indexableCategories(),
       BlogPost.find({ status: 'published' })
         .select('slug updatedAt date')
         .sort({ updatedAt: -1 })
@@ -136,9 +131,6 @@ export async function GET() {
       NewsPost.find({ status: 'published' })
         .select('slug updatedAt date')
         .sort({ updatedAt: -1 })
-        .lean(),
-      Category.find({ isActive: { $ne: false } })
-        .select('slug name updatedAt')
         .lean(),
       // Keeda Labs store — only PUBLISHED products are buyable and
       // crawlable; drafts/archived must stay out of the sitemap.
@@ -155,37 +147,41 @@ export async function GET() {
     // are dynamic on every request anyway).
     for (const p of STATIC_PAGES) {
       urls.push({
-        loc: `${BASE_URL}${p.url}`,
+        // canonical('') → `${SITE}/` (root keeps its trailing slash to
+        // match the served URL + the homepage canonical tag; every
+        // other path has none). This is what fixes the reported
+        // sitemap↔canonical mismatch on the home URL.
+        loc: canonical(p.url || '/'),
         lastmod: now,
         changefreq: p.changefreq,
         priority: p.priority,
       });
     }
 
-    // Categories — long-tail SEO surface (678+ in production). Skip
-    // any without a slug (shouldn't happen, but defensive).
+    // Categories — only those clearing the 3-tool floor (thin/singleton
+    // categories are excluded so we don't seed low-value hubs).
     for (const cat of categories) {
-      const slug = cat.slug;
-      if (!slug) continue;
+      if (!cat.slug) continue;
       const updated =
-        (cat as { updatedAt?: Date }).updatedAt instanceof Date
-          ? (cat as { updatedAt: Date }).updatedAt.toISOString()
-          : now;
+        cat.updatedAt instanceof Date ? cat.updatedAt.toISOString() : now;
       urls.push({
-        loc: `${BASE_URL}/category/${slug}`,
+        loc: canonical(`/category/${cat.slug}`),
         lastmod: updated,
         changefreq: 'weekly',
         priority: '0.8',
       });
     }
 
-    // Tool detail pages — the bulk of indexable content.
+    // Tool detail pages — the current wave only (top WAVE_SIZE by score).
     for (const tool of tools) {
       if (!tool.slug) continue;
       const updated = tool.updatedAt || tool.createdAt;
       urls.push({
-        loc: `${BASE_URL}/ai-tools/${tool.slug}`,
-        lastmod: (updated instanceof Date ? updated : new Date(updated)).toISOString(),
+        loc: canonical(`/ai-tools/${tool.slug}`),
+        lastmod: (updated instanceof Date
+          ? updated
+          : new Date(updated || now)
+        ).toISOString(),
         changefreq: 'weekly',
         priority: '0.6',
       });
@@ -197,7 +193,7 @@ export async function GET() {
       const updated =
         post.updatedAt instanceof Date ? post.updatedAt : new Date(post.date);
       urls.push({
-        loc: `${BASE_URL}/blog/${post.slug}`,
+        loc: canonical(`/blog/${post.slug}`),
         lastmod: updated.toISOString(),
         changefreq: 'monthly',
         priority: '0.6',
@@ -212,7 +208,7 @@ export async function GET() {
       const updated =
         post.updatedAt instanceof Date ? post.updatedAt : new Date(post.date);
       urls.push({
-        loc: `${BASE_URL}/reviews/${post.slug}`,
+        loc: canonical(`/reviews/${post.slug}`),
         lastmod: updated.toISOString(),
         changefreq: 'monthly',
         priority: '0.6',
@@ -227,7 +223,7 @@ export async function GET() {
         (product as { updatedAt?: Date }).updatedAt ||
         (product as { createdAt?: Date }).createdAt;
       urls.push({
-        loc: `${BASE_URL}/store/${product.slug}`,
+        loc: canonical(`/store/${product.slug}`),
         lastmod: (updated instanceof Date
           ? updated
           : new Date(updated || now)

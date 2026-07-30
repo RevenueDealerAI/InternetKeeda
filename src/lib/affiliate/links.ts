@@ -64,12 +64,15 @@ export function affiliateUrlFor(slug: string | undefined | null): string | undef
   return AFFILIATE_LINKS.find((l) => l.slug === slug)?.affiliateUrl;
 }
 
-/** rel value for an outbound tool link. Affiliate links must carry
- *  `sponsored nofollow`; everything else stays as-is elsewhere. */
+/** rel value for an outbound tool link. ALL outbound tool links are
+ *  `nofollow` — we don't vouch for or pass link equity to 5,000 listed
+ *  third-party sites. Our own affiliate links additionally carry
+ *  `sponsored` (a paid relationship). Plus `noopener noreferrer` for
+ *  security on the `target="_blank"` navigation. */
 export function outboundRel(slug: string | undefined | null): string {
   return isAffiliateSlug(slug)
     ? 'sponsored nofollow noopener noreferrer'
-    : 'noopener noreferrer';
+    : 'nofollow noopener noreferrer';
 }
 
 /** Honest, FTC-style commission disclosure shown near affiliate CTAs. */

@@ -85,23 +85,13 @@ export function ToolJsonLd({ tool }: { tool: ToolJsonLdInput }) {
     };
   }
 
-  // aggregateRating — only when both a rating AND a review count exist.
-  // Emitting a 0/0 rating is invalid structured data and can trigger a
-  // manual action, so we gate hard on real signal.
-  if (
-    typeof tool.rating === 'number' &&
-    tool.rating > 0 &&
-    typeof tool.reviews === 'number' &&
-    tool.reviews > 0
-  ) {
-    ld.aggregateRating = {
-      '@type': 'AggregateRating',
-      ratingValue: Number(tool.rating.toFixed(1)),
-      reviewCount: tool.reviews,
-      bestRating: 5,
-      worstRating: 1,
-    };
-  }
+  // NOTE: aggregateRating is intentionally NOT emitted. The site's
+  // ratings are internal upvote-derived scores, not genuine third-party
+  // review aggregates, and only ~7% of tools carry any rating at all.
+  // Emitting AggregateRating on a directory listing invites a Google
+  // "unverifiable / self-serving review" structured-data manual action,
+  // which is far costlier than the rich-result stars are worth. Keep the
+  // SoftwareApplication node to name/description/offers only.
 
   return (
     <script
