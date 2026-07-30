@@ -94,6 +94,9 @@ export interface IndexableInput {
   pricing?: { type?: string; startingPrice?: number };
   /** Explicit "hand-written editorial, safe to index" flag. */
   originalContent?: boolean;
+  /** Imported original review; its body is the real indexable content
+   *  and is what the word floor measures for reviewed tools. */
+  review?: { body?: string };
 }
 
 /**
@@ -108,7 +111,10 @@ export interface IndexableInput {
  * page itself.
  */
 export function isIndexable(tool: IndexableInput): boolean {
-  const text = tool.description_ai || tool.description || '';
+  // The original review body is the real indexable content; fall back to
+  // the (scraped) fields only if there's no review, in which case the
+  // word floor will not be met anyway.
+  const text = tool.review?.body || tool.description_ai || tool.description || '';
   return (
     tool.originalContent === true &&
     wordCount(text) >= MIN_BODY_WORDS &&
@@ -145,8 +151,13 @@ const WORDS_EXPR = {
             $trim: {
               input: {
                 $replaceAll: {
+                  // Prefer the original review body; fall back to the
+                  // scraped fields (which won't clear the floor anyway).
                   input: {
-                    $ifNull: ['$description_ai', { $ifNull: ['$description', ''] }],
+                    $ifNull: [
+                      '$review.body',
+                      { $ifNull: ['$description_ai', { $ifNull: ['$description', ''] }] },
+                    ],
                   },
                   find: '\n',
                   replacement: ' ',

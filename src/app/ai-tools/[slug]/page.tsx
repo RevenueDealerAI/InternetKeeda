@@ -10,6 +10,8 @@ import { RelatedToolsRail } from '@/components/seo/RelatedToolsRail';
 import { BrowseByCategory } from '@/components/seo/BrowseByCategory';
 import { ToolJsonLd, type ToolJsonLdInput } from '@/components/seo/ToolJsonLd';
 import { ToolArticleSSR, type ToolArticleData } from '@/components/seo/ToolArticleSSR';
+import { ReviewSSR, type ReviewData } from '@/components/seo/ReviewSSR';
+import { ReviewJsonLd } from '@/components/seo/ReviewJsonLd';
 import { isIndexable, indexableWave, WAVE_SIZE } from '@/lib/seo/wave';
 import AIToolDetailClient from './ClientView';
 
@@ -59,7 +61,7 @@ export async function generateMetadata({ params }: RouteParams): Promise<Metadat
       slug,
       ...PUBLIC_TOOL_FILTER,
     })
-      .select('name description description_ai category features pricing originalContent')
+      .select('name description description_ai category features pricing originalContent review')
       .lean();
     if (tool) {
       title = `${tool.name} — ${tool.category} on ${BRAND.name}`;
@@ -109,6 +111,13 @@ interface ToolForSeo {
   reviews?: number;
   tags?: string[];
   features?: string[];
+  review?: {
+    author: string;
+    reviewedAt: Date;
+    pricingCheckedAt: Date;
+    sources: string[];
+    body: string;
+  };
 }
 
 /**
@@ -143,7 +152,7 @@ export default async function AIToolDetailPage({ params }: RouteParams) {
     await connectDB();
     tool = (await Tool.findOne({ slug, ...PUBLIC_TOOL_FILTER })
       .select(
-        'slug name category description description_ai logo websiteUrl pricing rating reviews tags features',
+        'slug name category description description_ai logo websiteUrl pricing rating reviews tags features review',
       )
       .lean()) as ToolForSeo | null;
 
@@ -174,10 +183,23 @@ export default async function AIToolDetailPage({ params }: RouteParams) {
   }
 
   const categorySlug = tool ? slugifyCategoryName(tool.category) : '';
+  const hasReview = !!tool?.review?.body;
 
   return (
     <>
       {tool && <ToolJsonLd tool={tool as ToolJsonLdInput} />}
+      {tool && hasReview && (
+        <ReviewJsonLd
+          tool={{
+            slug: tool.slug,
+            name: tool.name,
+            category: tool.category,
+            author: tool.review!.author,
+            reviewedAt: tool.review!.reviewedAt,
+            body: tool.review!.body,
+          }}
+        />
+      )}
 
       {tool && (
         <BreadcrumbSSR
@@ -196,9 +218,22 @@ export default async function AIToolDetailPage({ params }: RouteParams) {
           then swapped for the interactive UI on hydration — no empty
           shell for crawlers, no visible double-render for users. When
           the SSR fetch failed (tool null) it degrades to the spinner. */}
+      {/* For a REVIEWED tool the original review is the SSR content shown
+          in the initial HTML (in place of the scraped description); other
+          tools keep the legacy article fallback. Either way the client
+          view hydrates over it. */}
       <AIToolDetailClient
         slug={slug}
-        fallback={tool ? <ToolArticleSSR tool={tool as ToolArticleData} /> : undefined}
+        fallback={
+          tool && hasReview ? (
+            <ReviewSSR
+              tool={{ name: tool.name, slug: tool.slug, websiteUrl: tool.websiteUrl }}
+              review={tool.review as ReviewData}
+            />
+          ) : tool ? (
+            <ToolArticleSSR tool={tool as ToolArticleData} />
+          ) : undefined
+        }
       />
 
       {tool && related.length > 0 && (

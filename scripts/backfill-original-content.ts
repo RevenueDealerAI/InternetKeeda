@@ -1,75 +1,110 @@
 /**
- * Mark tools as carrying ORIGINAL, hand-written editorial copy so they
- * become eligible for indexing (isIndexable() requires originalContent
- * === true). This is deliberately MANUAL: the seeded catalogue is
- * scraped from taaft.com + AI-paraphrased, so NOTHING is flagged
- * automatically. Flip a tool to true only after a human has written a
- * genuine, unique 120+ word writeup for it.
+ * Import validated reviews and flip originalContent → true so a tool
+ * becomes eligible for indexing (isIndexable() requires it).
  *
- * Usage:
- *   # report current state, change nothing
- *   npx tsx scripts/backfill-original-content.ts
+ * This is the ONLY path that sets originalContent. It runs the SAME
+ * hard validator as scripts/validate-review.ts FIRST and REFUSES any
+ * tool whose review fails — no review, no index. The seeded catalogue's
+ * scraped `description` / `description_ai` never qualify a tool; only a
+ * passing content/reviews/<slug>.md does.
  *
- *   # flag specific slugs as original (comma-separated)
- *   npx tsx scripts/backfill-original-content.ts --slugs chatgpt,midjourney
- *
- *   # flag every slug listed in a file (one per line)
- *   npx tsx scripts/backfill-original-content.ts --file original-slugs.txt
- *
- *   # unset (demote back to non-original)
- *   npx tsx scripts/backfill-original-content.ts --slugs foo --value false
+ *   npx tsx scripts/backfill-original-content.ts           # all reviews
+ *   npx tsx scripts/backfill-original-content.ts openart   # one slug
+ *   npx tsx scripts/backfill-original-content.ts --dry      # validate only
  */
-import { readFileSync } from 'node:fs';
+import { readdirSync, existsSync } from 'node:fs';
+import path from 'node:path';
 import { config as loadEnv } from 'dotenv';
 import mongoose from 'mongoose';
+import { readReview, validateReview } from './review-lib';
 
 loadEnv({ path: '.env.local' });
 loadEnv();
 
-function arg(name: string): string | undefined {
-  const i = process.argv.indexOf(name);
-  return i >= 0 ? process.argv[i + 1] : undefined;
-}
+const REVIEWS_DIR = path.join(process.cwd(), 'content', 'reviews');
 
 async function main() {
+  const args = process.argv.slice(2);
+  const dry = args.includes('--dry');
+  const slugArg = args.find((a) => !a.startsWith('--'));
+
+  if (!existsSync(REVIEWS_DIR)) {
+    console.error(`No reviews directory at ${REVIEWS_DIR}`);
+    process.exit(1);
+  }
+
+  const files = readdirSync(REVIEWS_DIR)
+    .filter((f) => f.endsWith('.md'))
+    .filter((f) => !slugArg || f === `${slugArg}.md`);
+
   await mongoose.connect(process.env.MONGODB_URI as string);
   const tools = mongoose.connection.db!.collection('tools');
 
-  const value = (arg('--value') || 'true') !== 'false';
-  const slugsArg = arg('--slugs');
-  const fileArg = arg('--file');
+  let passed = 0;
+  let failed = 0;
+  const passedSlugs: string[] = [];
 
-  let slugs: string[] = [];
-  if (slugsArg) slugs = slugsArg.split(',').map((s) => s.trim()).filter(Boolean);
-  if (fileArg) {
-    slugs = slugs.concat(
-      readFileSync(fileArg, 'utf8')
-        .split(/\r?\n/)
-        .map((s) => s.trim())
-        .filter(Boolean),
+  for (const file of files) {
+    const slug = file.replace(/\.md$/, '');
+    const parsed = readReview(path.join(REVIEWS_DIR, file));
+    const tool = (await tools.findOne(
+      { slug },
+      { projection: { description: 1, description_ai: 1 } },
+    )) as any;
+
+    if (!tool) {
+      failed++;
+      console.log(`SKIP ${slug} — no matching Tool in DB`);
+      continue;
+    }
+
+    const errors = validateReview({
+      bodyMain: parsed.bodyMain,
+      sources: parsed.frontmatter.sources,
+      description: tool.description,
+      description_ai: tool.description_ai,
+    });
+
+    if (errors.length) {
+      failed++;
+      console.log(`FAIL ${slug} — NOT indexed:`);
+      for (const e of errors) console.log(`   - ${e}`);
+      continue;
+    }
+
+    passed++;
+    passedSlugs.push(slug);
+    if (dry) {
+      console.log(`PASS ${slug} (dry — not written)`);
+      continue;
+    }
+
+    const fm = parsed.frontmatter;
+    await tools.updateOne(
+      { slug },
+      {
+        $set: {
+          originalContent: true,
+          review: {
+            author: fm.author,
+            reviewedAt: new Date(fm.reviewedAt),
+            pricingCheckedAt: new Date(fm.pricingCheckedAt),
+            sources: fm.sources,
+            body: parsed.bodyMain,
+          },
+        },
+      },
     );
+    console.log(`OK   ${slug} — review imported, originalContent=true`);
   }
 
-  const currentTrue = await tools.countDocuments({ originalContent: true } as any);
-  console.log(`\nCurrently originalContent === true: ${currentTrue}`);
-
-  if (slugs.length === 0) {
-    console.log('\nNo --slugs / --file given → report only, nothing changed.');
-    console.log('Flip tools to indexable by passing slugs once original copy is written.');
-    await mongoose.disconnect();
-    return;
-  }
-
-  const res = await tools.updateMany(
-    { slug: { $in: slugs } } as any,
-    { $set: { originalContent: value } },
-  );
-  console.log(`\nRequested ${slugs.length} slug(s) → ${value ? 'true' : 'false'}`);
-  console.log(`Matched: ${res.matchedCount}, modified: ${res.modifiedCount}`);
-  const after = await tools.countDocuments({ originalContent: true } as any);
-  console.log(`Now originalContent === true: ${after}`);
+  console.log(`\n${passed} passed, ${failed} failed.`);
+  if (passed) console.log(`Indexable slugs: ${passedSlugs.join(', ')}`);
+  const totalTrue = await tools.countDocuments({ originalContent: true } as any);
+  console.log(`Total originalContent === true in DB: ${totalTrue}`);
 
   await mongoose.disconnect();
+  process.exit(failed > 0 && passed === 0 ? 1 : 0);
 }
 
 main().catch((e) => {

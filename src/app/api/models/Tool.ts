@@ -50,6 +50,21 @@ export interface ITool {
    * scripts/backfill-original-content.ts). isIndexable() requires it.
    */
   originalContent: boolean;
+  /**
+   * Original, hand-written editorial review — imported from
+   * content/reviews/<slug>.md by the backfill script AFTER it passes
+   * scripts/validate-review.ts. `body` is the indexable original prose
+   * (rendered in place of the scraped description); the metadata drives
+   * the visible byline, "Pricing checked" date, and sources list, plus
+   * the Review JSON-LD. Present only on reviewed tools.
+   */
+  review?: {
+    author: string;
+    reviewedAt: Date;
+    pricingCheckedAt: Date;
+    sources: string[];
+    body: string;
+  };
   listingStatus: ToolListingStatus;
   /** Active paid boosts. A tool can hold multiple at once
    * (e.g. category-top + featured-badge). */
@@ -125,6 +140,13 @@ const toolSchema = new mongoose.Schema<ITool>({
   reviews: { type: Number, default: 0 },
   seededTool: { type: Boolean, default: false },
   originalContent: { type: Boolean, default: false },
+  review: {
+    author: { type: String },
+    reviewedAt: { type: Date },
+    pricingCheckedAt: { type: Date },
+    sources: [{ type: String }],
+    body: { type: String },
+  },
   listingStatus: {
     type: String,
     enum: ['free-seeded', 'paid-active', 'paid-expired', 'unpaid-pending', 'unpaid-hidden'],

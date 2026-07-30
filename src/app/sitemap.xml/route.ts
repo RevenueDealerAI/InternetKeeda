@@ -57,6 +57,7 @@ const STATIC_PAGES: Array<Omit<SitemapUrl, 'loc' | 'lastmod'> & { url: string }>
   // Brand / info.
   { url: '/about', priority: '0.5', changefreq: 'monthly' },
   { url: '/faq', priority: '0.5', changefreq: 'monthly' },
+  { url: '/how-we-review', priority: '0.5', changefreq: 'monthly' },
 
   // Programmatic SEO landing pages — "best X" buyer-intent surfaces.
   // These are hand-built pages with their own metadata + canonical;
