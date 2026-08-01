@@ -233,7 +233,7 @@ export const ThemeTwoHomePage: React.FC = () => {
     setRecommendations([]);
 
     try {
-      const response = await fetch('/api/tools/ai-search', {
+      const response = await fetch('/api/tools/search', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

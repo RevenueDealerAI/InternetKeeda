@@ -102,6 +102,12 @@ function needsClerk(pathname: string): boolean {
     pathname.startsWith('/api/subscriptions') ||
     pathname === '/api/tools/submit' ||
     pathname === '/api/tools/mine' ||
+    // The chat + browsing-search endpoints run Clerk so the rate limiter
+    // can resolve a signed-in user's id → membership tier. Anonymous
+    // requests still pass through (auth() returns no userId → IP/anon
+    // limiting); Clerk only reads the session, it does not gate these.
+    pathname === '/api/tools/ai-search' ||
+    pathname === '/api/tools/search' ||
     (pathname.startsWith('/api/tools/') && pathname.endsWith('/resubmit'))
   ) {
     return true;

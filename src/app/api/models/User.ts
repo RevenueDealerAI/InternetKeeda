@@ -18,6 +18,15 @@ export interface IUser {
    * publicMetadata.role check is still honoured by requireAdmin for
    * backwards compatibility, but new code should rely on this. */
   isAdmin: boolean;
+  /**
+   * Membership tier for chat rate limiting (free / pro / elite). There is
+   * no pre-existing paid-membership concept — the store/boost
+   * subscriptions are per-tool, not per-user — so this is a dedicated,
+   * tunable field. Defaults to 'free'; set to 'pro'/'elite' when a paid
+   * membership is granted. Anonymous (signed-out) traffic is limited as
+   * 'anon' and never reads this field. See src/lib/ratelimit/config.ts.
+   */
+  membershipTier: 'free' | 'pro' | 'elite';
   createdAt: Date;
   updatedAt: Date;
 }
@@ -37,6 +46,11 @@ const userSchema = new mongoose.Schema<IUser>({
   submittedTools: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Tool' }],
   referredBy: { type: String, trim: true },
   isAdmin: { type: Boolean, default: false, index: true },
+  membershipTier: {
+    type: String,
+    enum: ['free', 'pro', 'elite'],
+    default: 'free',
+  },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });

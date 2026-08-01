@@ -90,7 +90,7 @@ export const HeroSection = ({
     setRecommendations([]);
 
     try {
-      const response = await fetch(`${API_URL}/api/tools/ai-search`, {
+      const response = await fetch(`${API_URL}/api/tools/search`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

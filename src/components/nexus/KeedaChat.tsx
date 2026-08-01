@@ -40,6 +40,19 @@ export type RileyStoreProduct = {
   tags: string[];
 };
 
+/** Inline rate-limit / capacity notice — rendered in-thread (not a
+ *  disappearing toast). `until` is the wall-clock ms the cooldown ends. */
+type NoticeMessage = {
+  role: 'bot';
+  kind: 'notice';
+  variant: 'rate' | 'maintenance';
+  body: string;
+  until?: number;
+  retryAfter?: number;
+  upgradeUrl?: string;
+  tier?: string;
+};
+
 type Message =
   | { role: 'bot'; kind: 'text'; body: string }
   | {
@@ -50,6 +63,7 @@ type Message =
       storeProducts?: RileyStoreProduct[];
       links?: NavLink[];
     }
+  | NoticeMessage
   | { role: 'user'; kind: 'text'; body: string };
 
 const BOT_NAME = 'Riley';
@@ -89,7 +103,27 @@ export function KeedaChat() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
+  // Wall-clock ms when the current rate-limit cooldown ends (null = none).
+  // Drives the disabled send/input state; the notice bubble renders its
+  // own live countdown from the same timestamp.
+  const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
+
+  // Tick once a second while a cooldown is active so the send button
+  // re-enables the moment it ends.
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    if (cooldownUntil === null) return;
+    const id = setInterval(() => {
+      setTick((t) => t + 1);
+      if (Date.now() >= cooldownUntil) {
+        setCooldownUntil(null);
+        clearInterval(id);
+      }
+    }, 1000);
+    return () => clearInterval(id);
+  }, [cooldownUntil]);
+  const cooldownActive = cooldownUntil !== null && Date.now() < cooldownUntil;
 
   // Hydrate open/closed state from localStorage after mount (avoid
   // SSR mismatch). Messages are NOT hydrated — each page load starts
@@ -145,7 +179,7 @@ export function KeedaChat() {
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     const text = input.trim();
-    if (!text || loading) return;
+    if (!text || loading || cooldownActive) return;
     setInput('');
     setMessages((m) => [...m, { role: 'user', kind: 'text', body: text }]);
     setLoading(true);
@@ -155,6 +189,51 @@ export function KeedaChat() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query: text }),
       });
+
+      // Rate limited — show an inline, tier-aware notice with a live
+      // countdown and disable sending until it elapses. Do NOT retry.
+      if (res.status === 429) {
+        const data = await res.json().catch(() => ({}));
+        const retryAfter = Number(data?.retryAfter) > 0 ? Number(data.retryAfter) : 30;
+        const until = Date.now() + retryAfter * 1000;
+        setCooldownUntil(until);
+        setMessages((m) => [
+          ...m,
+          {
+            role: 'bot',
+            kind: 'notice',
+            variant: 'rate',
+            body:
+              typeof data?.message === 'string' && data.message.trim()
+                ? data.message.trim()
+                : "You're sending messages a little too fast.",
+            until,
+            retryAfter,
+            upgradeUrl: typeof data?.upgradeUrl === 'string' ? data.upgradeUrl : undefined,
+            tier: typeof data?.tier === 'string' ? data.tier : undefined,
+          },
+        ]);
+        return; // finally{} clears loading
+      }
+
+      // Global capacity breaker — maintenance notice, and NEVER retry.
+      if (res.status === 503) {
+        const data = await res.json().catch(() => ({}));
+        setMessages((m) => [
+          ...m,
+          {
+            role: 'bot',
+            kind: 'notice',
+            variant: 'maintenance',
+            body:
+              typeof data?.message === 'string' && data.message.trim()
+                ? data.message.trim()
+                : 'Riley is briefly over capacity — please try again later.',
+          },
+        ]);
+        return;
+      }
+
       if (!res.ok) throw new Error(`request failed (${res.status})`);
       const data = await res.json();
       const tools = Array.isArray(data?.tools) ? (data.tools as Tool[]).slice(0, 6) : [];
@@ -378,15 +457,19 @@ export function KeedaChat() {
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder={`Ask ${BOT_NAME} — what are you trying to ship?`}
+                placeholder={
+                  cooldownActive
+                    ? 'Cooling down…'
+                    : `Ask ${BOT_NAME} — what are you trying to ship?`
+                }
                 aria-label={`Ask ${BOT_NAME}`}
-                disabled={loading}
-                className="flex-1 bg-transparent text-[13px] focus:outline-none"
+                disabled={loading || cooldownActive}
+                className="flex-1 bg-transparent text-[13px] focus:outline-none disabled:opacity-60"
                 style={{ color: 'var(--ink)' }}
               />
               <button
                 type="submit"
-                disabled={!input.trim() || loading}
+                disabled={!input.trim() || loading || cooldownActive}
                 aria-label="Send"
                 className="grid h-8 w-8 place-items-center rounded-full transition-transform hover:-translate-y-0.5 disabled:opacity-50 disabled:translate-y-0"
                 style={{
@@ -411,6 +494,69 @@ export function KeedaChat() {
   );
 }
 
+/** Inline rate-limit / capacity notice with a live countdown. Stays in
+ *  the thread (not a toast). Self-ticks so the countdown updates without
+ *  the parent re-rendering. */
+function RateNotice({ msg }: { msg: NoticeMessage }) {
+  const [remaining, setRemaining] = useState(() =>
+    msg.until ? Math.max(0, Math.ceil((msg.until - Date.now()) / 1000)) : 0,
+  );
+  useEffect(() => {
+    if (!msg.until) return;
+    const id = setInterval(() => {
+      const r = Math.max(0, Math.ceil((msg.until! - Date.now()) / 1000));
+      setRemaining(r);
+      if (r <= 0) clearInterval(id);
+    }, 500);
+    return () => clearInterval(id);
+  }, [msg.until]);
+
+  const isRate = msg.variant === 'rate';
+  const done = isRate && remaining <= 0;
+  const showUpgrade =
+    isRate && !!msg.upgradeUrl && (msg.tier === 'anon' || msg.tier === 'free');
+
+  return (
+    <div
+      className="self-start rounded-2xl px-3 py-2.5 text-[12.5px] leading-[1.5]"
+      style={{
+        maxWidth: '92%',
+        background: 'var(--accent-soft)',
+        color: 'var(--ink)',
+        border: '1px solid var(--accent)',
+      }}
+    >
+      <div className="flex items-center gap-1.5">
+        <Sparkles className="h-3 w-3 shrink-0" style={{ color: 'var(--accent)' }} />
+        <span>{msg.body}</span>
+      </div>
+      {isRate && (
+        <div
+          className="mt-1.5 text-[10px] uppercase tracking-[0.16em]"
+          style={{ color: 'var(--ink-soft)', fontFamily: 'var(--mono)' }}
+          aria-live="polite"
+        >
+          {done ? 'You can send again now.' : `You can send again in ${remaining}s`}
+        </div>
+      )}
+      {showUpgrade && (
+        <Link
+          href={msg.upgradeUrl!}
+          className="mt-2 inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.08em]"
+          style={{
+            background: 'var(--accent)',
+            color: 'var(--on-accent)',
+            fontFamily: 'var(--mono)',
+          }}
+        >
+          {msg.tier === 'anon' ? 'Sign up / go Pro' : 'Upgrade to Pro'}{' '}
+          <span aria-hidden="true">→</span>
+        </Link>
+      )}
+    </div>
+  );
+}
+
 function Bubble({ msg }: { msg: Message }) {
   if (msg.role === 'user') {
     return (
@@ -426,6 +572,10 @@ function Bubble({ msg }: { msg: Message }) {
         {msg.body}
       </div>
     );
+  }
+
+  if (msg.kind === 'notice') {
+    return <RateNotice msg={msg} />;
   }
 
   if (msg.kind === 'tools') {

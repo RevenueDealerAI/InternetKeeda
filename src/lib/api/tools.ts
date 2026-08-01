@@ -104,7 +104,7 @@ async function searchTools(query: string, limit: number = 10): Promise<Tool[]> {
 async function aiSearchTools(query: string): Promise<Tool[]> {
   if (!query.trim()) return [];
   
-  const response = await fetch(`/api/tools/ai-search`, {
+  const response = await fetch(`/api/tools/search`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

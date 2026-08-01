@@ -75,7 +75,7 @@ export default function Index() {
     setAiLoading(true);
     setAiResults([]);
     try {
-      const res = await fetch('/api/tools/ai-search', {
+      const res = await fetch('/api/tools/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query: trimmed }),
